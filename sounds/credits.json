@@ -1,0 +1,95 @@
+[
+  {
+    "slug": "tui-song-whakatane",
+    "species_common": "Tui",
+    "species_scientific": "Prosthemadera novaeseelandiae",
+    "recordist": "Ken George",
+    "location": "Whakatāne, Whakatane District, Bay of Plenty, New Zealand",
+    "date": "2026-03-24",
+    "license": "CC BY-NC-SA/4.0",
+    "source": "xeno-canto",
+    "source_url": "https://xeno-canto.org/1090728",
+    "quality": "A",
+    "seconds": 138,
+    "mood": [
+      "dawn",
+      "song",
+      "forest",
+      "joyful"
+    ]
+  },
+  {
+    "slug": "bellbird-song",
+    "species_common": "New Zealand Bellbird",
+    "species_scientific": "Anthornis melanura",
+    "recordist": "Ken George",
+    "location": "Whakatāne, Whakatane District, Bay of Plenty, New Zealand",
+    "date": "2026-03-19",
+    "license": "CC BY-NC-SA/4.0",
+    "source": "xeno-canto",
+    "source_url": "https://xeno-canto.org/1089268",
+    "quality": "A",
+    "seconds": 22,
+    "mood": [
+      "dawn",
+      "song",
+      "forest"
+    ]
+  },
+  {
+    "slug": "fantail-chatter",
+    "species_common": "New Zealand Fantail",
+    "species_scientific": "Rhipidura fuliginosa",
+    "recordist": "Frank Lambert",
+    "location": "Miranda Shorebird Center, Waikato District, Waikato, New Zealand",
+    "date": "2023-03-14",
+    "license": "CC BY-NC-ND/4.0",
+    "source": "xeno-canto",
+    "source_url": "https://xeno-canto.org/1051446",
+    "quality": "A",
+    "seconds": 22,
+    "mood": [
+      "forest",
+      "chatter"
+    ]
+  },
+  {
+    "slug": "riroriro-grey-warbler",
+    "species_common": "Riroriro / Grey Warbler (Grey Gerygone)",
+    "species_scientific": "Gerygone igata",
+    "recordist": "craig wilson",
+    "location": "Millerton Dam Walk, Buller District, West Coast, New Zealand",
+    "date": "2025-11-28",
+    "license": "CC BY/4.0",
+    "source": "xeno-canto",
+    "source_url": "https://xeno-canto.org/1060266",
+    "quality": "A",
+    "seconds": 22,
+    "mood": [
+      "song",
+      "delicate",
+      "spring",
+      "forest"
+    ]
+  },
+  {
+    "slug": "kokako-tiritiri",
+    "species_common": "Kōkako (North Island Kokako)",
+    "species_scientific": "Callaeas wilsoni",
+    "recordist": "Meena Haribal",
+    "location": "Tiritiri Matangi Island, New Zealand",
+    "date": "2024-10-10",
+    "license": "CC BY-NC-SA/4.0",
+    "source": "xeno-canto",
+    "source_url": "https://xeno-canto.org/956968",
+    "quality": "A",
+    "seconds": 183,
+    "mood": [
+      "haunting",
+      "dawn",
+      "organ",
+      "rare"
+    ],
+    "file_note": "kokako-tiritiri.m4a -- converted WAV->AAC for web"
+  }
+]
