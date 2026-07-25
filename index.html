@@ -14,6 +14,11 @@
   --cream:#efe9dd;
   --radius:18px;
   --radius-sm:6px;
+  /* ONE glass UI language -- every floating surface (arrows, place label, chip,
+     credits) uses these so nothing feels like a different component. */
+  --glass-bg:rgba(16,20,13,.66);
+  --glass-brd:rgba(255,255,255,.7);
+  --glass-blur:blur(11px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -93,6 +98,7 @@ body::after{
   transition:opacity .9s ease, filter .9s ease;
 }
 .center.show{opacity:1;filter:blur(0)}
+.center.hint{top:50%}   /* the hint sits dead center on the page */
 .arm{
   font-family:"Ubuntu Sans Mono",monospace;font-weight:500;text-align:center;
   font-size:clamp(16px,1.9vw,24px);letter-spacing:.2em;white-space:nowrap;text-transform:uppercase;
@@ -113,19 +119,20 @@ body::after{
 /* species card: a live sound-wave sitting above the credit, tight to the zone.
    no stroke -- matches the credits panel. the wave IS the bird's real voice. */
 .chip{
-  position:absolute;z-index:5;width:264px;
+  position:absolute;z-index:5;width:320px;   /* wider = fewer ugly line-wraps in the credit */
   display:flex;flex-direction:column;   /* guarantees wave-above-text, no overlap */
-  background:rgba(24,20,15,.92);color:var(--cream);
-  border-radius:var(--radius-sm);overflow:hidden;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  background:var(--glass-bg);color:var(--cream);
+  border-radius:var(--radius);overflow:hidden;   /* no stroke on cards -- only the arrows get one */
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   opacity:0;transform:translateY(4px);pointer-events:none;
   transition:opacity .55s cubic-bezier(0.83,0,0.17,1), transform .55s cubic-bezier(0.83,0,0.17,1);
 }
 .chip.on{opacity:1;transform:none;pointer-events:auto}
 .chip__wave{display:block;width:100%;height:34px;flex:0 0 34px}
-.chip__body{padding:1px 14px 15px;font-size:10.5px;line-height:1.62;letter-spacing:.06em;text-align:center}
+.chip__body{padding:3px 16px 15px;font-size:10.5px;line-height:1.66;letter-spacing:.06em;text-align:center;text-wrap:balance}
 .chip .n{font-size:12.5px;letter-spacing:.12em}
 .chip .sci{font-style:normal;opacity:.65}
+.chip .soon{opacity:.9;letter-spacing:.14em;text-transform:uppercase;font-size:9.5px}
 .chip a{color:var(--cream);opacity:.75;text-decoration:none;border-bottom:1px solid rgba(239,233,221,.35)}
 .chip a:hover{opacity:1}
 
@@ -143,44 +150,65 @@ footer{
 .foot-note{opacity:.85}
 .foot-note a{color:#fff;text-decoration:none}
 
-/* credits panel: docked inside the wall's own corner */
-.credits{
-  position:absolute;left:0;bottom:0;z-index:8;
-  width:min(430px,86%);max-height:100%;overflow:auto;
-  background:rgba(24,20,15,.94);color:var(--cream);
-  border-radius:0 var(--radius) 0 0;padding:20px 22px;
-  font-size:10.5px;line-height:1.7;letter-spacing:.05em;
-  opacity:0;transform:translateY(6px);pointer-events:none;
-  transition:opacity .5s cubic-bezier(0.83,0,0.17,1), transform .5s cubic-bezier(0.83,0,0.17,1);
+/* credits: a centered glass card in the same UI language as the chip.
+   a scrim behind it dims the wall + closes on click, so it never fights the footer. */
+.scrim{
+  position:fixed;inset:0;z-index:40;background:rgba(6,8,5,.5);
+  opacity:0;pointer-events:none;transition:opacity .45s ease;
 }
-.credits.on{opacity:1;transform:none;pointer-events:auto}
-.credits h2{font-size:11px;letter-spacing:.2em;font-weight:500;margin-bottom:10px}
-.credits p{margin-bottom:8px}
-.credits a{color:var(--cream);opacity:.75}
-.credits .lic{opacity:.55}
+.scrim.on{opacity:1;pointer-events:auto}
+.credits{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);z-index:41;
+  width:max-content;max-width:min(620px,92vw);max-height:78vh;overflow:auto;
+  background:var(--glass-bg);color:var(--cream);
+  border-radius:var(--radius);   /* no stroke -- cards read as glass, only arrows get an outline */
+  padding:24px 30px;
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:0 24px 70px rgba(0,0,0,.55);
+  font-size:11px;line-height:1.7;letter-spacing:.05em;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s cubic-bezier(0.83,0,0.17,1), transform .45s cubic-bezier(0.83,0,0.17,1);
+}
+.credits.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.credits__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.credits h2{font-size:11px;letter-spacing:.2em;font-weight:500}
+.credits__x{
+  background:none;border:0;color:var(--cream);opacity:.6;cursor:pointer;
+  font-family:inherit;font-size:14px;line-height:1;padding:4px;transition:opacity .3s;
+}
+.credits__x:hover{opacity:1}
+.credits__intro{opacity:.7;margin-bottom:16px}
+.credits__row{margin-bottom:13px}
+.credits__row .name{letter-spacing:.08em}
+.credits a{color:var(--cream);opacity:.8;border-bottom:1px solid rgba(239,233,221,.35);text-decoration:none}
+.credits a:hover{opacity:1}
+.credits .lic{opacity:.5}
 
 /* travel arrows + the current place, revealed once you're inside */
 .arrow{
   position:absolute;top:50%;transform:translateY(-50%);z-index:20;
-  width:46px;height:46px;border-radius:50%;
+  width:52px;height:52px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-family:"Ubuntu Sans Mono",monospace;font-size:24px;line-height:1;padding-bottom:3px;
-  color:#fff;background:rgba(14,18,11,.3);border:1px solid rgba(239,233,221,.35);
+  font-family:"Ubuntu Sans Mono",monospace;font-size:26px;line-height:1;padding-bottom:3px;
+  color:#fff;background:var(--glass-bg);border:1px solid var(--glass-brd);
   cursor:pointer;opacity:0;pointer-events:none;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:opacity .7s ease, background .3s, border-color .3s;
+  box-shadow:0 3px 16px rgba(0,0,0,.45);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  transition:opacity .7s ease, background .3s, border-color .3s, transform .3s;
 }
-.arrow.on{opacity:.65;pointer-events:auto}
-.arrow.on:hover{opacity:1;background:rgba(14,18,11,.5);border-color:#fff}
+.arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
+.arrow.on:hover{background:rgba(28,34,22,.8);border-color:#fff;transform:translateY(-50%) scale(1.09)}
 .arrow--prev{left:clamp(16px,2.5vw,36px)}
 .arrow--next{right:clamp(16px,2.5vw,36px)}
 .wall-place{
   position:absolute;left:50%;bottom:clamp(52px,7vh,72px);transform:translateX(-50%);z-index:20;
-  font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);opacity:0;pointer-events:none;white-space:nowrap;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);opacity:0;pointer-events:none;white-space:nowrap;
+  background:var(--glass-bg);padding:9px 20px;border-radius:999px;
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   transition:opacity .6s ease;
 }
-.wall-place.on{opacity:.75}
+.wall-place.on{opacity:1}
 
 /* placer mode */
 .placer-help{
@@ -191,7 +219,7 @@ footer{
 
 @media (max-width:760px){
   .brand{max-width:70vw}
-  .chip{width:min(264px,84vw)}
+  .chip{width:min(320px,88vw)}
 }
 </style>
 </head>
@@ -220,9 +248,11 @@ footer{
       <canvas class="chip__wave" id="chipWave"></canvas>
       <div class="chip__body" id="chipBody"></div>
     </div>
-    <div class="credits" id="creditsPanel"></div>
   </figure>
 </main>
+
+<div class="scrim" id="scrim"></div>
+<div class="credits" id="creditsPanel"></div>
 
 <footer>
   <nav class="tucked">
@@ -282,7 +312,7 @@ const HAWAII_CAST = [
    file:'sounds/hawaii-apapane.mp3', rec:'Bobby Wilcox',
    loc:'Alakaʻi Swamp, Kauaʻi', lic:'CC BY-NC-SA 4.0',
    xc:'https://xeno-canto.org/864171', x:.55, y:.24, r:.08,
-   wave:{style:'line', col:'#e8506a', gain:1.0, bars:64}},        /* crimson, varied */
+   wave:{style:'line', col:'#dc4f88', gain:1.0, bars:64}},        /* rose-crimson -- set apart from the ʻiʻiwi scarlet */
   {id:'amakihi', label:'ʻamakihi', en:'Hawaiʻi ʻamakihi', sci:'Chlorodrepanis virens',
    file:'sounds/hawaii-amakihi.mp3', rec:'Daniel Lane',
    loc:'Mauna Kea, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
@@ -294,18 +324,66 @@ const HAWAII_CAST = [
    xc:'https://xeno-canto.org/27341', x:.5, y:.77, r:.09,
    wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
 ];
+/* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
+   xeno-canto recordings; orca + cougar are mammals (not on xeno-canto) so they show
+   a name + chip now and Ivy sources the audio (soon:true = "voice coming soon"). */
+const VANCOUVER_CAST = [
+  {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca', soon:true,
+   loc:'Salish Sea, Vancouver Island', src:'Orcasound / NOAA',
+   x:.50, y:.60, r:.11, wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
+  {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor', soon:true,
+   loc:'Vancouver Island', src:'Freesound / NPS',
+   x:.22, y:.34, r:.09, wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
+  {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
+   file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
+   loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/706924', x:.74, y:.30, r:.07,
+   wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
+  {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
+   file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
+   loc:'Vancouver, British Columbia', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/770780', x:.82, y:.68, r:.08,
+   wave:{style:'fill', col:'#c8a2ff', gain:1.0, bars:60}},      /* eerie single-note flute */
+];
+/* Congo Basin -- all real xeno-canto recordings. NOTE: clean DR-Congo recordings are
+   scarce, so these are Congo Basin species recorded across the equatorial forest belt
+   (Uganda/Gabon/Cameroon). Locations are shown honestly in the credits. */
+const CONGO_CAST = [
+  {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
+   file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
+   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1053186', x:.30, y:.42, r:.09,
+   wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
+  {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
+   file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
+   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1052480', x:.60, y:.24, r:.09,
+   wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
+  {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
+   file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
+   loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1133116', x:.78, y:.55, r:.09,
+   wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
+  {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
+   file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
+   loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/986099', x:.42, y:.73, r:.08,
+   wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
+];
 
 /* each wall: a place, its image, its voices, and a place-name gradient pulled
    from that ecosystem's own colors (no green -- green is everywhere, goes rainbow) */
+/* order matters: keep the two GREEN walls (Aotearoa + Vancouver) apart so the
+   travel feels like real distance, not two forests in a row. Congo breaks them up. */
 const WALLS = [
   { id:'hawaii',    place:'Hawaiʻi',         img:'images/hawaii.jpg',    cast:HAWAII_CAST,   /* opens here -- most impact */
     grad:'linear-gradient(100deg,#ff5a7e,#ff8a5c,#f2a24a,#e070b8)' },
-  { id:'nz',        place:'Aotearoa',        img:'images/nz.jpg',        cast:NZ_CAST,
+  { id:'nz',        place:'Aotearoa',        img:'images/nz.jpg',        cast:NZ_CAST,       /* green */
     grad:'linear-gradient(100deg,#f2ecb0,#d7e18e,#aecb7a,#e8dfa8)' },
-  { id:'vancouver', place:'Vancouver Island',img:'images/vancouver.jpg', cast:[],
-    grad:'linear-gradient(100deg,#c9a8e0,#8fb36a,#e0c06a,#b98ad0)' },
-  { id:'congo',     place:'Congo',           img:'images/congo.jpg',     cast:[],
+  { id:'congo',     place:'Congo Basin',     img:'images/congo.jpg',     cast:CONGO_CAST,     /* red/tropical -- separates the greens */
     grad:'linear-gradient(100deg,#ff6a5a,#ff9a4a,#e07a5a,#ffb07a)' },
+  { id:'vancouver', place:'Vancouver Island',img:'images/vancouver.jpg', cast:VANCOUVER_CAST, /* green */
+    grad:'linear-gradient(100deg,#c9a8e0,#8fb36a,#e0c06a,#b98ad0)' },
 ];
 let cur = 0;
 let CAST = WALLS[cur].cast;                 /* the active wall's voices (reassigned on travel) */
@@ -380,9 +458,9 @@ function buildVoices(){
     });
     z.el = el;
     if (!placing){
-      el.addEventListener('pointerenter', () => activate(z));
-      el.addEventListener('pointerleave', () => { if (active===z) deactivate(); });
-      el.addEventListener('pointerdown', () => activate(z));   /* touch */
+      el.addEventListener('pointerenter', () => { cancelClose(); activate(z); });
+      el.addEventListener('pointerleave', () => { if (active===z) scheduleClose(); });  /* delay so you can reach the card */
+      el.addEventListener('pointerdown', () => { cancelClose(); activate(z); });   /* touch */
     } else {
       el.style.cursor = 'grab';
       el.addEventListener('pointerdown', e => { placerHeld = z; el.setPointerCapture(e.pointerId); });
@@ -426,7 +504,8 @@ precision highp float;
 varying vec2 vUv;
 uniform sampler2D uTex;
 uniform vec2 uCanvas, uImg, uZone;   /* uZone in canvas uv */
-uniform float uActive, uTime;        /* uActive = overall level; rings are emitted by time */
+uniform float uActive, uTime, uBurst;  /* uActive = level; uBurst = t when the current ring was born */
+uniform float uPull;                   /* signed travel pull: + slides/blurs right, - left */
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){
   vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
@@ -438,26 +517,41 @@ void main(){
   vec2 s = ca > ia ? vec2(1., ia/ca) : vec2(ca/ia, 1.);
   vec2 uvImg = (vUv-.5)*s+.5;
 
-  /* a calm pond: rings born from dead center one at a time, each growing + fading */
+  /* ONE clean ring per burst: born at uBurst, swells from center, expands out
+     and fades. No periodic re-emission, so nothing ever gets caught half-born at
+     the center (that was the leftover "indent" at the end of a burst). */
   vec2 rel = (vUv-uZone)*vec2(ca,1.);
   float d = length(rel);
-  float period = 1.35;                 /* seconds between each new ring */
+  float age = uTime - uBurst;
   float w = 0.0;
-  for (int k=0; k<4; k++){
-    float ringId = floor(uTime/period) - float(k);
-    float birth = ringId * period;
-    float age = uTime - birth;
-    float sp = 0.29 + hash(vec2(ringId, 9.0))*0.09;           /* slight per-ring speed = organic, not metronomic */
+  if (age > 0.0){
+    float sp = 0.26;                                          /* expansion speed */
     float r = age * sp;
-    float amp = exp(-age*0.7) * smoothstep(0.0, 0.22, age);   /* swells from center, fades as it spreads */
-    w += exp(-pow((d - r)/0.05, 2.0)) * amp;
+    float amp = exp(-age*0.9) * smoothstep(0.0, 0.14, age);   /* swell in, fade as it spreads */
+    w = exp(-pow((d - r)/0.055, 2.0)) * amp;
   }
   w *= uActive;
 
   float n = noise(vUv*70. + uTime*1.2);
   vec2 dir = rel/max(d,1e-4);
-  vec2 off = dir * w * (0.020 + 0.006*n);          /* push outward along the wave */
-  vec3 c = texture2D(uTex, uvImg + off*s).rgb;
+  vec2 off = dir * w * (0.020 + 0.006*n);          /* ripple: push outward along the wave */
+  vec2 baseUv = uvImg + off*s;
+
+  /* directional travel pull: slide + horizontal motion-blur toward the arrow pressed */
+  vec3 c;
+  float ap = abs(uPull);
+  if (ap > 0.001){
+    vec2 shift = vec2(uPull, 0.0) * s;
+    vec3 acc = vec3(0.0);
+    for (int i=0;i<8;i++){
+      float f = (float(i)/7.0 - 0.5) * ap * 0.5;   /* blur length grows with the pull */
+      acc += texture2D(uTex, baseUv + shift + vec2(f,0.0)*s).rgb;
+    }
+    c = acc * 0.125;
+    c *= 1.0 - ap*0.35;                             /* darken as the scene pulls away */
+  } else {
+    c = texture2D(uTex, baseUv).rgb;
+  }
   c *= 1.0 + w*0.18;                               /* light lifts on the crest */
 
   /* settle the wall onto the darker oatmeal */
@@ -483,7 +577,7 @@ function initGL(){
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(pr,'p');
   gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  ['uTex','uCanvas','uImg','uZone','uActive','uTime'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
+  ['uTex','uCanvas','uImg','uZone','uActive','uTime','uBurst','uPull'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
   wallTex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, wallTex);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
@@ -524,9 +618,11 @@ function uploadTex(source){
 let actx=null, armed=false;
 const chains = {};   /* zone.id -> {el, gain, analyser, panner} */
 function chain(z){
+  if (!z.file) return null;                 /* "coming soon" voices have no audio yet */
   if (chains[z.id]) return chains[z.id];
   const el = new Audio(z.file);
   el.preload = 'auto';
+  el.loop = true;    /* keep the voice (and its live waveform) alive as long as you hover */
   const src = actx.createMediaElementSource(el);
   const hp = actx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 90;
   const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 12000;  /* tame click energy */
@@ -553,20 +649,23 @@ function stepFlight(){
 /* ═══════════ the intro: a living preloader ═══════════
    the pond ripples continuously from center while you wait (drawing you in),
    swells as you click, then settles. click anywhere → the place → the names wake. */
-let rippleLevel = 0, rippleEnd = 0;   /* rippleEnd = t until which rings emit (a finite burst) */
-function rippleBurst(dur = 3.0){ rippleEnd = t + dur; }   /* just a few rings, then still */
+let rippleLevel = 0, rippleEnd = 0, rippleStart = -999;   /* rippleStart = t the ring was born */
+function rippleBurst(dur = 2.6){ rippleStart = t; rippleEnd = t + dur; }   /* one ring, then still */
+/* arrow-travel pull (separate from the ripple): the scene slides + blurs toward the arrow */
+let pull = 0, travelPhase = null, travelT = 0, pullDir = 0;
+const PULL_MAX = 0.42, OUT_DUR = 0.38, IN_DUR = 0.55;
 const center = document.getElementById('center');
 const armSub = document.getElementById('armSub');
 let introPhase = 'ripple';        /* ripple → wait → entering → place → done */
 
-/* on load: a few rings settle, THEN the invitation dissolves in */
+/* on load: a beat to SEE the wall, one clean ring, THEN the invitation dissolves in */
 function beginIntro(){
-  rippleBurst();
+  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 850);
   setTimeout(() => {
     if (introPhase !== 'ripple') return;
     introPhase = 'wait';
     center.classList.add('show');    /* "this is a sound experience" fades in */
-  }, 2900);
+  }, 2600);
 }
 
 async function arm(){
@@ -576,25 +675,28 @@ async function arm(){
   armed = true; introPhase = 'entering';
   CAST.forEach(z => chain(z));                    /* start buffering */
   center.classList.remove('show');                /* the invitation dissolves out */
-  rippleBurst(2.4);                               /* a couple rings carry you in */
-  /* ample space, THEN the place + its instruction dissolve in together, as one family */
+  rippleBurst(2.4);                               /* one ring carries you in */
   setTimeout(() => {
-    document.documentElement.style.setProperty('--place-grad', wall().grad);
-    armBtn.textContent = wall().place;
-    armBtn.classList.add('place');
-    armSub.textContent = wall().cast.length ? 'hover a name to listen' : '';
+    /* no place name in the center -- the bottom "Hawaiʻi · 1/4" label does that work.
+       just the hint, nudged up a touch, gone the moment you move. */
+    armBtn.style.display = 'none';
+    armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
+    center.classList.add('hint');
     center.classList.add('show');
     introPhase = 'place';
     revealTravel();                               /* arrows + place label appear */
-    /* the place lands first, THEN the names fade in -- clean, focused */
     if (wall().cast.length){
-      setTimeout(() => voicesLayer.classList.add('show'), 900);
+      setTimeout(() => voicesLayer.classList.add('show'), 800);
     } else {                                       /* no names -> finish so arrows work */
       setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; }, 2600);
     }
-  }, 2100);
+  }, 1900);
 }
 frame.addEventListener('pointerdown', () => { if (!placing) arm(); });
+/* the hint clears the moment you move -- then it's just you and the wall */
+frame.addEventListener('pointermove', () => {
+  if (introPhase === 'place'){ center.classList.remove('show'); introPhase = 'done'; }
+});
 
 /* ═══════════ travel between walls ═══════════ */
 const arrowPrev = document.getElementById('arrowPrev');
@@ -609,18 +711,23 @@ function revealTravel(){
 }
 /* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
 function loadWall(idx, done){
-  cur = (idx + WALLS.length) % WALLS.length;
-  CAST = wall().cast;
-  const im = new Image();
-  im.onload = im.onerror = () => {
-    imgW = im.naturalWidth || 16; imgH = im.naturalHeight || 9;
-    pendingTex = im;            /* upload inside the render loop (uploading here doesn't always take) */
-    img.src = im.src;           /* keep the <img> fallback in sync */
+  const nextIdx = (idx + WALLS.length) % WALLS.length;
+  /* ROOT FIX: do NOT swap CAST/cur until the new wall's names are built. If CAST
+     points at a wall whose voices have no letters yet (during the image load gap),
+     the render loop throws in stepLetters and DIES -- freezing the texture on Hawaii
+     and killing every animation. Commit everything atomically inside finish.
+     Also reuse the same DOM <img> the initial (working) upload samples. */
+  const finish = () => {
+    cur = nextIdx; CAST = WALLS[cur].cast;      /* commit the wall + its voices together */
+    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
+    pendingTex = img;                            /* consumed inside the render loop */
     buildVoices(); positionVoices(); buildCredits();
     updatePlaceLabel();
     if (done) done();
   };
-  im.src = wall().img;
+  img.onload  = () => { img.decode ? img.decode().then(finish).catch(finish) : finish(); };
+  img.onerror = finish;
+  img.src = WALLS[nextIdx].img;                  /* load the next wall directly, not via cur */
 }
 function goToWall(dir){
   if (traveling || (introPhase !== 'done' && introPhase !== 'place')) return;
@@ -628,20 +735,21 @@ function goToWall(dir){
   deactivate();
   voicesLayer.classList.remove('show');           /* names dissolve out */
   wallPlaceEl.classList.remove('on');
-  glc.style.transition = 'opacity .6s ease'; glc.style.opacity = '0.12';                 /* wall dims */
-  rippleBurst(3.2);
+  center.classList.remove('show');
+  /* the ripple is the landing preloader only -- travel uses a directional pull-blur */
+  pullDir = dir; travelPhase = reduced ? null : 'out'; travelT = 0;
   setTimeout(() => {
     loadWall(cur + dir, () => {
-      glc.style.opacity = '1';                                                            /* new wall rises */
-      // the new place name dissolves in, in its own colors, then the names follow
-      document.documentElement.style.setProperty('--place-grad', wall().grad);
-      armBtn.textContent = wall().place; armBtn.classList.add('place');
-      armSub.textContent = wall().cast.length ? 'hover a name to listen' : '';
-      introPhase = 'place'; center.classList.add('show');
-      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 1000);  /* place first, then names */
-      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; revealTravel(); traveling = false; }, 2600);
+      if (armed) wall().cast.forEach(z => chain(z));    /* pre-buffer so the wave is live on first hover */
+      travelPhase = reduced ? null : 'in'; travelT = 0; /* the next wall slides in from the other side */
+      armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
+      center.classList.add('hint'); center.classList.add('show');
+      introPhase = 'place';
+      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 600);
+      setTimeout(() => revealTravel(), 700);            /* place pill + arrows back */
+      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; traveling = false; travelPhase = null; pull = 0; }, 1300);
     });
-  }, 650);
+  }, reduced ? 0 : OUT_DUR*1000);
 }
 arrowPrev.addEventListener('click', () => goToWall(-1));
 arrowNext.addEventListener('click', () => goToWall(1));
@@ -658,9 +766,12 @@ function activate(z){
   z.letters.forEach(s => { s._vx += (Math.random()-.5)*5; s._vy += (Math.random()-.5)*5; });
   const c = chain(z);
   clearTimeout(fadeTimer);
-  c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
-  c.el.play().catch(()=>{});
-  c.gain.gain.setTargetAtTime(1, actx.currentTime, 0.15);
+  if (c){                                 /* real recording -- play it (soon voices skip audio) */
+    if (actx.state === 'suspended') actx.resume();   /* in case it lapsed after travel */
+    c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
+    c.el.play().catch(()=>{});
+    c.gain.gain.setTargetAtTime(1, actx.currentTime, 0.15);
+  }
   showChip(z);
 }
 function quiet(z){
@@ -674,17 +785,27 @@ function deactivate(){
   quiet(active); active = null;
   chip.classList.remove('on');
 }
+/* a short grace period on leave so you can travel from the name onto the card
+   (to click the xeno-canto link) without it vanishing under your cursor */
+let closeTimer = null;
+function scheduleClose(){ clearTimeout(closeTimer); closeTimer = setTimeout(deactivate, 280); }
+function cancelClose(){ clearTimeout(closeTimer); }
+chip.addEventListener('pointerenter', cancelClose);
+chip.addEventListener('pointerleave', scheduleClose);
 
 function showChip(z){
   const p = zonePx(z);
   /* the word on the wall is the name -- the card just adds the proof */
-  chipBody.innerHTML =
-    `<span class="sci">${z.en} ✺ ${z.sci}</span><br>` +
-    `rec. ${z.rec} ✺ ${z.loc}<br>` +
-    `<a href="${z.xc}" target="_blank" rel="noopener">xeno-canto ↗</a> <span class="sci">${z.lic}</span>`;
-  waveC.width = 264*DPR; waveC.height = 34*DPR;
+  chipBody.innerHTML = z.soon
+    ? `<span class="sci">${z.en}${z.sci ? ' ✺ '+z.sci : ''}</span><br>` +
+      `<span class="soon">voice coming soon</span><br>` +
+      `<span class="sci">${z.loc || ''}</span>`
+    : `<span class="sci">${z.en} ✺ ${z.sci}</span><br>` +
+      `rec. ${z.rec} ✺ ${z.loc}<br>` +
+      `<a href="${z.xc}" target="_blank" rel="noopener">xeno-canto ↗</a> <span class="sci">${z.lic}</span>`;
+  waveC.width = 320*DPR; waveC.height = 34*DPR;
   /* dock the card right under the name -- tight to it */
-  const cw = 264, gap = 4, cardH = chip.offsetHeight || 96;
+  const cw = 320, gap = 4, cardH = chip.offsetHeight || 96;
   const below = p.y + 20 + gap;
   const top = (below + cardH < H - 10) ? below : (p.y - 20 - gap - cardH);
   chip.style.left = Math.min(Math.max(p.x - cw/2, 10), W - cw - 10) + 'px';
@@ -699,6 +820,7 @@ function stepLetters(){
   const c = active && chains[active.id] ? chains[active.id] : null;
   if (c) c.analyser.getByteTimeDomainData(c.td);
   for (const z of CAST){
+    if (!z.letters) continue;   /* names still building mid-travel -- skip until ready */
     const on = (z === active);
     const n = z.letters.length;
     z.letters.forEach((s, i) => {
@@ -741,6 +863,17 @@ function drawWave(){
   if (!active) return;
   const sig = active.wave;
   const c = chains[active.id];
+  if (!c){   /* "coming soon" voice -- a gentle breathing pulse in its color so the card lives */
+    wctx.save();
+    wctx.strokeStyle = sig.col; wctx.globalAlpha = .5; wctx.lineWidth = 2*DPR; wctx.lineJoin = 'round';
+    wctx.beginPath();
+    for (let x=0;x<=w;x+=2){
+      const y = mid + Math.sin(x/w*12.56 + t*2) * mid*0.26 * (0.5+0.5*Math.sin(t*1.2));
+      x ? wctx.lineTo(x,y) : wctx.moveTo(x,y);
+    }
+    wctx.stroke(); wctx.restore();
+    return;
+  }
   c.analyser.getByteTimeDomainData(c.td);
 
   const N = sig.bars;
@@ -832,29 +965,49 @@ function drawPlacer(){
 /* ═══════════ main loop ═══════════ */
 let t=0;
 function loop(){
-  t += 1/60;
-  activeAmt = lerp(activeAmt, active ? 1 : 0, 0.08);
+  /* the whole body is guarded: a single bad frame must NEVER kill the loop, or
+     the wall freezes + waveforms + letter physics all die at once (the travel bug). */
+  try{
+    t += 1/60;
+    activeAmt = lerp(activeAmt, active ? 1 : 0, 0.08);
 
-  /* ripple level: gentle continuous rings while waiting, swells as you enter, off after */
-  /* a FEW rings, then it settles (a burst, not an endless loop) */
-  const rTarget = (t < rippleEnd && !reduced) ? 0.72 : 0;
-  rippleLevel = lerp(rippleLevel, rTarget, 0.05);
+    /* one clean ring per burst, then it settles */
+    const rTarget = (t < rippleEnd && !reduced) ? 0.9 : 0;
+    rippleLevel = lerp(rippleLevel, rTarget, 0.14);
 
-  if (pendingTex && gl){ uploadTex(pendingTex); pendingTex = null; }
-  if (glOK){
-    gl.viewport(0,0,glc.width,glc.height);
-    gl.uniform2f(uni.uCanvas, W, H);
-    gl.uniform2f(uni.uImg, imgW, imgH);
-    gl.uniform2f(uni.uZone, 0.5, 0.5);
-    gl.uniform1f(uni.uActive, reduced ? 0 : rippleLevel);
-    gl.uniform1f(uni.uTime, t);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    /* directional travel pull -- out (scene leaves toward the arrow), then in (next slides from the other side) */
+    if (travelPhase === 'out'){
+      travelT += 1/60;
+      const k = Math.min(1, travelT/OUT_DUR); const e = k*k*(3-2*k);
+      pull = pullDir * e * PULL_MAX;
+    } else if (travelPhase === 'in'){
+      travelT += 1/60;
+      const k = Math.min(1, travelT/IN_DUR); const e = k*k*(3-2*k);
+      pull = -pullDir * (1-e) * PULL_MAX;
+    } else if (pull !== 0){
+      pull = Math.abs(pull) < 0.002 ? 0 : lerp(pull, 0, 0.25);
+    }
+
+    if (pendingTex && gl){ uploadTex(pendingTex); pendingTex = null; }
+    if (glOK){
+      gl.viewport(0,0,glc.width,glc.height);
+      gl.uniform2f(uni.uCanvas, W, H);
+      gl.uniform2f(uni.uImg, imgW, imgH);
+      gl.uniform2f(uni.uZone, 0.5, 0.5);
+      gl.uniform1f(uni.uActive, reduced ? 0 : rippleLevel);
+      gl.uniform1f(uni.uTime, t);
+      gl.uniform1f(uni.uBurst, rippleStart);
+      gl.uniform1f(uni.uPull, reduced ? 0 : pull);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    drawWave();
+    stepLetters();
+    stepFlight();
+    drawPlacer();
+  }catch(e){
+    if (!window.__pbErr){ window.__pbErr = String((e && e.stack) || e); console.error('[PB] loop threw:', e); }
   }
-  drawWave();
-  stepLetters();
-  stepFlight();
-  drawPlacer();
-  requestAnimationFrame(loop);
+  requestAnimationFrame(loop);   /* always reschedule, no matter what */
 }
 
 function start(){
@@ -871,24 +1024,30 @@ window.addEventListener('resize', sizeAll);
 /* credits panel: the contract, rendered per wall */
 const panel = document.getElementById('creditsPanel');
 function buildCredits(){
+  const head = '<div class="credits__head"><h2>SOUND CREDITS ✺ ALL REAL</h2><button class="credits__x" aria-label="Close">✕</button></div>';
   if (!CAST.length){
-    panel.innerHTML = '<h2>SOUND CREDITS ✺ ' + wall().place.toUpperCase() + '</h2><p>Voices for this wall are being sourced now, all real field recordings, fully credited.</p>';
+    panel.innerHTML = head +
+      '<p class="credits__intro">Voices for ' + wall().place + ' are being sourced now.</p>';
     return;
   }
-  panel.innerHTML = '<h2>SOUND CREDITS ✺ ALL RECORDINGS REAL</h2>' + CAST.map(z =>
-    `<p>${z.label} ✺ ${z.en} ✺ <em class="sci">${z.sci}</em><br>` +
-    `recorded by ${z.rec}, ${z.loc}<br>` +
-    `<a href="${z.xc}" target="_blank" rel="noopener">${z.xc.replace('https://','')}</a> <span class="lic">${z.lic}</span></p>`
-  ).join('');
+  /* trimmed: the chip already gives species + scientific name on hover, so the
+     list just carries the essential credit -- who, where, source, license. */
+  panel.innerHTML = head +
+    CAST.map(z => z.soon
+      ? `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc||''}</span><br>` +
+        `<span class="lic">voice coming soon${z.src ? ' ✺ '+z.src : ''}</span></p>`
+      : `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc}</span><br>` +
+        `rec. ${z.rec} ✺ <a href="${z.xc}" target="_blank" rel="noopener">xeno-canto ↗</a> <span class="lic">${z.lic}</span></p>`
+    ).join('');
 }
 buildCredits();
 const creditsToggle = document.getElementById('creditsToggle');
-creditsToggle.addEventListener('click', () => panel.classList.toggle('on'));
-/* click anywhere else closes the panel */
-document.addEventListener('pointerdown', e => {
-  if (panel.classList.contains('on') && !panel.contains(e.target) && e.target !== creditsToggle)
-    panel.classList.remove('on');
-});
+const scrim = document.getElementById('scrim');
+function openCredits(){ panel.classList.add('on'); scrim.classList.add('on'); }
+function closeCredits(){ panel.classList.remove('on'); scrim.classList.remove('on'); }
+creditsToggle.addEventListener('click', () => panel.classList.contains('on') ? closeCredits() : openCredits());
+scrim.addEventListener('click', closeCredits);
+panel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeCredits(); });
 
 /* contact = copy the email, same move as the portfolio */
 const contactCopy = document.getElementById('contactCopy');
