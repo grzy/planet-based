@@ -32,6 +32,7 @@ body{
 }
 @keyframes pageIn{to{opacity:1}}
 @keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{to{opacity:1}}   /* opacity only -- the wall must never shift position */
 
 body::after{
   content:"";position:fixed;inset:-50%;z-index:50;pointer-events:none;
@@ -55,7 +56,7 @@ body::after{
 .stage{display:contents}
 .wall-frame{
   position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;
-  opacity:0;animation:riseIn 1.4s cubic-bezier(0.83,0,0.17,1) .4s forwards;
+  opacity:0;animation:fadeIn 1.4s cubic-bezier(0.83,0,0.17,1) .4s forwards;
 }
 .wall-frame > img, .wall-frame > canvas{   /* only the background layers, not the card's wave */
   position:absolute;inset:0;width:100%;height:100%;display:block;
@@ -70,6 +71,7 @@ body::after{
    blend and light up in their own voice's color, letters spreading + moving. */
 .voices{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
 .voices.show{opacity:1}
+.voices.leaving{opacity:0;transition:opacity .3s ease}   /* fast fade on travel -- no lingering labels */
 .voice{
   position:absolute;transform:translate(-50%,-50%);
   font-family:"Ubuntu Sans Mono",monospace;font-weight:400;
@@ -95,13 +97,13 @@ body::after{
   display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;
   pointer-events:none;
   opacity:0;filter:blur(2px);
-  transition:opacity .9s ease, filter .9s ease;
+  transition:opacity 1.1s ease, filter 1.1s ease;
 }
 .center.show{opacity:1;filter:blur(0)}
 .center.hint{top:50%}   /* the hint sits dead center on the page */
 .arm{
   font-family:"Ubuntu Sans Mono",monospace;font-weight:500;text-align:center;
-  font-size:clamp(16px,1.9vw,24px);letter-spacing:.2em;white-space:nowrap;text-transform:uppercase;
+  font-size:clamp(21px,2.7vw,33px);letter-spacing:.18em;white-space:nowrap;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 5px rgba(8,10,6,.6);
   background:none;border:0;padding:0;
 }
@@ -112,14 +114,14 @@ body::after{
   font-size:clamp(22px,2.8vw,36px);
 }
 .arm-sub{
-  font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:clamp(13px,1.25vw,16px);letter-spacing:.14em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
 
 /* species card: a live sound-wave sitting above the credit, tight to the zone.
    no stroke -- matches the credits panel. the wave IS the bird's real voice. */
 .chip{
-  position:absolute;z-index:5;width:320px;   /* wider = fewer ugly line-wraps in the credit */
+  position:absolute;z-index:5;width:300px;   /* wide enough to avoid widows, tight enough to space cleanly */
   display:flex;flex-direction:column;   /* guarantees wave-above-text, no overlap */
   background:var(--glass-bg);color:var(--cream);
   border-radius:var(--radius);overflow:hidden;   /* no stroke on cards -- only the arrows get one */
@@ -219,7 +221,7 @@ footer{
 
 @media (max-width:760px){
   .brand{max-width:70vw}
-  .chip{width:min(320px,88vw)}
+  .chip{width:min(300px,88vw)}
 }
 </style>
 </head>
@@ -278,27 +280,27 @@ const NZ_CAST = [
   {id:'tui', label:'tūī', en:'tūī', sci:'Prosthemadera novaeseelandiae',
    file:'sounds/tui-song-whakatane.mp3', rec:'Ken George', start:1.5,  /* skip the quiet intro */
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1090728', x:.30, y:.42, r:.09,
+   xc:'https://xeno-canto.org/1090728', x:.28, y:.38, r:.09,
    wave:{style:'bars', col:'#e8a24a', gain:1.15, bars:34}},      /* warm confident bars */
   {id:'bellbird', label:'korimako', en:'NZ bellbird', sci:'Anthornis melanura',
    file:'sounds/bellbird-song.mp3', rec:'Ken George',
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089268', x:.52, y:.20, r:.08,
+   xc:'https://xeno-canto.org/1089268', x:.50, y:.18, r:.08,
    wave:{style:'line', col:'#4fd6c4', gain:1.0, bars:64}},       /* bright chiming line */
   {id:'riroriro', label:'riroriro', en:'grey warbler', sci:'Gerygone igata',
    file:'sounds/riroriro-grey-warbler.mp3', rec:'craig wilson',
    loc:'Millerton, West Coast, Aotearoa New Zealand', lic:'CC BY 4.0',
-   xc:'https://xeno-canto.org/1060266', x:.44, y:.73, r:.08,
+   xc:'https://xeno-canto.org/1060266', x:.40, y:.64, r:.08,
    wave:{style:'line', col:'#cfe08a', gain:0.8, bars:96}},       /* delicate rapid trill */
   {id:'fantail', label:'pīwakawaka', en:'fantail', sci:'Rhipidura fuliginosa',
    file:'sounds/fantail-chatter.mp3', rec:'Ken George',
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089267', x:.87, y:.34, r:.08,
+   xc:'https://xeno-canto.org/1089267', x:.72, y:.30, r:.08,
    wave:{style:'bars', col:'#e87a9b', gain:1.3, bars:48}},       /* erratic flitting bars */
   {id:'kokako', label:'kōkako', en:'kōkako', sci:'Callaeas wilsoni',
    file:'sounds/kokako-tiritiri.m4a', rec:'Meena Haribal',
    loc:'Tiritiri Matangi Island, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/956968', x:.80, y:.78, r:.09,
+   xc:'https://xeno-canto.org/956968', x:.74, y:.60, r:.09,
    wave:{style:'fill', col:'#a58cff', gain:1.1, bars:56}},       /* slow deep organ fill */
 ];
 /* Hawaiʻi -- native forest voices (all real xeno-canto, credited) */
@@ -306,43 +308,45 @@ const HAWAII_CAST = [
   {id:'iiwi', label:'ʻiʻiwi', en:'ʻiʻiwi', sci:'Drepanis coccinea',
    file:'sounds/hawaii-iiwi.mp3', rec:'Viral Joshi',
    loc:'Hilo, Hawaiʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/794970', x:.30, y:.45, r:.09,
+   xc:'https://xeno-canto.org/794970', x:.24, y:.62, r:.09,
    wave:{style:'bars', col:'#ff4d63', gain:1.2, bars:40}},        /* scarlet, liquid */
   {id:'apapane', label:'ʻapapane', en:'ʻapapane', sci:'Himatione sanguinea',
    file:'sounds/hawaii-apapane.mp3', rec:'Bobby Wilcox',
    loc:'Alakaʻi Swamp, Kauaʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/864171', x:.55, y:.24, r:.08,
+   xc:'https://xeno-canto.org/864171', x:.47, y:.13, r:.08,
    wave:{style:'line', col:'#dc4f88', gain:1.0, bars:64}},        /* rose-crimson -- set apart from the ʻiʻiwi scarlet */
   {id:'amakihi', label:'ʻamakihi', en:'Hawaiʻi ʻamakihi', sci:'Chlorodrepanis virens',
    file:'sounds/hawaii-amakihi.mp3', rec:'Daniel Lane',
    loc:'Mauna Kea, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27323', x:.76, y:.55, r:.08,
+   xc:'https://xeno-canto.org/27323', x:.24, y:.34, r:.08,
    wave:{style:'line', col:'#b4d85e', gain:0.95, bars:72}},       /* green, bright trill */
   {id:'omao', label:'ʻōmaʻo', en:'Hawaiian thrush', sci:'Myadestes obscurus',
    file:'sounds/hawaii-omao.mp3', rec:'Daniel Lane',
    loc:'Volcano, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27341', x:.5, y:.77, r:.09,
+   xc:'https://xeno-canto.org/27341', x:.74, y:.58, r:.09,
    wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
 ];
 /* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
    xeno-canto recordings; orca + cougar are mammals (not on xeno-canto) so they show
    a name + chip now and Ivy sources the audio (soon:true = "voice coming soon"). */
 const VANCOUVER_CAST = [
-  {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca', soon:true,
-   loc:'Salish Sea, Vancouver Island', src:'Orcasound / NOAA',
-   x:.50, y:.60, r:.11, wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
+  {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
+   file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
+   loc:'Salish Sea', lic:'CC0',
+   xc:'https://live.orcasound.net', x:.66, y:.48, r:.11,
+   wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
   {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor', soon:true,
    loc:'Vancouver Island', src:'Freesound / NPS',
-   x:.22, y:.34, r:.09, wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
+   x:.44, y:.66, r:.09, wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
   {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
    file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
    loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/706924', x:.74, y:.30, r:.07,
+   xc:'https://xeno-canto.org/706924', x:.20, y:.56, r:.07,
    wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
   {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
    file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
    loc:'Vancouver, British Columbia', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/770780', x:.82, y:.68, r:.08,
+   xc:'https://xeno-canto.org/770780', x:.74, y:.70, r:.08,
    wave:{style:'fill', col:'#c8a2ff', gain:1.0, bars:60}},      /* eerie single-note flute */
 ];
 /* Congo Basin -- all real xeno-canto recordings. NOTE: clean DR-Congo recordings are
@@ -352,22 +356,22 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.30, y:.42, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.30, y:.34, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.60, y:.24, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.50, y:.18, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
    loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1133116', x:.78, y:.55, r:.09,
+   xc:'https://xeno-canto.org/1133116', x:.74, y:.56, r:.09,
    wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.42, y:.73, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.46, y:.60, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
@@ -392,7 +396,7 @@ const wall = () => WALLS[cur];
 /* her ?place placements are saved per wall */
 function applySavedZones(w){
   try{
-    const saved = JSON.parse(localStorage.getItem('pb-zones-' + w.id) || 'null');
+    const saved = JSON.parse(localStorage.getItem('pb-zones-v2-' + w.id) || 'null');
     if (saved) w.cast.forEach(z => { const s = saved[z.id]; if (s) Object.assign(z, s); });
   }catch(e){}
 }
@@ -502,10 +506,11 @@ const VERT = `attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;vUv.y=1.
 const FRAG = `
 precision highp float;
 varying vec2 vUv;
-uniform sampler2D uTex;
+uniform sampler2D uTex;      /* current wall */
+uniform sampler2D uTexNext;  /* incoming wall during a travel wipe */
 uniform vec2 uCanvas, uImg, uZone;   /* uZone in canvas uv */
 uniform float uActive, uTime, uBurst;  /* uActive = level; uBurst = t when the current ring was born */
-uniform float uPull;                   /* signed travel pull: + slides/blurs right, - left */
+uniform float uWipe, uWipeDir;         /* travel: 0..1 sweep progress; +1 next (reveal from right), -1 prev (from left) */
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){
   vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
@@ -535,22 +540,21 @@ void main(){
   float n = noise(vUv*70. + uTime*1.2);
   vec2 dir = rel/max(d,1e-4);
   vec2 off = dir * w * (0.020 + 0.006*n);          /* ripple: push outward along the wave */
-  vec2 baseUv = uvImg + off*s;
+  vec2 sampUv = uvImg + off*s;
+  vec3 c = texture2D(uTex, sampUv).rgb;
 
-  /* directional travel pull: slide + horizontal motion-blur toward the arrow pressed */
-  vec3 c;
-  float ap = abs(uPull);
-  if (ap > 0.001){
-    vec2 shift = vec2(uPull, 0.0) * s;
-    vec3 acc = vec3(0.0);
-    for (int i=0;i<8;i++){
-      float f = (float(i)/7.0 - 0.5) * ap * 0.5;   /* blur length grows with the pull */
-      acc += texture2D(uTex, baseUv + shift + vec2(f,0.0)*s).rgb;
-    }
-    c = acc * 0.125;
-    c *= 1.0 - ap*0.35;                             /* darken as the scene pulls away */
-  } else {
-    c = texture2D(uTex, baseUv).rgb;
+  /* travel: a rippled wavefront sweeps horizontally toward the arrow, revealing the
+     next wall behind it -- like water washing one place into the next. No black, no slide. */
+  if (uWipe > 0.0001){
+    float edge = (uWipeDir > 0.0) ? (1.0 - uWipe) : uWipe;      /* boundary x, sweeps toward the arrow */
+    edge += sin(vUv.y*8.0 + uTime*2.2)*0.045 + sin(vUv.y*21.0 - uTime*1.4)*0.015;  /* watery undulation */
+    float band = 0.08;
+    float m = (uWipeDir > 0.0) ? smoothstep(edge-band, edge+band, vUv.x)
+                               : 1.0 - smoothstep(edge-band, edge+band, vUv.x);
+    vec3 cN = texture2D(uTexNext, sampUv).rgb;
+    float crest = exp(-pow((vUv.x - edge)/band, 2.0));         /* a bright watery crest at the wavefront */
+    c = mix(c, cN, m);
+    c *= 1.0 + crest*0.14;
   }
   c *= 1.0 + w*0.18;                               /* light lifts on the crest */
 
@@ -561,7 +565,7 @@ void main(){
   gl_FragColor = vec4(c,1.);
 }`;
 
-let gl=null, uni={}, glOK=false, wallTex=null, pendingTex=null;
+let gl=null, uni={}, glOK=false, wallTex=null, wallTexNext=null, pendingTex=null, pendingNextTex=null;
 const ampHist = new Float32Array(NHIST);
 function initGL(){
   gl = glc.getContext('webgl', {antialias:false});
@@ -577,19 +581,25 @@ function initGL(){
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(pr,'p');
   gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  ['uTex','uCanvas','uImg','uZone','uActive','uTime','uBurst','uPull'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
-  wallTex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, wallTex);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  gl.uniform1i(uni.uTex,0);
+  ['uTex','uTexNext','uCanvas','uImg','uZone','uActive','uTime','uBurst','uWipe','uWipeDir'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
+  const mkTex = () => {
+    const t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    return t;
+  };
+  wallTex = mkTex();
+  wallTexNext = mkTex();
+  gl.uniform1i(uni.uTex, 0);
+  gl.uniform1i(uni.uTexNext, 1);
   uploadTex();     /* upload the current wall */
 }
 /* (re)upload a wall image as the texture -- called on load + every travel.
    pass the freshly-loaded Image so we never sample the old <img> mid-swap. */
-function uploadTex(source){
+function uploadTex(source, target){    /* target: 0/undefined = current wall, 1 = incoming (next) wall */
   source = source || img;
   if (!gl || !wallTex) return;
   try{
@@ -601,12 +611,11 @@ function uploadTex(source){
       c.getContext('2d').drawImage(source, 0, 0, c.width, c.height);
       src = c;
     }
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, wallTex);
+    gl.activeTexture(target === 1 ? gl.TEXTURE1 : gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, target === 1 ? wallTexNext : wallTex);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
-    glOK = true;
-    glc.classList.add('on');           /* shader takes over from the <img> */
+    if (target !== 1){ glOK = true; glc.classList.add('on'); }   /* shader takes over from the <img> */
   }catch(e){
     console.warn('texture upload failed (file:// ?) -- run ./serve.sh', e);
   }
@@ -651,21 +660,22 @@ function stepFlight(){
    swells as you click, then settles. click anywhere → the place → the names wake. */
 let rippleLevel = 0, rippleEnd = 0, rippleStart = -999;   /* rippleStart = t the ring was born */
 function rippleBurst(dur = 2.6){ rippleStart = t; rippleEnd = t + dur; }   /* one ring, then still */
-/* arrow-travel pull (separate from the ripple): the scene slides + blurs toward the arrow */
-let pull = 0, travelPhase = null, travelT = 0, pullDir = 0;
-const PULL_MAX = 0.42, OUT_DUR = 0.38, IN_DUR = 0.55;
+/* arrow-travel: a rippled wavefront wipes the next wall in, toward the arrow pressed */
+let wipe = 0, wipeDir = 1, travelPhase = null, travelT = 0;
+const WIPE_DUR = 0.95;
+let onWipeDone = null;   /* reveal callback fired the instant the wipe completes */
 const center = document.getElementById('center');
 const armSub = document.getElementById('armSub');
 let introPhase = 'ripple';        /* ripple → wait → entering → place → done */
 
 /* on load: a beat to SEE the wall, one clean ring, THEN the invitation dissolves in */
 function beginIntro(){
-  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 850);
+  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 650);
   setTimeout(() => {
     if (introPhase !== 'ripple') return;
     introPhase = 'wait';
-    center.classList.add('show');    /* "this is a sound experience" fades in */
-  }, 2600);
+    center.classList.add('show');    /* the invitation fades in, over the settling ripple */
+  }, 1700);
 }
 
 async function arm(){
@@ -729,27 +739,39 @@ function loadWall(idx, done){
   img.onerror = finish;
   img.src = WALLS[nextIdx].img;                  /* load the next wall directly, not via cur */
 }
+/* travel = a rippled wavefront wipes the next wall in, toward the arrow. The old
+   names fade out fast first; the new names + pill fade in the instant the wipe lands. */
 function goToWall(dir){
   if (traveling || (introPhase !== 'done' && introPhase !== 'place')) return;
   traveling = true;
   deactivate();
-  voicesLayer.classList.remove('show');           /* names dissolve out */
+  voicesLayer.classList.remove('show'); voicesLayer.classList.add('leaving');
   wallPlaceEl.classList.remove('on');
   center.classList.remove('show');
-  /* the ripple is the landing preloader only -- travel uses a directional pull-blur */
-  pullDir = dir; travelPhase = reduced ? null : 'out'; travelT = 0;
-  setTimeout(() => {
-    loadWall(cur + dir, () => {
-      if (armed) wall().cast.forEach(z => chain(z));    /* pre-buffer so the wave is live on first hover */
-      travelPhase = reduced ? null : 'in'; travelT = 0; /* the next wall slides in from the other side */
+  const nextIdx = (dir + cur + WALLS.length) % WALLS.length;
+  const commit = () => {
+    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
+    pendingNextTex = img;                        /* incoming wall -> uTexNext (unit 1) */
+    cur = nextIdx; CAST = WALLS[cur].cast;        /* commit wall + build its names now (hidden) */
+    buildVoices(); positionVoices(); buildCredits(); updatePlaceLabel();
+    if (armed) CAST.forEach(z => chain(z));       /* pre-buffer so the wave is live on first hover */
+    onWipeDone = () => {
+      voicesLayer.classList.remove('leaving');
       armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
       center.classList.add('hint'); center.classList.add('show');
       introPhase = 'place';
-      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 600);
-      setTimeout(() => revealTravel(), 700);            /* place pill + arrows back */
-      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; traveling = false; travelPhase = null; pull = 0; }, 1300);
-    });
-  }, reduced ? 0 : OUT_DUR*1000);
+      revealTravel();                             /* place pill + arrows back */
+      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 150);
+      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; }, 1900);
+      traveling = false;
+    };
+    if (reduced){ pendingTex = img; wipe = 0; onWipeDone(); return; }   /* no animation */
+    wipeDir = dir; travelPhase = 'wipe'; travelT = 0;
+    rippleBurst(2.0);                             /* a little water plays under the wipe */
+  };
+  img.onload  = () => { img.decode ? img.decode().then(commit).catch(commit) : commit(); };
+  img.onerror = commit;
+  img.src = WALLS[nextIdx].img;
 }
 arrowPrev.addEventListener('click', () => goToWall(-1));
 arrowNext.addEventListener('click', () => goToWall(1));
@@ -802,10 +824,10 @@ function showChip(z){
       `<span class="sci">${z.loc || ''}</span>`
     : `<span class="sci">${z.en} ✺ ${z.sci}</span><br>` +
       `rec. ${z.rec} ✺ ${z.loc}<br>` +
-      `<a href="${z.xc}" target="_blank" rel="noopener">xeno-canto ↗</a> <span class="sci">${z.lic}</span>`;
-  waveC.width = 320*DPR; waveC.height = 34*DPR;
+      `<a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="sci">${z.lic}</span>`;
+  waveC.width = 300*DPR; waveC.height = 34*DPR;
   /* dock the card right under the name -- tight to it */
-  const cw = 320, gap = 4, cardH = chip.offsetHeight || 96;
+  const cw = 300, gap = 4, cardH = chip.offsetHeight || 96;
   const below = p.y + 20 + gap;
   const top = (below + cardH < H - 10) ? below : (p.y - 20 - gap - cardH);
   chip.style.left = Math.min(Math.max(p.x - cw/2, 10), W - cw - 10) + 'px';
@@ -929,7 +951,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) deact
 function placerSave(){
   const out = {};
   CAST.forEach(z => out[z.id] = {x:+z.x.toFixed(3), y:+z.y.toFixed(3), r:+z.r.toFixed(3)});
-  localStorage.setItem('pb-zones-' + wall().id, JSON.stringify(out));
+  localStorage.setItem('pb-zones-v2-' + wall().id, JSON.stringify(out));
   return out;
 }
 if (placing){
@@ -976,19 +998,19 @@ function loop(){
     rippleLevel = lerp(rippleLevel, rTarget, 0.14);
 
     /* directional travel pull -- out (scene leaves toward the arrow), then in (next slides from the other side) */
-    if (travelPhase === 'out'){
+    if (travelPhase === 'wipe'){
       travelT += 1/60;
-      const k = Math.min(1, travelT/OUT_DUR); const e = k*k*(3-2*k);
-      pull = pullDir * e * PULL_MAX;
-    } else if (travelPhase === 'in'){
-      travelT += 1/60;
-      const k = Math.min(1, travelT/IN_DUR); const e = k*k*(3-2*k);
-      pull = -pullDir * (1-e) * PULL_MAX;
-    } else if (pull !== 0){
-      pull = Math.abs(pull) < 0.002 ? 0 : lerp(pull, 0, 0.25);
+      const k = Math.min(1, travelT/WIPE_DUR);
+      wipe = k*k*(3-2*k);
+      if (k >= 1){
+        pendingTex = img;            /* commit: the incoming wall becomes the current texture */
+        wipe = 0; travelPhase = null;
+        if (onWipeDone){ const cb = onWipeDone; onWipeDone = null; cb(); }
+      }
     }
 
-    if (pendingTex && gl){ uploadTex(pendingTex); pendingTex = null; }
+    if (pendingNextTex && gl){ uploadTex(pendingNextTex, 1); pendingNextTex = null; }
+    if (pendingTex && gl){ uploadTex(pendingTex, 0); pendingTex = null; }
     if (glOK){
       gl.viewport(0,0,glc.width,glc.height);
       gl.uniform2f(uni.uCanvas, W, H);
@@ -997,7 +1019,8 @@ function loop(){
       gl.uniform1f(uni.uActive, reduced ? 0 : rippleLevel);
       gl.uniform1f(uni.uTime, t);
       gl.uniform1f(uni.uBurst, rippleStart);
-      gl.uniform1f(uni.uPull, reduced ? 0 : pull);
+      gl.uniform1f(uni.uWipe, reduced ? 0 : wipe);
+      gl.uniform1f(uni.uWipeDir, wipeDir);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     drawWave();
@@ -1024,7 +1047,7 @@ window.addEventListener('resize', sizeAll);
 /* credits panel: the contract, rendered per wall */
 const panel = document.getElementById('creditsPanel');
 function buildCredits(){
-  const head = '<div class="credits__head"><h2>SOUND CREDITS ✺ ALL REAL</h2><button class="credits__x" aria-label="Close">✕</button></div>';
+  const head = '<div class="credits__head"><h2>SOUND CREDITS</h2><button class="credits__x" aria-label="Close">✕</button></div>';
   if (!CAST.length){
     panel.innerHTML = head +
       '<p class="credits__intro">Voices for ' + wall().place + ' are being sourced now.</p>';
@@ -1037,7 +1060,7 @@ function buildCredits(){
       ? `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc||''}</span><br>` +
         `<span class="lic">voice coming soon${z.src ? ' ✺ '+z.src : ''}</span></p>`
       : `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc}</span><br>` +
-        `rec. ${z.rec} ✺ <a href="${z.xc}" target="_blank" rel="noopener">xeno-canto ↗</a> <span class="lic">${z.lic}</span></p>`
+        `rec. ${z.rec} ✺ <a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="lic">${z.lic}</span></p>`
     ).join('');
 }
 buildCredits();
