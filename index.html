@@ -280,27 +280,27 @@ const NZ_CAST = [
   {id:'tui', label:'tūī', en:'tūī', sci:'Prosthemadera novaeseelandiae',
    file:'sounds/tui-song-whakatane.mp3', rec:'Ken George', start:1.5,  /* skip the quiet intro */
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1090728', x:.28, y:.38, r:.09,
+   xc:'https://xeno-canto.org/1090728', x:.282, y:.370, r:.09,
    wave:{style:'bars', col:'#e8a24a', gain:1.15, bars:34}},      /* warm confident bars */
   {id:'bellbird', label:'korimako', en:'NZ bellbird', sci:'Anthornis melanura',
    file:'sounds/bellbird-song.mp3', rec:'Ken George',
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089268', x:.50, y:.18, r:.08,
+   xc:'https://xeno-canto.org/1089268', x:.493, y:.194, r:.08,
    wave:{style:'line', col:'#4fd6c4', gain:1.0, bars:64}},       /* bright chiming line */
   {id:'riroriro', label:'riroriro', en:'grey warbler', sci:'Gerygone igata',
    file:'sounds/riroriro-grey-warbler.mp3', rec:'craig wilson',
    loc:'Millerton, West Coast, Aotearoa New Zealand', lic:'CC BY 4.0',
-   xc:'https://xeno-canto.org/1060266', x:.40, y:.64, r:.08,
+   xc:'https://xeno-canto.org/1060266', x:.185, y:.610, r:.08,
    wave:{style:'line', col:'#cfe08a', gain:0.8, bars:96}},       /* delicate rapid trill */
   {id:'fantail', label:'pīwakawaka', en:'fantail', sci:'Rhipidura fuliginosa',
    file:'sounds/fantail-chatter.mp3', rec:'Ken George',
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089267', x:.72, y:.30, r:.08,
+   xc:'https://xeno-canto.org/1089267', x:.720, y:.335, r:.08,
    wave:{style:'bars', col:'#e87a9b', gain:1.3, bars:48}},       /* erratic flitting bars */
   {id:'kokako', label:'kōkako', en:'kōkako', sci:'Callaeas wilsoni',
    file:'sounds/kokako-tiritiri.m4a', rec:'Meena Haribal',
    loc:'Tiritiri Matangi Island, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/956968', x:.74, y:.60, r:.09,
+   xc:'https://xeno-canto.org/956968', x:.563, y:.642, r:.09,
    wave:{style:'fill', col:'#a58cff', gain:1.1, bars:56}},       /* slow deep organ fill */
 ];
 /* Hawaiʻi -- native forest voices (all real xeno-canto, credited) */
@@ -308,22 +308,22 @@ const HAWAII_CAST = [
   {id:'iiwi', label:'ʻiʻiwi', en:'ʻiʻiwi', sci:'Drepanis coccinea',
    file:'sounds/hawaii-iiwi.mp3', rec:'Viral Joshi',
    loc:'Hilo, Hawaiʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/794970', x:.24, y:.62, r:.09,
+   xc:'https://xeno-canto.org/794970', x:.685, y:.710, r:.09,
    wave:{style:'bars', col:'#ff4d63', gain:1.2, bars:40}},        /* scarlet, liquid */
   {id:'apapane', label:'ʻapapane', en:'ʻapapane', sci:'Himatione sanguinea',
    file:'sounds/hawaii-apapane.mp3', rec:'Bobby Wilcox',
    loc:'Alakaʻi Swamp, Kauaʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/864171', x:.47, y:.13, r:.08,
+   xc:'https://xeno-canto.org/864171', x:.500, y:.149, r:.08,
    wave:{style:'line', col:'#dc4f88', gain:1.0, bars:64}},        /* rose-crimson -- set apart from the ʻiʻiwi scarlet */
   {id:'amakihi', label:'ʻamakihi', en:'Hawaiʻi ʻamakihi', sci:'Chlorodrepanis virens',
    file:'sounds/hawaii-amakihi.mp3', rec:'Daniel Lane',
    loc:'Mauna Kea, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27323', x:.24, y:.34, r:.08,
+   xc:'https://xeno-canto.org/27323', x:.316, y:.410, r:.08,
    wave:{style:'line', col:'#b4d85e', gain:0.95, bars:72}},       /* green, bright trill */
   {id:'omao', label:'ʻōmaʻo', en:'Hawaiian thrush', sci:'Myadestes obscurus',
    file:'sounds/hawaii-omao.mp3', rec:'Daniel Lane',
    loc:'Volcano, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27341', x:.74, y:.58, r:.09,
+   xc:'https://xeno-canto.org/27341', x:.820, y:.314, r:.09,
    wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
 ];
 /* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
@@ -333,20 +333,22 @@ const VANCOUVER_CAST = [
   {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
    file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
    loc:'Salish Sea', lic:'CC0',
-   xc:'https://live.orcasound.net', x:.66, y:.48, r:.11,
+   xc:'https://live.orcasound.net', x:.493, y:.656, r:.11,
    wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
-  {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor', soon:true,
-   loc:'Vancouver Island', src:'Freesound / NPS',
-   x:.44, y:.66, r:.09, wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
+  {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor',
+   file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
+   loc:'Carmel Valley, California', lic:'CC BY-NC',
+   xc:'https://www.inaturalist.org/observations/62084711', x:.694, y:.545, r:.09,
+   wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
   {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
    file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
    loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/706924', x:.20, y:.56, r:.07,
+   xc:'https://xeno-canto.org/706924', x:.452, y:.192, r:.07,
    wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
   {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
    file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
    loc:'Vancouver, British Columbia', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/770780', x:.74, y:.70, r:.08,
+   xc:'https://xeno-canto.org/770780', x:.240, y:.551, r:.08,
    wave:{style:'fill', col:'#c8a2ff', gain:1.0, bars:60}},      /* eerie single-note flute */
 ];
 /* Congo Basin -- all real xeno-canto recordings. NOTE: clean DR-Congo recordings are
@@ -356,22 +358,22 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.30, y:.34, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.176, y:.138, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.50, y:.18, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.516, y:.199, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
    loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1133116', x:.74, y:.56, r:.09,
+   xc:'https://xeno-canto.org/1133116', x:.807, y:.674, r:.09,
    wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.46, y:.60, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.382, y:.575, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
