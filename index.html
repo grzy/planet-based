@@ -192,14 +192,14 @@ footer{
   width:52px;height:52px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-family:"Ubuntu Sans Mono",monospace;font-size:26px;line-height:1;padding-bottom:3px;
-  color:#fff;background:var(--glass-bg);border:1px solid var(--glass-brd);
+  color:#fff;background:var(--glass-bg);border:0;   /* no stroke -- just the glass disc */
   cursor:pointer;opacity:0;pointer-events:none;
   box-shadow:0 3px 16px rgba(0,0,0,.45);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  transition:opacity .7s ease, background .3s, border-color .3s, transform .3s;
+  transition:opacity .7s ease, background .3s, transform .3s;
 }
 .arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
-.arrow.on:hover{background:rgba(28,34,22,.8);border-color:#fff;transform:translateY(-50%) scale(1.09)}
+.arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
 .arrow--prev{left:clamp(16px,2.5vw,36px)}
 .arrow--next{right:clamp(16px,2.5vw,36px)}
 .wall-place{
