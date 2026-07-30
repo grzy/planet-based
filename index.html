@@ -290,12 +290,12 @@ const NZ_CAST = [
   {id:'riroriro', label:'riroriro', en:'grey warbler', sci:'Gerygone igata',
    file:'sounds/riroriro-grey-warbler.mp3', rec:'craig wilson',
    loc:'Millerton, West Coast, Aotearoa New Zealand', lic:'CC BY 4.0',
-   xc:'https://xeno-canto.org/1060266', x:.185, y:.610, r:.08,
+   xc:'https://xeno-canto.org/1060266', x:.220, y:.610, r:.08,
    wave:{style:'line', col:'#cfe08a', gain:0.8, bars:96}},       /* delicate rapid trill */
   {id:'fantail', label:'pīwakawaka', en:'fantail', sci:'Rhipidura fuliginosa',
    file:'sounds/fantail-chatter.mp3', rec:'Ken George',
    loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089267', x:.720, y:.335, r:.08,
+   xc:'https://xeno-canto.org/1089267', x:.720, y:.300, r:.08,
    wave:{style:'bars', col:'#e87a9b', gain:1.3, bars:48}},       /* erratic flitting bars */
   {id:'kokako', label:'kōkako', en:'kōkako', sci:'Callaeas wilsoni',
    file:'sounds/kokako-tiritiri.m4a', rec:'Meena Haribal',
@@ -323,7 +323,7 @@ const HAWAII_CAST = [
   {id:'omao', label:'ʻōmaʻo', en:'Hawaiian thrush', sci:'Myadestes obscurus',
    file:'sounds/hawaii-omao.mp3', rec:'Daniel Lane',
    loc:'Volcano, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27341', x:.780, y:.400, r:.09,
+   xc:'https://xeno-canto.org/27341', x:.760, y:.460, r:.09,
    wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
 ];
 /* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
@@ -338,7 +338,7 @@ const VANCOUVER_CAST = [
   {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor',
    file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
    loc:'Carmel Valley, California', lic:'CC BY-NC',
-   xc:'https://www.inaturalist.org/observations/62084711', x:.670, y:.545, r:.09,
+   xc:'https://www.inaturalist.org/observations/62084711', x:.700, y:.545, r:.09,
    wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
   {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
    file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
@@ -368,12 +368,12 @@ const CONGO_CAST = [
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
    loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1133116', x:.760, y:.674, r:.09,
+   xc:'https://xeno-canto.org/1133116', x:.780, y:.700, r:.09,
    wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.430, y:.450, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.410, y:.480, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
@@ -759,17 +759,13 @@ function goToWall(dir){
     if (armed) CAST.forEach(z => chain(z));       /* pre-buffer so the wave is live on first hover */
     onWipeDone = () => {
       voicesLayer.classList.remove('leaving');
-      armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
-      center.classList.add('hint'); center.classList.add('show');
-      introPhase = 'place';
-      revealTravel();                             /* place pill + arrows back */
+      introPhase = 'done';                          /* the "hover a name" hint shows on Hawaii only */
+      revealTravel();                               /* place pill + arrows back */
       if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 150);
-      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; }, 1900);
       traveling = false;
     };
     if (reduced){ pendingTex = img; wipe = 0; onWipeDone(); return; }   /* no animation */
-    wipeDir = dir; travelPhase = 'wipe'; travelT = 0;
-    rippleBurst(2.0);                             /* a little water plays under the wipe */
+    wipeDir = dir; travelPhase = 'wipe'; travelT = 0;   /* the cross-screen wipe IS the transition -- no center ripple */
   };
   img.onload  = () => { img.decode ? img.decode().then(commit).catch(commit) : commit(); };
   img.onerror = commit;
