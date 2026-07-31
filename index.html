@@ -198,8 +198,16 @@ footer{
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   transition:opacity .7s ease, background .3s, transform .3s;
 }
-.arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
+.arrow.on{opacity:1;pointer-events:auto;animation:arrowGlow 2.8s ease-out .2s 1}   /* warm poppy glow as they appear -- an indicator, then it settles */
 .arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
+@keyframes arrowGlow{
+  0%{box-shadow:0 0 0 0 rgba(255,77,58,0),0 3px 16px rgba(0,0,0,.45)}
+  16%{box-shadow:0 0 26px 6px rgba(255,77,58,.8),0 3px 16px rgba(0,0,0,.45)}
+  44%{box-shadow:0 0 9px 1px rgba(255,77,58,.22),0 3px 16px rgba(0,0,0,.45)}
+  68%{box-shadow:0 0 20px 4px rgba(255,77,58,.55),0 3px 16px rgba(0,0,0,.45)}
+  100%{box-shadow:0 0 0 0 rgba(255,77,58,0),0 3px 16px rgba(0,0,0,.45)}
+}
+@media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
 .arrow--prev{left:clamp(16px,2.5vw,36px)}
 .arrow--next{right:clamp(16px,2.5vw,36px)}
 .wall-place{
