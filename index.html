@@ -198,8 +198,10 @@ footer{
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   transition:opacity .7s ease, background .3s, transform .3s;
 }
-.arrow.on{opacity:1;pointer-events:auto;animation:arrowGlow 2.8s ease-out .2s 1}   /* warm poppy glow as they appear -- an indicator, then it settles */
+.arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
+.arrow.glow{animation:arrowGlow 2.8s ease-out 1}              /* warm poppy glow, retriggered on each arrival */
 .arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
+@media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
 @keyframes arrowGlow{
   0%{box-shadow:0 0 0 0 rgba(255,77,58,0),0 3px 16px rgba(0,0,0,.45)}
   16%{box-shadow:0 0 26px 6px rgba(255,77,58,.8),0 3px 16px rgba(0,0,0,.45)}
@@ -728,6 +730,8 @@ function revealTravel(){
   if (placing) return;
   updatePlaceLabel();
   arrowPrev.classList.add('on'); arrowNext.classList.add('on'); wallPlaceEl.classList.add('on');
+  /* re-trigger the poppy glow each arrival (remove -> reflow -> add restarts the animation) */
+  if (!reduced) [arrowPrev, arrowNext].forEach(a => { a.classList.remove('glow'); void a.offsetWidth; a.classList.add('glow'); });
 }
 /* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
 function loadWall(idx, done){
