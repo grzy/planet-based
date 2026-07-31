@@ -199,14 +199,12 @@ footer{
   transition:opacity .7s ease, background .3s, transform .3s;
 }
 .arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
-.arrow.glow{animation:arrowGlow 2.8s ease-out 1}              /* warm poppy glow, retriggered on each arrival */
+.arrow.glow{animation:arrowGlow 2.4s ease-in-out 1}          /* warm poppy glow -- one smooth swell, retriggered on each arrival */
 .arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
 @media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
-@keyframes arrowGlow{   /* inset -- the disc lights up from within */
-  0%{box-shadow:inset 0 0 0 0 rgba(255,77,58,0),0 3px 16px rgba(0,0,0,.45)}
-  12%{box-shadow:inset 0 0 22px 3px rgba(255,90,66,.95),0 3px 16px rgba(0,0,0,.45)}
-  40%{box-shadow:inset 0 0 9px 1px rgba(255,90,66,.32),0 3px 16px rgba(0,0,0,.45)}
-  64%{box-shadow:inset 0 0 18px 2px rgba(255,90,66,.66),0 3px 16px rgba(0,0,0,.45)}
+@keyframes arrowGlow{   /* inset -- the disc lights up from within: one smooth swell up and back */
+  0%{box-shadow:inset 0 0 0 0 rgba(255,90,66,0),0 3px 16px rgba(0,0,0,.45)}
+  50%{box-shadow:inset 0 0 22px 3px rgba(255,90,66,.92),0 3px 16px rgba(0,0,0,.45)}
   100%{box-shadow:inset 0 0 0 0 rgba(255,90,66,0),0 3px 16px rgba(0,0,0,.45)}
 }
 @media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
