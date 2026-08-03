@@ -6,7 +6,7 @@
 <title>PLANET BASED ✺ a design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --oat:#b7a891;        /* darker oatmeal -- real cooked-oats, not cream */
@@ -71,7 +71,7 @@ body::after{
    blend and light up in their own voice's color, letters spreading + moving. */
 .voices{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
 .voices.show{opacity:1}
-.voices.leaving{opacity:0;transition:opacity .3s ease}   /* fast fade on travel -- no lingering labels */
+.voices.leaving{opacity:0;transition:none}   /* travel: hide the old names INSTANTLY, before they rebuild, so nothing flashes mid-fade */
 .voice{
   position:absolute;transform:translate(-50%,-50%);
   font-family:"Ubuntu Sans Mono",monospace;font-weight:400;
@@ -97,14 +97,14 @@ body::after{
   display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;
   pointer-events:none;
   opacity:0;filter:blur(2px);
-  transition:opacity 1.1s ease, filter 1.1s ease;
+  transition:opacity 1.5s ease, filter 1.5s ease;
 }
 .center.show{opacity:1;filter:blur(0)}
 .center.hint{top:50%}   /* the hint sits dead center on the page */
 .arm{
-  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;text-align:center;
-  font-size:clamp(21px,2.7vw,33px);letter-spacing:.18em;white-space:nowrap;text-transform:uppercase;
-  color:#fff;text-shadow:0 1px 5px rgba(8,10,6,.6);
+  font-family:"Fraunces","Ubuntu Sans Mono",serif;font-weight:400;font-style:italic;text-align:center;
+  font-size:clamp(27px,3.5vw,46px);letter-spacing:.005em;white-space:nowrap;text-transform:none;
+  color:#fff;text-shadow:0 1px 6px rgba(8,10,6,.6);
   background:none;border:0;padding:0;
 }
 /* the place name, painted from its ecosystem's own flower colors */
@@ -114,7 +114,7 @@ body::after{
   font-size:clamp(22px,2.8vw,36px);
 }
 .arm-sub{
-  font-family:"Ubuntu Sans Mono",monospace;font-size:clamp(13px,1.25vw,16px);letter-spacing:.14em;text-transform:uppercase;
+  font-family:"Fraunces","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(12px,1.15vw,15px);letter-spacing:.12em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
 
@@ -199,14 +199,13 @@ footer{
   transition:opacity .7s ease, background .3s, transform .3s;
 }
 .arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
-.arrow.glow{animation:arrowGlow 4.2s ease-in-out 1}          /* warm poppy glow -- one slow swell, retriggered on each arrival */
+.arrow.glow{animation:arrowGlow 4.5s ease-out 1}          /* one-time on first appearance: fills poppy red, then dissolves to glass */
 .arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
 @media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
-@keyframes arrowGlow{   /* inset -- the disc lights up from within: one smooth swell up and back */
-  0%{box-shadow:inset 0 0 0 0 rgba(255,90,66,0),0 3px 16px rgba(0,0,0,.45)}
-  42%{box-shadow:inset 0 0 22px 3px rgba(255,90,66,.92),0 3px 16px rgba(0,0,0,.45)}
-  58%{box-shadow:inset 0 0 22px 3px rgba(255,90,66,.92),0 3px 16px rgba(0,0,0,.45)}
-  100%{box-shadow:inset 0 0 0 0 rgba(255,90,66,0),0 3px 16px rgba(0,0,0,.45)}
+@keyframes arrowGlow{   /* the whole disc fills warm poppy as it appears, then dissolves to the glass UI */
+  0%{background-color:rgba(255,90,66,.52)}
+  26%{background-color:rgba(255,90,66,.52)}    /* hold the red while you take it in */
+  100%{background-color:rgba(16,20,13,.66)}    /* dissolve back to the default glass (--glass-bg) */
 }
 @media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
 .arrow--prev{left:clamp(16px,2.5vw,36px)}
@@ -252,7 +251,7 @@ footer{
     <button class="arrow arrow--next" id="arrowNext" aria-label="Next place">›</button>
     <div class="wall-place" id="wallPlace"></div>
     <div class="center" id="center">
-      <button class="arm" id="arm">this is a sound experience</button>
+      <button class="arm" id="arm">a design studio, coming soon</button>
       <div class="arm-sub" id="armSub">headphones recommended · click to begin</div>
     </div>
     <div class="chip" id="chip">
@@ -342,17 +341,17 @@ const VANCOUVER_CAST = [
   {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
    file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
    loc:'Salish Sea', lic:'CC0',
-   xc:'https://live.orcasound.net', x:.493, y:.656, r:.11,
+   xc:'https://live.orcasound.net', x:.460, y:.670, r:.11,
    wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
-  {id:'cougar', label:'cougar', en:'cougar (the bird-like chirp)', sci:'Puma concolor',
+  {id:'cougar', label:'mountain lion', en:'mountain lion (the bird-like chirp)', sci:'Puma concolor',
    file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
    loc:'Carmel Valley, California', lic:'CC BY-NC',
-   xc:'https://www.inaturalist.org/observations/62084711', x:.660, y:.545, r:.09,
+   xc:'https://www.inaturalist.org/observations/62084711', x:.740, y:.570, r:.09,
    wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
   {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
    file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
    loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/706924', x:.452, y:.192, r:.07,
+   xc:'https://xeno-canto.org/706924', x:.452, y:.155, r:.07,
    wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
   {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
    file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
@@ -367,12 +366,12 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.176, y:.138, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.280, y:.370, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.516, y:.199, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.500, y:.160, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
@@ -382,7 +381,7 @@ const CONGO_CAST = [
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.410, y:.480, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.470, y:.510, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
@@ -654,17 +653,38 @@ function chain(z){
   an.connect(pan); pan.connect(depth); depth.connect(actx.destination);
   return chains[z.id] = {el, gain, analyser:an, pan, depth, td:new Uint8Array(an.fftSize), orbit:Math.random()*6.283};
 }
-/* sweep the active bird ear-to-ear + swell near/far -- smooth ramps, no crackle */
+/* Spatial motion, thought through per animal -- NO repeating ear-to-ear swing.
+   flyby = ONE pass from a side, settling to rest (darty little birds).
+   drift = a single slow arc, then rest (larger/roaming birds).
+   still = stays put, just a hair to its side (perched birds, and the sedentary
+   animals -- frog, mountain lion, orca -- that would never swoop past your face). */
+const MOTION = {
+  iiwi:['flyby',-1], apapane:['flyby',1], amakihi:['drift'], omao:['still'],
+  tui:['drift'], bellbird:['drift'], riroriro:['flyby',1], fantail:['flyby',-1], kokako:['still'],
+  greyparrot:['drift'], turaco:['still'], hornbill:['still'], reedfrog:['still'],
+  orca:['drift'], cougar:['still'], pacificwren:['flyby',-1], variedthrush:['drift'],
+};
 function stepFlight(){
   if (!active || !actx) return;
   const c = chains[active.id]; if (!c || !c.pan) return;
-  c.orbit += 0.013;                                    /* slow, smooth flight */
-  const bias = (active.x - 0.5) * 0.5;                  /* leans to the name's side */
-  const sweep = Math.sin(c.orbit) * (0.72 + 0.22*Math.sin(t*0.5));
-  const target = Math.max(-1, Math.min(1, sweep + bias));
-  c.pan.pan.setTargetAtTime(target, actx.currentTime, 0.16);          /* long constant = glassy */
-  const near = 0.72 + 0.28 * (Math.cos(c.orbit*0.9) * 0.5 + 0.5);      /* comes in and out */
-  c.depth.gain.setTargetAtTime(near, actx.currentTime, 0.18);
+  const z = active;
+  const m = MOTION[z.id] || ['drift'];
+  const el = t - (c.startT || t);                      /* seconds since this hover began */
+  const bias = (z.x - 0.5) * 0.55;                      /* resting side, from the name's position */
+  let pan = bias, depth = 1;
+  if (m[0] === 'flyby'){
+    const dir = m[1] || -1;
+    const k = Math.min(1, el/2.4); const e = k*k*(3-2*k);
+    pan = dir*(1-e)*0.9 + bias*e;                       /* one pass: a side -> rest, then holds */
+    depth = 0.62 + 0.38*Math.sin(Math.min(el,2.4)/2.4*Math.PI);   /* one approach: far -> near -> settle */
+  } else if (m[0] === 'drift'){
+    const k = Math.min(1, el/5);
+    pan = bias + Math.sin(k*Math.PI)*0.14;              /* a single slow arc, then rests */
+  } else { /* still */
+    pan = bias * 0.6;
+  }
+  c.pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,pan)), actx.currentTime, 0.2);
+  c.depth.gain.setTargetAtTime(depth, actx.currentTime, 0.25);
 }
 /* ═══════════ the intro: a living preloader ═══════════
    the pond ripples continuously from center while you wait (drawing you in),
@@ -725,15 +745,17 @@ const arrowNext = document.getElementById('arrowNext');
 const wallPlaceEl = document.getElementById('wallPlace');
 let traveling = false;
 function updatePlaceLabel(){ wallPlaceEl.textContent = wall().place + '  ·  ' + (cur+1) + ' / ' + WALLS.length; }
+let arrowsIntroed = false;
 function revealTravel(){
   if (placing) return;
   updatePlaceLabel();
   arrowPrev.classList.add('on'); arrowNext.classList.add('on'); wallPlaceEl.classList.add('on');
-  /* let the arrows fade in fully FIRST, then glow -- otherwise the fade-in dims the
-     shadow exactly when it's brightest and you miss it. (remove->reflow->add restarts it) */
-  if (!reduced) setTimeout(() => {
-    [arrowPrev, arrowNext].forEach(a => { a.classList.remove('glow'); void a.offsetWidth; a.classList.add('glow'); });
-  }, 720);
+  /* the red fill plays ONCE, the very first time the arrows appear -- once you know
+     they're there, they just stay as the blended glass UI. It fills as they fade in. */
+  if (!reduced && !arrowsIntroed){
+    arrowsIntroed = true;
+    arrowPrev.classList.add('glow'); arrowNext.classList.add('glow');
+  }
 }
 /* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
 function loadWall(idx, done){
@@ -802,6 +824,7 @@ function activate(z){
   clearTimeout(fadeTimer);
   if (c){                                 /* real recording -- play it (soon voices skip audio) */
     if (actx.state === 'suspended') actx.resume();   /* in case it lapsed after travel */
+    c.startT = t;                         /* the motion pass runs once, from this hover */
     c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
     c.el.play().catch(()=>{});
     c.gain.gain.setTargetAtTime(1, actx.currentTime, 0.15);
