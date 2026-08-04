@@ -52,6 +52,16 @@ body::after{
   font-size:12.5px;letter-spacing:.2em;line-height:1;text-transform:uppercase;
 }
 .brand .sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;opacity:.85}
+/* about + contact, tucked top-right (mirrors the brand top-left) */
+.topnav{
+  position:fixed;top:clamp(18px,2.6vh,28px);right:clamp(22px,3.4vw,48px);z-index:30;
+  display:flex;gap:22px;align-items:baseline;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;
+  color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
+  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .3s forwards;
+}
+.topnav a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
+.topnav a:hover{opacity:1}
 
 .stage{display:contents}
 .wall-frame{
@@ -115,7 +125,7 @@ body::after{
   font-size:clamp(22px,2.8vw,36px);
 }
 .arm-sub{
-  font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:600;font-size:clamp(13px,1.35vw,17px);letter-spacing:.16em;text-transform:uppercase;
+  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;font-size:clamp(11.5px,1.1vw,13.5px);letter-spacing:.14em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
 
@@ -240,6 +250,10 @@ footer{
 <header class="brand">
   <h1>PLANET BASED</h1>
 </header>
+<nav class="topnav">
+  <a href="#" title="soon">about</a>
+  <a id="contactCopy">contact</a>
+</nav>
 
 <main class="stage">
   <figure class="wall-frame" id="frame">
@@ -267,8 +281,6 @@ footer{
 
 <footer>
   <nav class="tucked">
-    <a href="#" title="soon">about</a>
-    <a id="contactCopy">contact</a>
     <a id="creditsToggle">sound credits</a>
   </nav>
   <p class="foot-note"><a href="https://instagram.com/planetbased" target="_blank" rel="noopener">@planetbased</a></p>
@@ -668,10 +680,10 @@ const MOTION = {
 /* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
    a hair back (mountain lion), the tiny ones present. 1 = full. */
 const VOL = {   /* per-voice mix by ear -- 1.0 = the -20 LUFS baseline. Ivy's levels. */
-  iiwi:1.0, apapane:0.72, amakihi:0.55, omao:0.72,
-  tui:0.75, bellbird:0.65, riroriro:0.75, fantail:0.6, kokako:0.65,
+  iiwi:1.0, apapane:0.62, amakihi:0.55, omao:0.72,
+  tui:0.6, bellbird:0.5, riroriro:0.75, fantail:0.6, kokako:0.5,
   greyparrot:0.42, turaco:0.42, hornbill:0.42, reedfrog:0.68,
-  pacificwren:0.55, variedthrush:0.55, orca:0.85, cougar:1.0,
+  pacificwren:0.45, variedthrush:0.45, orca:0.65, cougar:1.0,
 };
 function stepFlight(){
   if (!active || !actx) return;
