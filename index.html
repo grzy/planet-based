@@ -680,7 +680,7 @@ const chains = {};   /* zone.id -> {el, gain, analyser, panner} */
 function chain(z){
   if (!z.file) return null;                 /* "coming soon" voices have no audio yet */
   if (chains[z.id]) return chains[z.id];
-  const el = new Audio(z.file);
+  const el = new Audio(z.file + '?v=2');   /* cache-bust: bump on any sound re-render (browsers cache mp3s hard) */
   el.preload = 'auto';
   el.loop = true;    /* keep the voice (and its live waveform) alive as long as you hover */
   const src = actx.createMediaElementSource(el);
