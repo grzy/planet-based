@@ -521,8 +521,6 @@ uniform sampler2D uTexNext;  /* incoming wall during a travel wipe */
 uniform vec2 uCanvas, uImg, uZone;   /* uZone in canvas uv */
 uniform float uActive, uTime, uBurst;  /* uActive = level; uBurst = t when the current ring was born */
 uniform float uWipe, uWipeDir;         /* travel: 0..1 sweep progress; +1 next (reveal from right), -1 prev (from left) */
-uniform vec2 uParallax;                /* cursor depth parallax */
-uniform float uBloom; uniform vec2 uBloomPos; uniform vec3 uBloomCol;  /* the active voice blooms as light where it calls from */
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){
   vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
@@ -532,7 +530,7 @@ float noise(vec2 p){
 void main(){
   float ca = uCanvas.x/uCanvas.y, ia = uImg.x/uImg.y;
   vec2 s = ca > ia ? vec2(1., ia/ca) : vec2(ca/ia, 1.);
-  vec2 uvImg = (vUv-.5)*s+.5 + uParallax*0.012;   /* subtle cursor parallax -- the wall has depth */
+  vec2 uvImg = (vUv-.5)*s+.5;
 
   /* ONE clean ring per burst: born at uBurst, swells from center, expands out
      and fades. No periodic re-emission, so nothing ever gets caught half-born at
@@ -574,15 +572,6 @@ void main(){
   c *= .955;
   float lum = dot(c, vec3(.299,.587,.114));
   c = mix(vec3(lum), c, 1.02);
-
-  /* sound-source bloom: the active voice glows as warm light right where it calls from --
-     "the unseen bird" made visible as light, tinted its own color. */
-  if (uBloom > 0.001){
-    float bd = length((vUv - uBloomPos)*vec2(ca,1.));
-    float g = exp(-bd*bd/0.012);
-    c += uBloomCol * g * uBloom * 0.55;
-    c += vec3(1.0) * g*g * uBloom * 0.12;
-  }
   gl_FragColor = vec4(c,1.);
 }`;
 
@@ -602,7 +591,7 @@ function initGL(){
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(pr,'p');
   gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  ['uTex','uTexNext','uCanvas','uImg','uZone','uActive','uTime','uBurst','uWipe','uWipeDir','uParallax','uBloom','uBloomPos','uBloomCol'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
+  ['uTex','uTexNext','uCanvas','uImg','uZone','uActive','uTime','uBurst','uWipe','uWipeDir'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
   const mkTex = () => {
     const t = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
@@ -708,14 +697,6 @@ let rippleLevel = 0, rippleEnd = 0, rippleStart = -999;   /* rippleStart = t the
 function rippleBurst(dur = 2.6){ rippleStart = t; rippleEnd = t + dur; }   /* one ring, then still */
 /* arrow-travel: a rippled wavefront wipes the next wall in, toward the arrow pressed */
 let wipe = 0, wipeDir = 1, travelPhase = null, travelT = 0;
-/* cursor depth-parallax + sound-source bloom */
-let parX=0, parY=0, parTX=0, parTY=0;                 /* lerped + target cursor, -1..1 */
-let bloom=0, bloomX=0.5, bloomY=0.5, bloomRGB=[1,1,1];
-const hexToRgb = h => { const n=parseInt(h.slice(1),16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
-window.addEventListener('pointermove', e => {
-  parTX = (e.clientX / innerWidth  - 0.5) * 2;
-  parTY = (e.clientY / innerHeight - 0.5) * 2;
-});
 const WIPE_DUR = 0.95;
 let onWipeDone = null;   /* reveal callback fired the instant the wipe completes */
 const center = document.getElementById('center');
@@ -1080,19 +1061,6 @@ function loop(){
       gl.uniform1f(uni.uBurst, rippleStart);
       gl.uniform1f(uni.uWipe, reduced ? 0 : wipe);
       gl.uniform1f(uni.uWipeDir, wipeDir);
-      /* cursor parallax (eased) */
-      parX = lerp(parX, reduced ? 0 : parTX, 0.06); parY = lerp(parY, reduced ? 0 : parTY, 0.06);
-      gl.uniform2f(uni.uParallax, parX, parY);
-      /* sound-source bloom: track the active voice's spot + its color */
-      if (active){
-        const p = zonePx(active);
-        bloomX = p.x / W; bloomY = p.y / H;
-        bloomRGB = hexToRgb(active.wave.col);
-      }
-      bloom = lerp(bloom, active ? 1 : 0, 0.08);
-      gl.uniform1f(uni.uBloom, reduced ? Math.min(bloom,0.5) : bloom);
-      gl.uniform2f(uni.uBloomPos, bloomX, bloomY);
-      gl.uniform3f(uni.uBloomCol, bloomRGB[0], bloomRGB[1], bloomRGB[2]);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     drawWave();
