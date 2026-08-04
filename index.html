@@ -251,7 +251,6 @@ footer{
   <h1>PLANET BASED</h1>
 </header>
 <nav class="topnav">
-  <a href="#" title="soon">about</a>
   <a id="contactCopy">contact</a>
 </nav>
 
@@ -1133,10 +1132,10 @@ panel.addEventListener('click', e => { if (e.target.closest('.credits__x')) clos
 /* contact = copy the email, same move as the portfolio */
 const contactCopy = document.getElementById('contactCopy');
 contactCopy.addEventListener('click', () => {
-  navigator.clipboard.writeText('hi@ivygrzy.com').then(() => {
-    contactCopy.textContent = 'hi@ivygrzy.com ✺ copied';
+  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
+    contactCopy.textContent = 'hi@planetbased.io ✺ copied';
     setTimeout(() => contactCopy.textContent = 'contact', 1800);
-  }).catch(() => { location.href = 'mailto:hi@ivygrzy.com'; });
+  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
 });
 })();
 </script>
