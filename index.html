@@ -366,12 +366,12 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.220, y:.220, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.170, y:.170, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.500, y:.240, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.500, y:.210, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
@@ -381,7 +381,7 @@ const CONGO_CAST = [
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.380, y:.510, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.410, y:.510, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
@@ -666,7 +666,7 @@ const MOTION = {
 };
 /* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
    a hair back (mountain lion), the tiny ones present. 1 = full. */
-const VOL = { cougar:0.62, reedfrog:0.85, orca:0.9, hornbill:0.9 };
+const VOL = { reedfrog:0.85, orca:0.85, hornbill:0.9 };
 function stepFlight(){
   if (!active || !actx) return;
   const c = chains[active.id]; if (!c || !c.pan) return;
