@@ -243,6 +243,25 @@ footer{
   .brand{max-width:70vw}
   .chip{width:min(300px,88vw)}
 }
+
+/* ═══════════ mobile: a graceful coming-soon screen over the static wall ═══════════
+   the interactive WebGL experience is desktop-only for now; JS also skips booting it. */
+.mobile-msg{display:none}
+@media (max-width:700px){
+  .voices,.arrow,.center,.chip,.credits,.scrim,.wall-place,footer,.topnav,.brand,.placer-help{display:none!important}
+  #glCanvas,#fxCanvas{display:none}                     /* WebGL never boots -- the <img> wall shows through */
+  .wall-frame::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(6,8,5,.35),rgba(6,8,5,.72));z-index:3}
+  .mobile-msg{
+    display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;padding:34px;
+    text-align:center;color:#fff;
+    opacity:0;animation:fadeIn 1.2s ease .4s forwards;
+  }
+  .mm-inner{display:flex;flex-direction:column;gap:15px;align-items:center;max-width:330px}
+  .mm-eyebrow{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.26em;text-transform:uppercase;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  .mm-title{font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(32px,10vw,42px);line-height:1.02;font-feature-settings:"dlig" 1,"liga" 1;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+  .mm-sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.75;opacity:.9;text-shadow:0 1px 5px rgba(0,0,0,.85)}
+  .mm-contact{font-family:"Ubuntu Sans Mono",monospace;font-size:12px;letter-spacing:.12em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px;margin-top:8px;cursor:pointer}
+}
 </style>
 </head>
 <body>
@@ -287,6 +306,16 @@ footer{
 <div class="placer-help" id="placerHelp">
   ZONE PLACER ✺ drag the names to move them<br>
   C copies the JSON ✺ placements auto-save locally
+</div>
+
+<!-- mobile: the full living-wall experience is desktop-only for now -->
+<div class="mobile-msg">
+  <div class="mm-inner">
+    <p class="mm-eyebrow">PLANET BASED</p>
+    <h2 class="mm-title">design studio coming soon</h2>
+    <p class="mm-sub">a living wall of real birdsong ✺ best on desktop, with headphones</p>
+    <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
+  </div>
 </div>
 
 <script>
@@ -1097,8 +1126,15 @@ function start(){
   loop();
   beginIntro();     /* a few rings settle, then the invitation dissolves in */
 }
-/* decode fully before the GPU upload -- progressive JPEGs can upload half-baked */
-img.decode ? img.decode().then(start).catch(start) : img.addEventListener('load', start);
+/* MOBILE: never boot the WebGL wall + audio on phones (crash risk on mobile Safari,
+   and the hover UX doesn't translate to touch). Show the static coming-soon screen instead. */
+const isMobile = matchMedia('(max-width: 700px)').matches;
+if (isMobile){
+  document.body.classList.add('is-mobile');
+} else {
+  /* decode fully before the GPU upload -- progressive JPEGs can upload half-baked */
+  img.decode ? img.decode().then(start).catch(start) : img.addEventListener('load', start);
+}
 window.addEventListener('resize', sizeAll);
 
 /* credits panel: the contract, rendered per wall */
@@ -1135,6 +1171,14 @@ contactCopy.addEventListener('click', () => {
   navigator.clipboard.writeText('hi@planetbased.io').then(() => {
     contactCopy.textContent = 'hi@planetbased.io ✺ copied';
     setTimeout(() => contactCopy.textContent = 'contact', 1800);
+  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
+});
+/* mobile screen's contact -- tap to copy the same email */
+const contactCopyM = document.getElementById('contactCopyM');
+if (contactCopyM) contactCopyM.addEventListener('click', () => {
+  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
+    contactCopyM.textContent = 'copied ✺ hi@planetbased.io';
+    setTimeout(() => contactCopyM.textContent = 'hi@planetbased.io', 1800);
   }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
 });
 })();
