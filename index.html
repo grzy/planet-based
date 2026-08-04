@@ -261,28 +261,6 @@ footer{
   .mm-title{font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(32px,10vw,42px);line-height:1.02;font-feature-settings:"dlig" 1,"liga" 1;text-shadow:0 1px 8px rgba(0,0,0,.6)}
   .mm-sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.75;opacity:.9;text-shadow:0 1px 5px rgba(0,0,0,.85)}
   .mm-contact{font-family:"Ubuntu Sans Mono",monospace;font-size:12px;letter-spacing:.12em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px;margin-top:8px;cursor:pointer}
-  /* the quiet delight: a mic that lights up a little after the message settles.
-     off is the default (slashed); tap once to let one real ʻiʻiwi sing over the Hawaiʻi wall behind it. */
-  .mm-listen{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:4px;
-    opacity:0;animation:fadeIn 1s ease 1.75s forwards}
-  .mm-audio{position:relative;width:52px;height:52px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.34);
-    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-    box-shadow:0 2px 14px rgba(0,0,0,.35);
-    transition:background .55s ease,border-color .55s ease,box-shadow .55s ease}
-  .mm-mic{width:24px;height:24px;opacity:.82;transition:opacity .4s ease}
-  .mm-slash{transition:opacity .3s ease}
-  .mm-audio.on{background:rgba(255,138,101,.22);border-color:rgba(255,150,110,.78);
-    box-shadow:0 0 22px rgba(255,120,80,.42),0 2px 14px rgba(0,0,0,.3)}
-  .mm-audio.on .mm-mic{opacity:1}
-  .mm-audio.on .mm-slash{opacity:0}
-  .mm-audio::after{content:"";position:absolute;inset:-1px;border-radius:50%;
-    border:1px solid rgba(255,255,255,.5);animation:micPulse 2.8s ease-out infinite;pointer-events:none}
-  .mm-audio.on::after{animation:none;opacity:0}
-  @keyframes micPulse{0%{transform:scale(1);opacity:.5}70%{opacity:0}100%{transform:scale(1.7);opacity:0}}
-  .mm-audio-cap{font-family:"Ubuntu Sans Mono",monospace;font-size:10px;letter-spacing:.16em;
-    text-transform:uppercase;opacity:.68;text-shadow:0 1px 4px rgba(0,0,0,.8);transition:opacity .4s ease}
 }
 </style>
 </head>
@@ -336,17 +314,6 @@ footer{
     <p class="mm-eyebrow">PLANET BASED</p>
     <h2 class="mm-title">design studio coming soon</h2>
     <p class="mm-sub">a living wall of real birdsong ✺<br>best on desktop w/ headphones</p>
-    <div class="mm-listen">
-      <button class="mm-audio" id="mmAudio" aria-label="Play birdsong from the wall" aria-pressed="false">
-        <svg class="mm-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="9" y="2.5" width="6" height="11" rx="3"/>
-          <path d="M6 11v1a6 6 0 0 0 12 0v-1"/>
-          <path d="M12 18v3"/><path d="M9 21h6"/>
-          <path class="mm-slash" d="M4 4 20 20"/>
-        </svg>
-      </button>
-      <span class="mm-audio-cap" id="mmAudioCap">tap for birdsong</span>
-    </div>
     <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
   </div>
 </div>
@@ -1164,36 +1131,6 @@ function start(){
 const isMobile = matchMedia('(max-width: 700px)').matches;
 if (isMobile){
   document.body.classList.add('is-mobile');
-  /* one real ʻiʻiwi (the scarlet honeycreeper of the Hawaiʻi wall behind the message).
-     No WebGL, no AudioContext -- just a plain <audio> tag so mobile Safari stays calm.
-     Off is the default; tap toggles, and the caption reveals what you're hearing. */
-  const mmAudio = document.getElementById('mmAudio');
-  if (mmAudio){
-    const bird = new Audio('sounds/hawaii-iiwi.mp3');
-    bird.loop = true; bird.volume = 0;
-    const cap = document.getElementById('mmAudioCap');
-    let on = false;
-    const fade = (to, ms, done) => {
-      const from = bird.volume, t0 = performance.now();
-      (function step(now){
-        const k = Math.min(1, (now - t0) / ms);
-        bird.volume = Math.max(0, Math.min(1, from + (to - from) * k));
-        if (k < 1) requestAnimationFrame(step); else if (done) done();
-      })(performance.now());
-    };
-    mmAudio.addEventListener('click', () => {
-      on = !on;
-      mmAudio.classList.toggle('on', on);
-      mmAudio.setAttribute('aria-pressed', String(on));
-      if (on){
-        bird.play().then(() => fade(1, 900)).catch(() => {});
-        if (cap) cap.textContent = 'ʻiʻiwi ✺ hawaiʻi';
-      } else {
-        fade(0, 600, () => bird.pause());
-        if (cap) cap.textContent = 'tap for birdsong';
-      }
-    });
-  }
 } else {
   /* decode fully before the GPU upload -- progressive JPEGs can upload half-baked */
   img.decode ? img.decode().then(start).catch(start) : img.addEventListener('load', start);
