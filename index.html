@@ -6,7 +6,7 @@
 <title>PLANET BASED ✺ a design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --oat:#b7a891;        /* darker oatmeal -- real cooked-oats, not cream */
@@ -102,8 +102,8 @@ body::after{
 .center.show{opacity:1;filter:blur(0)}
 .center.hint{top:50%}   /* the hint sits dead center on the page */
 .arm{
-  font-family:"Fraunces","Ubuntu Sans Mono",serif;font-weight:400;font-style:italic;text-align:center;
-  font-size:clamp(27px,3.5vw,46px);letter-spacing:.005em;white-space:nowrap;text-transform:none;
+  font-family:"Bricolage Grotesque","Ubuntu Sans Mono",sans-serif;font-weight:600;text-align:center;
+  font-size:clamp(21px,2.6vw,34px);letter-spacing:.05em;white-space:nowrap;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 6px rgba(8,10,6,.6);
   background:none;border:0;padding:0;
 }
@@ -114,7 +114,7 @@ body::after{
   font-size:clamp(22px,2.8vw,36px);
 }
 .arm-sub{
-  font-family:"Fraunces","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(12px,1.15vw,15px);letter-spacing:.12em;text-transform:uppercase;
+  font-family:"Bricolage Grotesque","Ubuntu Sans Mono",sans-serif;font-weight:500;font-size:clamp(12px,1.15vw,15px);letter-spacing:.12em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
 
@@ -199,12 +199,13 @@ footer{
   transition:opacity .7s ease, background .3s, transform .3s;
 }
 .arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
-.arrow.glow{animation:arrowGlow 4.5s ease-out 1}          /* one-time on first appearance: fills poppy red, then dissolves to glass */
+.arrow.glow{animation:arrowGlow 5s ease-in-out 1}         /* one-time, a beat after the arrows appear: glass -> fills red -> holds -> dissolves back */
 .arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
 @media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
-@keyframes arrowGlow{   /* the whole disc fills warm poppy as it appears, then dissolves to the glass UI */
-  0%{background-color:rgba(255,90,66,.52)}
-  26%{background-color:rgba(255,90,66,.52)}    /* hold the red while you take it in */
+@keyframes arrowGlow{   /* the disc fills warm poppy, holds so you notice the arrows, then dissolves to the glass UI */
+  0%{background-color:rgba(16,20,13,.66)}      /* start as the settled glass */
+  14%{background-color:rgba(255,90,66,.55)}    /* fill red */
+  46%{background-color:rgba(255,90,66,.55)}    /* hold -- "oh, there are the arrows" */
   100%{background-color:rgba(16,20,13,.66)}    /* dissolve back to the default glass (--glass-bg) */
 }
 @media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
@@ -237,7 +238,6 @@ footer{
 
 <header class="brand">
   <h1>PLANET BASED</h1>
-  <p class="sub">a design studio ✺ coming soon</p>
 </header>
 
 <main class="stage">
@@ -251,7 +251,7 @@ footer{
     <button class="arrow arrow--next" id="arrowNext" aria-label="Next place">›</button>
     <div class="wall-place" id="wallPlace"></div>
     <div class="center" id="center">
-      <button class="arm" id="arm">a design studio, coming soon</button>
+      <button class="arm" id="arm">design studio coming soon</button>
       <div class="arm-sub" id="armSub">headphones recommended · click to begin</div>
     </div>
     <div class="chip" id="chip">
@@ -341,12 +341,12 @@ const VANCOUVER_CAST = [
   {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
    file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
    loc:'Salish Sea', lic:'CC0',
-   xc:'https://live.orcasound.net', x:.460, y:.670, r:.11,
+   xc:'https://live.orcasound.net', x:.480, y:.670, r:.11,
    wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
   {id:'cougar', label:'mountain lion', en:'mountain lion (the bird-like chirp)', sci:'Puma concolor',
    file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
    loc:'Carmel Valley, California', lic:'CC BY-NC',
-   xc:'https://www.inaturalist.org/observations/62084711', x:.740, y:.570, r:.09,
+   xc:'https://www.inaturalist.org/observations/62084711', x:.680, y:.570, r:.09,
    wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
   {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
    file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
@@ -366,12 +366,12 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.280, y:.370, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.220, y:.220, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.500, y:.160, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.500, y:.240, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
@@ -381,7 +381,7 @@ const CONGO_CAST = [
   {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
    file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
    loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.470, y:.510, r:.08,
+   xc:'https://xeno-canto.org/986099', x:.380, y:.510, r:.08,
    wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
 ];
 
@@ -664,24 +664,28 @@ const MOTION = {
   greyparrot:['drift'], turaco:['still'], hornbill:['still'], reedfrog:['still'],
   orca:['drift'], cougar:['still'], pacificwren:['flyby',-1], variedthrush:['drift'],
 };
+/* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
+   a hair back (mountain lion), the tiny ones present. 1 = full. */
+const VOL = { cougar:0.62, reedfrog:0.85, orca:0.9, hornbill:0.9 };
 function stepFlight(){
   if (!active || !actx) return;
   const c = chains[active.id]; if (!c || !c.pan) return;
   const z = active;
   const m = MOTION[z.id] || ['drift'];
   const el = t - (c.startT || t);                      /* seconds since this hover began */
-  const bias = (z.x - 0.5) * 0.55;                      /* resting side, from the name's position */
+  const bias = (z.x - 0.5) * 0.85;                      /* clear L/R placement from the name's position */
   let pan = bias, depth = 1;
   if (m[0] === 'flyby'){
     const dir = m[1] || -1;
-    const k = Math.min(1, el/2.4); const e = k*k*(3-2*k);
-    pan = dir*(1-e)*0.9 + bias*e;                       /* one pass: a side -> rest, then holds */
-    depth = 0.62 + 0.38*Math.sin(Math.min(el,2.4)/2.4*Math.PI);   /* one approach: far -> near -> settle */
+    const k = Math.min(1, el/2.6); const e = k*k*(3-2*k);
+    pan = dir*(1-e)*0.95 + bias*e;                      /* one clear pass: a side -> rest, then holds */
+    depth = 0.5 + 0.5*Math.sin(Math.min(el,2.6)/2.6*Math.PI);     /* a real approach: far -> near -> settle */
   } else if (m[0] === 'drift'){
-    const k = Math.min(1, el/5);
-    pan = bias + Math.sin(k*Math.PI)*0.14;              /* a single slow arc, then rests */
-  } else { /* still */
-    pan = bias * 0.6;
+    const k = Math.min(1, el/6);
+    pan = bias + Math.sin(k*Math.PI)*0.32;              /* a wide single arc you can feel, then rests */
+    depth = 0.85 + 0.15*Math.sin(k*Math.PI);
+  } else { /* still -- no motion, but clearly placed to its side so you feel where it is */
+    pan = bias;
   }
   c.pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,pan)), actx.currentTime, 0.2);
   c.depth.gain.setTargetAtTime(depth, actx.currentTime, 0.25);
@@ -754,7 +758,8 @@ function revealTravel(){
      they're there, they just stay as the blended glass UI. It fills as they fade in. */
   if (!reduced && !arrowsIntroed){
     arrowsIntroed = true;
-    arrowPrev.classList.add('glow'); arrowNext.classList.add('glow');
+    /* a beat AFTER the arrows have appeared, so you notice them fill red -- not lost in the fade-in */
+    setTimeout(() => { arrowPrev.classList.add('glow'); arrowNext.classList.add('glow'); }, 900);
   }
 }
 /* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
@@ -827,7 +832,7 @@ function activate(z){
     c.startT = t;                         /* the motion pass runs once, from this hover */
     c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
     c.el.play().catch(()=>{});
-    c.gain.gain.setTargetAtTime(1, actx.currentTime, 0.15);
+    c.gain.gain.setTargetAtTime(VOL[z.id] ?? 1, actx.currentTime, 0.15);
   }
   showChip(z);
 }
