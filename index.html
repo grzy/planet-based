@@ -6,7 +6,7 @@
 <title>PLANET BASED ✺ a design studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --oat:#b7a891;        /* darker oatmeal -- real cooked-oats, not cream */
@@ -102,8 +102,9 @@ body::after{
 .center.show{opacity:1;filter:blur(0)}
 .center.hint{top:50%}   /* the hint sits dead center on the page */
 .arm{
-  font-family:"Bricolage Grotesque","Ubuntu Sans Mono",sans-serif;font-weight:600;text-align:center;
-  font-size:clamp(21px,2.6vw,34px);letter-spacing:.05em;white-space:nowrap;text-transform:uppercase;
+  font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;text-align:center;
+  font-size:clamp(32px,4vw,54px);letter-spacing:.006em;white-space:nowrap;text-transform:none;
+  font-feature-settings:"dlig" 1,"liga" 1,"swsh" 1;   /* the ct/st connecting ligatures -- "studio" links up */
   color:#fff;text-shadow:0 1px 6px rgba(8,10,6,.6);
   background:none;border:0;padding:0;
 }
@@ -114,7 +115,7 @@ body::after{
   font-size:clamp(22px,2.8vw,36px);
 }
 .arm-sub{
-  font-family:"Bricolage Grotesque","Ubuntu Sans Mono",sans-serif;font-weight:500;font-size:clamp(12px,1.15vw,15px);letter-spacing:.12em;text-transform:uppercase;
+  font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:600;font-size:clamp(13px,1.35vw,17px);letter-spacing:.16em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
 
@@ -204,8 +205,8 @@ footer{
 @media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
 @keyframes arrowGlow{   /* the disc fills warm poppy, holds so you notice the arrows, then dissolves to the glass UI */
   0%{background-color:rgba(16,20,13,.66)}      /* start as the settled glass */
-  14%{background-color:rgba(255,90,66,.55)}    /* fill red */
-  46%{background-color:rgba(255,90,66,.55)}    /* hold -- "oh, there are the arrows" */
+  7%{background-color:rgba(255,90,66,.55)}     /* fill red quickly -- no default-state gap */
+  48%{background-color:rgba(255,90,66,.55)}    /* hold -- "oh, there are the arrows" */
   100%{background-color:rgba(16,20,13,.66)}    /* dissolve back to the default glass (--glass-bg) */
 }
 @media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
@@ -366,12 +367,12 @@ const CONGO_CAST = [
   {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
    file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.170, y:.170, r:.09,
+   xc:'https://xeno-canto.org/1053186', x:.170, y:.140, r:.09,
    wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
   {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
    file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
    loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.500, y:.210, r:.09,
+   xc:'https://xeno-canto.org/1052480', x:.500, y:.180, r:.09,
    wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
   {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
    file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
@@ -666,7 +667,12 @@ const MOTION = {
 };
 /* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
    a hair back (mountain lion), the tiny ones present. 1 = full. */
-const VOL = { reedfrog:0.85, orca:0.85, hornbill:0.9 };
+const VOL = {   /* per-voice mix by ear -- 1.0 = the -20 LUFS baseline. Ivy's levels. */
+  iiwi:1.0, apapane:0.72, amakihi:0.55, omao:0.72,
+  tui:0.75, bellbird:0.65, riroriro:0.75, fantail:0.6, kokako:0.65,
+  greyparrot:0.42, turaco:0.42, hornbill:0.42, reedfrog:0.68,
+  pacificwren:0.55, variedthrush:0.55, orca:0.85, cougar:1.0,
+};
 function stepFlight(){
   if (!active || !actx) return;
   const c = chains[active.id]; if (!c || !c.pan) return;
@@ -759,7 +765,7 @@ function revealTravel(){
   if (!reduced && !arrowsIntroed){
     arrowsIntroed = true;
     /* a beat AFTER the arrows have appeared, so you notice them fill red -- not lost in the fade-in */
-    setTimeout(() => { arrowPrev.classList.add('glow'); arrowNext.classList.add('glow'); }, 900);
+    setTimeout(() => { arrowPrev.classList.add('glow'); arrowNext.classList.add('glow'); }, 250);
   }
 }
 /* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
