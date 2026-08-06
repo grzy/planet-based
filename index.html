@@ -297,10 +297,18 @@ footer{
 
 <div class="scrim" id="scrim"></div>
 <div class="credits" id="creditsPanel"></div>
+<div class="credits" id="buildPanel">
+  <div class="credits__head"><h2>BUILD DETAILS</h2><button class="credits__x" aria-label="Close">✕</button></div>
+  <p class="credits__row"><span class="name">The wall</span><br>A custom WebGL fragment shader draws the photo as a GPU texture, redrawn every frame. Hovering ripples the wall with per-pixel UV displacement; moving between ecosystems cross-wipes two textures along a rippled edge.</p>
+  <p class="credits__row"><span class="name">The type</span><br>Each name is per-letter DOM spans driven by a Web Audio AnalyserNode reading the recording's live time-domain waveform, with spring physics. The letters rise + scatter to the sound.</p>
+  <p class="credits__row"><span class="name">The sound</span><br>Spatial audio through a Web Audio graph (filters, StereoPanner, depth gain), per-voice motion, leveled to &minus;20&nbsp;LUFS.</p>
+  <p class="credits__row"><span class="name">The recordings</span><br>Real, credited field recordings (bioacoustics). No synth, no AI audio.</p>
+</div>
 
 <footer>
   <nav class="tucked">
     <a id="creditsToggle">sound credits</a>
+    <a id="buildToggle">build details</a>
   </nav>
   <p class="foot-note"><a href="https://instagram.com/planetbased" target="_blank" rel="noopener">@planetbased</a></p>
 </footer>
@@ -1160,11 +1168,17 @@ function buildCredits(){
 buildCredits();
 const creditsToggle = document.getElementById('creditsToggle');
 const scrim = document.getElementById('scrim');
-function openCredits(){ panel.classList.add('on'); scrim.classList.add('on'); }
+const buildToggle = document.getElementById('buildToggle');
+const buildPanel = document.getElementById('buildPanel');
+function openCredits(){ buildPanel.classList.remove('on'); panel.classList.add('on'); scrim.classList.add('on'); }
 function closeCredits(){ panel.classList.remove('on'); scrim.classList.remove('on'); }
+function openBuild(){ panel.classList.remove('on'); buildPanel.classList.add('on'); scrim.classList.add('on'); }
+function closeBuild(){ buildPanel.classList.remove('on'); scrim.classList.remove('on'); }
 creditsToggle.addEventListener('click', () => panel.classList.contains('on') ? closeCredits() : openCredits());
-scrim.addEventListener('click', closeCredits);
+buildToggle.addEventListener('click', () => buildPanel.classList.contains('on') ? closeBuild() : openBuild());
+scrim.addEventListener('click', () => { closeCredits(); closeBuild(); });
 panel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeCredits(); });
+buildPanel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeBuild(); });
 
 /* contact = copy the email, same move as the portfolio */
 const contactCopy = document.getElementById('contactCopy');
