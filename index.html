@@ -49,8 +49,15 @@ body::after{
   opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .25s forwards;
 }
 .brand h1{
+  /* ⚠️ text-transform: NONE (2026-09-19). The wordmark is the domain, set
+     exactly as it is typed: one word, lowercase, with .io. This rule was
+     uppercasing it regardless of the markup, so changing the HTML alone
+     would still have rendered PLANETBASED.IO.
+     ⚠️ Tracking drops .42em -> .14em with it. .42 was set for two SPACED
+     CAPS words; on one lowercase word it reads as letters drifting apart
+     rather than as a lockup. */
   font-family:"Ubuntu Sans Mono",monospace;font-weight:500;
-  font-size:12.5px;letter-spacing:.42em;line-height:1;text-transform:uppercase;
+  font-size:12.5px;letter-spacing:.14em;line-height:1;text-transform:none;
 }
 .brand .sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;opacity:.85}
 /* about + contact, tucked top-right (mirrors the brand top-left) */
@@ -272,7 +279,7 @@ footer{
 <body>
 
 <header class="brand">
-  <h1>PLANET BASED</h1>
+  <h1>planetbased.io</h1>
 </header>
 <nav class="topnav">
   <a id="contactCopy">contact</a>
@@ -555,8 +562,14 @@ buildVoices();   /* create the DOM before placer/hover wiring runs */
     const s = document.createElement('span');
     s.textContent = ch === ' ' ? ' ' : ch;
     s.style.display = 'inline-block';
-    const rot=(Math.random()-.5)*7*JITTER, scl=1+(Math.random()*0.16-0.08)*JITTER, by=(Math.random()-.5)*4*JITTER;
-    s.style.transform = `translateY(${by}px) rotate(${rot}deg) scale(${scl})`;
+    /* ⚠️ the dot in .io is NOT jittered. Every other glyph has enough body
+       to carry a few degrees of rotation and still read as a letter set by
+       hand; a rotated, rescaled full stop just reads as a speck of dust on
+       the screen, or as a rendering fault. It stays square. */
+    if (ch !== '.') {
+      const rot=(Math.random()-.5)*7*JITTER, scl=1+(Math.random()*0.16-0.08)*JITTER, by=(Math.random()-.5)*4*JITTER;
+      s.style.transform = `translateY(${by}px) rotate(${rot}deg) scale(${scl})`;
+    }
     h1.appendChild(s);
   });
 })();
