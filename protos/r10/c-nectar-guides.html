@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nectar Guides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@500;800&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<style>
+/* Direction C -- Nectar Guides
+   A generative meadow seen from above. To us the flowers are plain; where the cursor
+   passes, the meadow turns into a pollinator's view: ultraviolet nectar guides, seen
+   through a compound eye. The reveal lingers and fades like a scent trail.
+   Signature color: ultraviolet (violet stands in for a color we cannot see). */
+:root{
+  --void:#0b0b0a;
+  --bone:#ebe5d8;
+  --muted:#8a857b;
+  --sig:#a066ff;
+  --radius:18px;
+  --radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--void);color:var(--bone);overflow:hidden}
+body{font-family:"Ubuntu Sans Mono",ui-monospace,monospace;font-size:13px;letter-spacing:.06em}
+#gl{position:fixed;inset:0;display:block;cursor:crosshair}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.chrome{position:fixed;z-index:5;display:flex;gap:22px;align-items:center;text-transform:uppercase}
+.tl{top:22px;left:26px;color:var(--muted)}
+.tr{top:22px;right:26px}
+.chrome a,.chrome button{color:var(--bone);text-decoration:none;background:none;border:0;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:4px 0;border-bottom:1px solid transparent;transition:border-color .2s}
+.chrome a:hover,.chrome button:hover{border-color:var(--sig)}
+#brand{position:fixed;z-index:4;left:clamp(20px,4vw,56px);bottom:clamp(24px,5vh,56px);pointer-events:none}
+#brand .wm{font-family:"Host Grotesk",sans-serif;font-weight:800;font-size:clamp(52px,9.4vw,164px);line-height:.86;letter-spacing:-.035em;color:var(--bone)}
+#brand .tag{margin-top:14px;text-transform:uppercase;color:var(--bone);opacity:.72;letter-spacing:.14em;font-size:14px}
+#why{position:fixed;z-index:5;right:26px;bottom:clamp(24px,5vh,56px);max-width:300px;text-align:right;color:var(--muted);line-height:1.55;letter-spacing:.03em;text-transform:none}
+#why b{color:var(--sig);font-weight:500}
+#work{position:fixed;z-index:6;top:62px;right:26px;width:min(360px,calc(100vw - 52px));background:#171615;border-radius:var(--radius);padding:20px 22px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .25s,transform .25s;line-height:1.5}
+#work.open{opacity:1;pointer-events:auto;transform:none}
+#work h2{font:500 12px/1 "Ubuntu Sans Mono",monospace;letter-spacing:.14em;color:var(--sig);margin-bottom:12px}
+#work li{list-style:none;padding:9px 0;border-top:1px solid #2a2927}
+#work li b{display:block;font-weight:500;text-transform:uppercase;letter-spacing:.1em}
+#work li span{color:var(--muted)}
+@media (max-width:760px){#why{display:none}.tl{display:none}}
+</style>
+</head>
+<body>
+<h1 class="sr">planetbased.io, a design + creative technology studio</h1>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="chrome tl">Move slowly ✷ See the meadow the way a pollinator does</div>
+<nav class="chrome tr">
+  <button id="workBtn" aria-expanded="false">Work</button>
+  <button id="reseed">New meadow</button>
+  <a href="mailto:hi@planetbased.io">hi@planetbased.io</a>
+</nav>
+<div id="brand"><div class="wm">planetbased.io</div><div class="tag">A design + creative technology studio</div></div>
+<p id="why">Many flowers carry ultraviolet patterns that bees can see and we can't. Here, <b>violet</b> stands in for ultraviolet.</p>
+<div id="work" role="dialog" aria-label="Work"><h2>WORK</h2><ul>
+  <li><b>Unicorn</b><span>A creative OS for designers who work in the terminal.</span></li>
+  <li><b>Living wall</b><span>A sound experience of real, credited bird recordings.</span></li>
+  <li><b>Bioindicators</b><span>An iOS app, in progress.</span></li>
+</ul></div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const cvs = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({canvas:cvs, antialias:false, powerPreference:'high-performance'});
+const DPR = Math.min(devicePixelRatio, 1.5);
+renderer.setPixelRatio(DPR);
+const cam = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const quad = new THREE.PlaneGeometry(2,2);
+let W = innerWidth, H = innerHeight;
+
+/* ---------- the scent trail: a decaying, slowly spreading ping-pong buffer ---------- */
+const TS = .5; // trail resolution scale
+const rtOpts = {type:THREE.HalfFloatType, minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter, depthBuffer:false};
+let rtA = new THREE.WebGLRenderTarget(W*TS, H*TS, rtOpts), rtB = rtA.clone();
+const trailMat = new THREE.ShaderMaterial({
+  uniforms:{uPrev:{value:null}, uRes:{value:new THREE.Vector2()}, uA:{value:new THREE.Vector2()}, uB:{value:new THREE.Vector2()}, uR:{value:70}, uDecay:{value:.99}, uOn:{value:0}},
+  vertexShader:`varying vec2 vUv; void main(){vUv=uv; gl_Position=vec4(position,1.);}`,
+  fragmentShader:`
+    precision highp float; varying vec2 vUv;
+    uniform sampler2D uPrev; uniform vec2 uRes, uA, uB; uniform float uR, uDecay, uOn;
+    float seg(vec2 p, vec2 a, vec2 b){vec2 pa=p-a, ba=b-a; float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-4),0.,1.); return length(pa-ba*h);}
+    void main(){
+      vec2 px = 1./uRes;
+      // spread: a little of each neighbor, like scent diffusing
+      float v = texture2D(uPrev,vUv).r*.6
+        + (texture2D(uPrev,vUv+vec2(px.x,0.)).r + texture2D(uPrev,vUv-vec2(px.x,0.)).r
+        +  texture2D(uPrev,vUv+vec2(0.,px.y)).r + texture2D(uPrev,vUv-vec2(0.,px.y)).r)*.1;
+      v *= uDecay;
+      vec2 p = vUv*uRes;
+      float d = seg(p, uA, uB);
+      v += uOn * smoothstep(uR, uR*.15, d) * .22;
+      gl_FragColor = vec4(min(v,1.),0.,0.,1.);
+    }`
+});
+const trailScene = new THREE.Scene(); trailScene.add(new THREE.Mesh(quad, trailMat));
+
+/* ---------- the meadow ---------- */
+const mat = new THREE.ShaderMaterial({
+  uniforms:{uTrail:{value:null}, uRes:{value:new THREE.Vector2()}, uTime:{value:0}, uSeed:{value:Math.random()*100}, uMouse:{value:new THREE.Vector2(-999,-999)}},
+  vertexShader:`varying vec2 vUv; void main(){vUv=uv; gl_Position=vec4(position,1.);}`,
+  fragmentShader:`
+    precision highp float; varying vec2 vUv;
+    uniform sampler2D uTrail; uniform vec2 uRes, uMouse; uniform float uTime, uSeed;
+    #define CELL 112.
+    #define V vec3(.62,.38,1.)
+    vec4 h4(vec2 c){ vec4 p=fract(vec4(c.xyxy)*vec4(.1031,.1030,.0973,.1099)+uSeed*.013); p+=dot(p,p.wzxy+33.33); return fract((p.xxyz+p.yzzw)*p.zywx); }
+    float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=h4(i).x,b=h4(i+vec2(1,0)).x,c=h4(i+vec2(0,1)).x,d=h4(i+vec2(1,1)).x;return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}
+
+    // returns human color in .rgb of h, bee color in .rgb of b
+    void meadow(vec2 p, out vec3 human, out vec3 bee){
+      // ground: dark, with a slow low-contrast leaf-litter mottling
+      float g = n2(p/90.)*.6 + n2(p/23.)*.4;
+      human = vec3(.052,.051,.047) + g*.022;
+      bee   = vec3(.028,.018,.05) + g*.015;
+      float best = -1.;
+      vec2 cell = floor(p/CELL);
+      for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+        vec2 c = cell+vec2(i,j);
+        vec4 h = h4(c), k = h4(c+71.3);
+        if(h.w < .16) continue;
+        float grow = smoothstep(k.w*2.2, k.w*2.2+1.6, uTime);           // staggered bloom on load
+        float R = CELL*(.11+.34*h.z*h.z+.06*k.y)*grow;
+        vec2 o = (c + .18 + .64*h.xy)*CELL;
+        o += vec2(sin(uTime*.5+h.x*40.), cos(uTime*.43+h.y*30.))*3.;     // a breath of wind
+        vec2 d = p - o;
+        float dist = length(d);
+        // soft cast shadow, offset down-right
+        float sh = 1.-smoothstep(R*.85, R*1.25, length(d-vec2(5.,-7.)));
+        human *= 1.-sh*.3; bee *= 1.-sh*.3;
+        if(dist > R*1.02) continue;
+        float n = 5.+floor(k.x*9.);
+        float kk = mix(.7, 3.2, k.y);
+        float rot = h.x*6.283 + sin(uTime*.35+h.y*20.)*.06;
+        float a = atan(d.y,d.x) + rot;
+        float lobe = pow(abs(cos(n*a*.5)), kk);
+        float edge = R*(.5+.5*lobe);
+        float m = 1.-smoothstep(edge-1.2, edge+1.2, dist);
+        float layer = h.z + k.z*.01;
+        if(m <= 0. || layer < best) continue;
+        best = layer;
+        float r = dist/R, re = dist/max(edge,1.);
+        float core = 1.-smoothstep(.17,.2,r);
+        float vein = pow(abs(cos(n*a*.5)), 60.)*(1.-re);
+        // ---- what we see: quiet, near-colorless petals
+        float stri = smoothstep(.55,1.,sin(a*n*5.))*(.25+.75*re);
+        float rim = smoothstep(edge-3., edge-1., dist);
+        vec3 pet = mix(vec3(.26,.255,.24), vec3(.50,.485,.45), k.z) * (.78+.22*re) * (1.-stri*.12) * (1.-rim*.25);
+        vec3 hc = mix(pet, vec3(.15,.14,.12) + .04*step(.5, fract((d.x+d.y)*.22)), core);
+        human = mix(human, hc, m);
+        // ---- what a pollinator sees: ultraviolet patterns
+        float type = floor(k.w*3.);
+        vec3 bc;
+        if(type < 1.){        // bullseye: UV-dark center, bright rim
+          float b = mix(.35,.7,h.y);
+          bc = mix(V*.10, V*1.05, smoothstep(b-.04, b+.04, re));
+        } else if(type < 2.){ // guide lines running in toward the nectar
+          float line = pow(abs(cos(n*a*.5)), 14.) * (1.-smoothstep(.25,.95,re));
+          bc = mix(V*.42, vec3(.93,.86,1.), line);
+        } else {              // dark petals, glowing tips
+          bc = mix(V*.16, V*1.1, smoothstep(.62,.9,re));
+        }
+        bc = mix(bc, vec3(.96,.92,1.) * (.7+.3*step(.5, fract(dist*.35))), core); // pollen
+        bee = mix(bee, bc, m);
+      }
+    }
+    vec3 hex(vec2 p, float s){ // returns center + distance to facet edge
+      vec2 r=vec2(1.,1.7320508), hh=r*.5, q=p/s;
+      vec2 a=mod(q,r)-hh, b=mod(q-hh,r)-hh;
+      vec2 g = dot(a,a)<dot(b,b)?a:b;
+      vec2 ag=abs(g); float e = .5-max(dot(ag,normalize(vec2(1.,1.7320508))),ag.x);
+      return vec3((q-g)*s, e);
+    }
+    void main(){
+      vec2 p = vUv*uRes;
+      float t = texture2D(uTrail, vUv).r;
+      float m = smoothstep(.04, .55, t);
+      vec3 human, bee, h2, b2;
+      meadow(p, human, bee);
+      vec3 col = human;
+      if(m > .001){
+        // a compound eye: the image is sampled once per facet, and facets grow coarser at the trail's edge
+        float s = mix(11., 6.5, m);
+        vec3 hx = hex(p, s);
+        meadow(hx.xy, h2, b2);
+        b2 *= .78 + .22*smoothstep(0., .12, hx.z);
+        col = mix(human, b2, m);
+      }
+      gl_FragColor = vec4(col, 1.);
+    }`
+});
+const scene = new THREE.Scene(); scene.add(new THREE.Mesh(quad, mat));
+
+/* ---------- pointer ---------- */
+const ptr = {x:-999,y:-999,lx:-999,ly:-999,on:0};
+addEventListener('pointermove',e=>{ptr.x=e.clientX; ptr.y=H-e.clientY; if(ptr.lx<-900){ptr.lx=ptr.x;ptr.ly=ptr.y} ptr.on=1});
+document.addEventListener('pointerleave',()=>ptr.on=0);
+
+/* ---------- UI ---------- */
+const wb=document.getElementById('workBtn'), wp=document.getElementById('work');
+wb.onclick=()=>{const o=wp.classList.toggle('open');wb.setAttribute('aria-expanded',o)};
+let t0 = performance.now();
+document.getElementById('reseed').onclick=()=>{mat.uniforms.uSeed.value=Math.random()*100; t0=performance.now()};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function resize(){
+  W=innerWidth; H=innerHeight; renderer.setSize(W,H,false); cvs.style.width=W+'px'; cvs.style.height=H+'px';
+  rtA.setSize(Math.ceil(W*TS),Math.ceil(H*TS)); rtB.setSize(Math.ceil(W*TS),Math.ceil(H*TS));
+  mat.uniforms.uRes.value.set(W,H); trailMat.uniforms.uRes.value.set(Math.ceil(W*TS),Math.ceil(H*TS));
+}
+addEventListener('resize',resize); resize();
+
+/* a short opening pass so the idea reads before anyone moves: one slow arc across the meadow */
+let intro = reduce ? null : {t:0};
+let prev = performance.now();
+function loop(now){
+  const dt = Math.min(.05,(now-prev)/1000); prev = now;
+  mat.uniforms.uTime.value = reduce ? 10 : (now-t0)/1000;
+  if(intro){ intro.t += dt; const k = intro.t/3.2;
+    if(k<1 && ptr.lx<-900+1 && !ptr.touched){ const x=W*(.18+.64*k), y=H*(.62+.12*Math.sin(k*3.14)); ptr.ix=x; ptr.iy=y } else intro=null }
+  const ax = intro? (ptr.pix??ptr.ix) : ptr.lx, ay = intro? (ptr.piy??ptr.iy) : ptr.ly;
+  const bx = intro? ptr.ix : ptr.x,  by = intro? ptr.iy : ptr.y;
+  trailMat.uniforms.uA.value.set(ax*TS, ay*TS); trailMat.uniforms.uB.value.set(bx*TS, by*TS);
+  trailMat.uniforms.uOn.value = (intro || ptr.on) ? 1 : 0;
+  trailMat.uniforms.uR.value = Math.min(W,H)*.09*TS;
+  trailMat.uniforms.uDecay.value = Math.pow(.9935, dt*60);
+  trailMat.uniforms.uPrev.value = rtA.texture;
+  renderer.setRenderTarget(rtB); renderer.render(trailScene, cam);
+  [rtA, rtB] = [rtB, rtA];
+  renderer.setRenderTarget(null);
+  mat.uniforms.uTrail.value = rtA.texture;
+  renderer.render(scene, cam);
+  if(intro){ptr.pix=ptr.ix; ptr.piy=ptr.iy}
+  ptr.lx = ptr.x; ptr.ly = ptr.y;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(t=>{prev=t;loop(t)});
+</script>
+</body>
+</html>
