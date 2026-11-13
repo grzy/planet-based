@@ -880,14 +880,15 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     if (sunIdx === tIdx) { runLeft = 0; const d = 1600 + wrand() * 1000; fidget(d); return d; }
     if (runLeft <= 0) {
       const r = srand();
-      if (r < .17) { mode = 'hold'; runLeft = 1; }
-      else if (r < .42) { mode = 'rush'; runLeft = 3 + Math.floor(srand() * 5); }
+      if (r < .3) { mode = 'hold'; runLeft = 1; }
+      else if (r < .45) { mode = 'rush'; runLeft = 2 + Math.floor(srand() * 3); }
       else { mode = 'walk'; runLeft = 2 + Math.floor(srand() * 5); }
     }
     runLeft--;
-    if (mode === 'hold') { const d = 650 + srand() * 1000; if (d > 1000) fidget(d); return d; }
-    if (mode === 'rush') return 55 + srand() * 35;
-    return 110 + srand() * 120;
+    // 11-13 (Ivy): the flips were glitchy-fast; every pace slowed so each face reads
+    if (mode === 'hold') { const d = 1100 + srand() * 1500; if (d > 1000) fidget(d); return d; }
+    if (mode === 'rush') return 170 + srand() * 90;
+    return 300 + srand() * 260;
   }
   function sunFrame() {
     let n = sunIdx;
