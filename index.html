@@ -170,7 +170,8 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .sun img.on{opacity:1}
 .sun img.tongue{transform:scale(var(--k,1))}
 .peony{width:min(17cqh,11cqw);left:calc(61cqw - min(38cqh,24cqw) * .75 - min(17cqh,11cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) * .55 - min(17cqh,11cqw) / 2);transform:rotate(-14deg)}
-.dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:max(-12cqh,-7.6cqw);transform:rotate(9deg)}
+/* 11-12 (Ivy): the whole dahlia stays inside the hero, so it is never cut off as the blocks part */
+.dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:5cqh;transform:rotate(9deg)}
 /* paper bees: one resting on the dahlia, one that drifts through now and then */
 .bee-rest{width:min(6.4cqh,4.1cqw);left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) * .88);bottom:calc(max(-12cqh,-7.6cqw) + min(31cqh,20cqw) * .86);transform:rotate(-12deg)}
 .bee-fly{position:absolute;left:0;top:0;width:min(7cqh,4.5cqw);aspect-ratio:1;visibility:hidden;will-change:transform}
