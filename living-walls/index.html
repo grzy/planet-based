@@ -72,6 +72,8 @@ body::after{
 }
 .topnav a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
 .topnav a:hover{opacity:1}
+/* 11-12 (Ivy): the wall is its own page now; the wordmark and "home" lead back to the studio */
+.brand-home{color:inherit;text-decoration:none}
 
 .stage{display:contents}
 .wall-frame{
@@ -281,9 +283,10 @@ footer{
 <body>
 
 <header class="brand">
-  <h1>planetbased.io</h1>
+  <a class="brand-home" href="/" aria-label="planetbased.io home"><h1>planetbased.io</h1></a>
 </header>
 <nav class="topnav">
+  <a href="/">home</a>
   <a id="contactCopy">contact</a>
 </nav>
 
@@ -333,7 +336,7 @@ footer{
 <!-- mobile: the full living-wall experience is desktop-only for now -->
 <div class="mobile-msg">
   <div class="mm-inner">
-    <p class="mm-eyebrow">planetbased.io</p>
+    <p class="mm-eyebrow"><a class="brand-home" href="/">planetbased.io</a></p>
     <h2 class="mm-title">Living Walls</h2>
     <p class="mm-sub">a living wall of real sounds ✺<br>best on desktop w/ headphones</p>
     <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
