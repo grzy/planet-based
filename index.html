@@ -313,6 +313,8 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .flip img.on{opacity:1}
 /* anchored from the bottom: the closing is taller than the screen, and the bottom of it is what people see */
 .flip.big{left:47%;bottom:calc(46vh - 40px);width:min(36vh,25vw)}
+/* 11-12 (Ivy): a third, smaller flower above the studio line, flipping through flowers the garden doesn't use */
+.flip.tiny{position:relative;display:block;width:min(10vh,7vw);margin:0 0 clamp(14px,1.6vw,28px) -.4vw;rotate:6deg}
 .flip.small{left:38%;bottom:calc(30vh - 40px);width:min(15vh,10.5vw);rotate:-10deg}
 /* the bee on the big flower: about the size of the visiting bee, kept near the flower's centre */
 .flip .perch{position:absolute;left:50%;top:50%;width:clamp(38px,2.9vw,64px);aspect-ratio:1;margin:calc(clamp(38px,2.9vw,64px) * -.5) 0 0 calc(clamp(38px,2.9vw,64px) * -.5);will-change:transform}
@@ -499,6 +501,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
     <div class="contact">
+      <div class="flip tiny" id="flipTiny" aria-hidden="true"><img src="img/flip-bloom-1.webp" alt="" class="on" decoding="async"><img src="img/flip-bloom-2.webp" alt="" decoding="async"></div>
       <p class="studio">An independent studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes software you can <span class="pen">hear and feel<img src="img/pencil-underline.webp" alt="" aria-hidden="true" width="217" height="46"></span>.</p>
       <a class="mail" href="mailto:hi@planetbased.io">hi@planetbased.io</a>
       <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
@@ -1027,6 +1030,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   flipbook(document.getElementById('flipBig'), 4242);
   flipbook(document.getElementById('flipSmall'), 9191);
+  flipbook(document.getElementById('flipTiny'), 5151);
 
   // the bee on the big flower: crawls and hops in small steps around the centre (the nectar), turns, flickers its wings
   (() => {
