@@ -1077,6 +1077,12 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       if (!rect) return;
       const cr = closing.getBoundingClientRect();
       tiny.style.setProperty('--tiny-x', (rect.left + rect.width / 2 - cr.left - tiny.offsetWidth / 2) + 'px');
+      // 11-12 (Ivy): fully on screen when you reach the footer, near the top of what you see, never cut off by the page edge
+      const cTop = cr.top + scrollY, maxView = document.documentElement.scrollHeight - innerHeight - cTop;
+      const pr = p.getBoundingClientRect(), studioTop = pr.top - cr.top, h = tiny.offsetHeight;
+      let y = maxView + Math.min(140, Math.max(48, innerHeight * .09));
+      y = Math.max(24, Math.min(y, studioTop - h - 48));
+      tiny.style.top = y + 'px';
     };
     put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
   })();
