@@ -272,7 +272,9 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .motion .moving .shade{opacity:1}
 .motion .loader{display:grid;position:absolute;inset:0;z-index:1;place-items:center;pointer-events:none}
 .motion .pin:not(.intro) .loader{opacity:0;transition:opacity .3s}
-.loader p{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+.loader p{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:none;color:var(--green)}
+/* 11-12 (Ivy): the name is always the domain as typed, lowercase */
+.foot span:first-child{text-transform:none}
 
 /* hero art arrival */
 /* the slice clones run the same arrival, in lockstep, so the swap from hero to blocks never shows */
