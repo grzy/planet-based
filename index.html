@@ -21,8 +21,10 @@
   if (m) document.documentElement.classList.add('mark-' + m);
   // the intro will run: hold everything back until it does, so nothing can show before its beat
   try { history.scrollRestoration = 'manual'; } catch (e) {}
-  if (!/[?&]static(&|$)/.test(location.search) && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) &&
-      window.innerWidth >= 760 && window.innerHeight >= 520) document.documentElement.classList.add('boot');
+  if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) document.documentElement.classList.add('boot');
+  // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
+  // settling can never resize the mark. It only changes when the width does (rotation)
+  document.documentElement.style.setProperty('--hero-h', Math.max(560, window.innerHeight) + 'px');
 })();
 // font trial: ?font=fraunces (or the last pick, remembered) swaps every serif. Source Serif stays the default
 (function () {
@@ -256,6 +258,10 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* before the script takes over: only paper and the loader word, from the very first paint */
 html.boot .hero,html.boot .objs,html.boot .work,html.boot .blk.exit,html.boot .closing,html.boot .foot-wrap{visibility:hidden}
 html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:center;pointer-events:none;background:var(--paper)}
+/* phones and the static layout: the loader word fades off the paper while the hero's arrival begins underneath */
+html.boot.boot-out .hero,html.boot.boot-out .objs,html.boot.boot-out .work,html.boot.boot-out .closing,html.boot.boot-out .foot-wrap{visibility:visible}
+html.boot.boot-out .loader{opacity:0;transition:opacity .7s ease}
+html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
 
 /* ---------- motion mode: pinned stage, the blocks ---------- */
 .motion .stage{position:relative}
@@ -1575,10 +1581,26 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     placeNewt();
     const cb = document.getElementById('cBee'); if (cb.__place) cb.__place();
     if (first) {
-      if (motion && window.scrollY < 4) startIntroWhenReady();
-      else { introDone = true; window.__heroSettled = performance.now(); startSun(); if (!reduceQ.matches) playLogo(); }
-      doc.classList.remove('boot');                        // the script has the page now: hand over from the head's hold
+      if (motion && window.scrollY < 4) { startIntroWhenReady(); doc.classList.remove('boot'); }
+      else if (!motion && window.scrollY < 4 && !reduceQ.matches) startStaticArrival();
+      else { introDone = true; window.__heroSettled = performance.now(); startSun(); if (!reduceQ.matches) playLogo(); doc.classList.remove('boot'); }
     }
+  }
+  // phones (and ?static): the same order as the desktop, without the blocks. The loader word holds, then fades as the
+  // logo bars rise; they grow into p and b, then the sun, the flowers, the thesis and the bees, each on its beat
+  function startStaticArrival() {
+    const ready = Promise.all([
+      document.fonts ? document.fonts.ready : Promise.resolve(),
+      ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
+    ]);
+    const beat = new Promise(r => setTimeout(r, Math.max(0, 1600 - performance.now())));
+    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 2600))])]).then(() => {
+      pin.classList.add('reveal');
+      introDone = true; window.__heroSettled = performance.now();
+      playLogo(); startSun();
+      doc.classList.add('boot-out');
+      setTimeout(() => doc.classList.remove('boot', 'boot-out'), 750);
+    });
   }
   function startIntroWhenReady() {
     pin.classList.add('intro');
@@ -1598,7 +1620,11 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   let raf = 0;
   addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }, { passive: true });
   let rt = 0;
-  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => setMode(false), 80); });
+  let lastW = innerWidth;
+  addEventListener('resize', () => {
+    if (innerWidth !== lastW) { lastW = innerWidth; doc.style.setProperty('--hero-h', Math.max(560, innerHeight) + 'px'); }
+    clearTimeout(rt); rt = setTimeout(() => setMode(false), 80);
+  });
   reduceQ.addEventListener('change', () => { setMode(false); startSun(); });
   cottage.addEventListener('load', () => { const cb = document.getElementById('cBee'); if (cb.__place) cb.__place(); });
   setMode(true);
