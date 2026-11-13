@@ -1,5 +1,14 @@
 # planet based ✺ studio site
 
+## ⚡ CURRENT (2026-11-12): the Blocks site is UP at planetbased.io
+- Home = the "Blocks" editorial direction (source of truth: protos/editorial-r1/c/index.html, copied to /index.html + img/ fonts/ video/ at ship). Register (protos/editorial-r1/B/) is the local backup, uncommitted.
+- Palette: studio green #356B47 (painted-canvas backdrop recolored, img/green-backdrop-4.webp), sea glass #B1D9DC, paper #F1F2E3, ink #0E1112. Type: Source Serif 4 (locked 11-12) + Ubuntu Sans Mono. pb monogram = outlined Source Serif.
+- Objects: Midjourney cutouts (sun, bees, newt, flowers, cottage, orange tree) in assets/cut, made with tools/lift.swift + tools/decontam.py; zoom-check every cutout on green AND paper.
+- The bird-sound wall lives at /living-walls/ (moved from the home page; <base href="/"> keeps its paths).
+- Next: Beekeeper + Living Walls videos, sound (real recordings, not synth), mobile pass.
+- Everything below this section is HISTORY from the July coming-soon build; the oatmeal ground and Bricolage wordmark are retired.
+
+
 The site for Ivy's design studio. Domain: planetbased.io (chosen, not yet purchased -- Porkbun).
 This is a STUDIO site, not a portfolio page. First product eventually: Bio Indicators.
 
