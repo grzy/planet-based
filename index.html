@@ -337,7 +337,7 @@ html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:cen
 /* anchored from the bottom: the closing is taller than the screen, and the bottom of it is what people see */
 .flip.big{left:47%;bottom:calc(46vh - 40px);width:min(36vh,25vw)}
 /* 11-12 (Ivy): a third, smaller flower above the studio line, flipping through flowers the garden doesn't use */
-.flip.tiny{position:relative;display:block;width:min(10vh,7vw);margin:calc(clamp(14px,1.6vw,28px) * -.8) 0 clamp(14px,1.6vw,28px) 4vw;rotate:6deg}
+.flip.tiny{top:clamp(48px,9vh,140px);left:var(--tiny-x,30%);width:min(10vh,7vw);rotate:6deg}   /* 11-12 (Ivy): up at the top of the footer, directly above "Ivy"; JS sets --tiny-x */
 .flip.small{left:38%;bottom:calc(30vh - 40px);width:min(15vh,10.5vw);rotate:-10deg}
 /* the bee on the big flower: about the size of the visiting bee, kept near the flower's centre */
 .flip .perch{position:absolute;left:50%;top:50%;width:clamp(38px,2.9vw,64px);aspect-ratio:1;margin:calc(clamp(38px,2.9vw,64px) * -.5) 0 0 calc(clamp(38px,2.9vw,64px) * -.5);will-change:transform}
@@ -519,12 +519,12 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
   <section class="closing" aria-label="Contact">
     <div class="garden" aria-hidden="true">
+      <div class="flip tiny" id="flipTiny" aria-hidden="true"><img src="img/flip-bloom-1.webp" alt="" class="on" decoding="async"><img src="img/flip-bloom-2.webp" alt="" decoding="async"></div>
       <div class="flip big" id="flipBig"><img src="img/flip-dahlia-1.webp" alt="" class="on" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-3.webp" alt="" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><span class="perch" id="perch"><img src="img/bee-2.webp" alt="" class="on"><img src="img/bee-1.webp" alt="" class="flick"></span></div>
       <div class="flip small" id="flipSmall"><img src="img/flip-peony-3.webp" alt="" class="on" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"></div>
       <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
     <div class="contact">
-      <div class="flip tiny" id="flipTiny" aria-hidden="true"><img src="img/flip-bloom-1.webp" alt="" class="on" decoding="async"><img src="img/flip-bloom-2.webp" alt="" decoding="async"></div>
       <p class="studio">An independent studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes software you can <span class="pen">hear and feel<img src="img/pencil-underline.webp" alt="" aria-hidden="true" width="217" height="46"></span>.</p>
       <a class="mail" href="mailto:hi@planetbased.io">hi@planetbased.io</a>
       <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
@@ -1046,12 +1046,13 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   })();
 
   // ---------- the garden: two flipbook flowers, irregular and seeded, like the sun ----------
-  function flipbook(el, seed) {
+  function flipbook(el, seed, rare) {
     const frames = [...el.querySelectorAll(':scope > img')], r = mulberry32(seed);
     let i = 0, timer = null, mode = 'walk', left = 0, on = false;
     function delay() {
       if (left <= 0) { const q = r(); if (q < .3) { mode = 'hold'; left = 1; } else if (q < .5) { mode = 'rush'; left = 2 + Math.floor(r() * 3); } else { mode = 'walk'; left = 2 + Math.floor(r() * 3); } }
       left--;
+      if (rare) return 7000 + r() * 9000;   // 11-12 (Ivy): the top flower only rarely changes
       return mode === 'hold' ? 1400 + r() * 1800 : mode === 'rush' ? 90 + r() * 60 : 260 + r() * 260;
     }
     function step() {
@@ -1066,7 +1067,19 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   flipbook(document.getElementById('flipBig'), 4242);
   flipbook(document.getElementById('flipSmall'), 9191);
-  flipbook(document.getElementById('flipTiny'), 5151);
+  flipbook(document.getElementById('flipTiny'), 5151, true);
+  // the top flower sits directly above the word "Ivy" in the studio line
+  (function placeTiny() {
+    const tiny = document.getElementById('flipTiny'), p = document.querySelector('.studio'); if (!tiny || !p) return;
+    const put = () => {
+      const w = document.createTreeWalker(p, NodeFilter.SHOW_TEXT); let n, rect = null;
+      while ((n = w.nextNode())) { const i = n.data.indexOf('Ivy'); if (i >= 0) { const rg = document.createRange(); rg.setStart(n, i); rg.setEnd(n, i + 3); rect = rg.getBoundingClientRect(); break; } }
+      if (!rect) return;
+      const cr = closing.getBoundingClientRect();
+      tiny.style.setProperty('--tiny-x', (rect.left + rect.width / 2 - cr.left - tiny.offsetWidth / 2) + 'px');
+    };
+    put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
+  })();
 
   // the bee on the big flower: crawls and hops in small steps around the centre (the nectar), turns, flickers its wings
   (() => {
