@@ -235,7 +235,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   clip-path:inset(0 100% 0 0);transition:clip-path .95s cubic-bezier(.6,0,.2,1) .15s}
 .inked .t-under{clip-path:inset(0 0 0 0)}
 /* the Beekeeper bee sits on the paper beside its title: small hops, a wing flicker */
-.cap-bee{position:absolute;left:calc(100% + .3em);bottom:.02em;width:1.15em;aspect-ratio:1;pointer-events:none;will-change:transform}
+.cap-bee{position:absolute;left:calc(100% + .06em);bottom:.06em;transform:rotate(-16deg);width:1.15em;aspect-ratio:1;pointer-events:none;will-change:transform}
 .cap-bee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 2px 2px rgba(40,34,20,.2))}
 .cap-bee img.flick{transform:scaleX(-1)}
 .cap-bee img.on{opacity:1}
@@ -1094,7 +1094,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     const r = mulberry32(606);
     const capEl = bee.closest('.cap');
     let x = 0, face = 1, t = null, on = false;
-    const draw = (y) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y || 0).toFixed(1)}px) scaleX(${face})`; };
+    // 11-13 (Ivy): closer to the word, and slanted nose-up
+    const draw = (y) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y || 0).toFixed(1)}px) rotate(${-16 * face}deg) scaleX(${face})`; };
     function tick() {
       t = null;
       if (!on || reduceQ.matches || (motion && +(capEl.style.opacity || 1) < .5)) { t = setTimeout(tick, 900); return; }
@@ -1105,7 +1106,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
         if (r() < .5) setTimeout(() => { rest.classList.remove('on'); flick.classList.add('on'); setTimeout(() => { flick.classList.remove('on'); rest.classList.add('on'); }, 70); }, 190);
         t = setTimeout(tick, 700 + r() * 1600);
       } else if (roll < .85) {                             // a small hop, three stop-motion frames
-        const nx = clamp(x + (r() - .5) * em * .6, 0, em * .3), hy = -em * (.18 + r() * .14);
+        const nx = clamp(x + (r() - .5) * em * .4, 0, em * .15), hy = -em * (.18 + r() * .14);
         if ((nx - x) * face < -2 && r() < .6) face = -face;
         const x0 = x;
         x = lerp(x0, nx, .5); draw(hy);
@@ -1251,6 +1252,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   else { newt.src = 'img/newt-1.webp'; newt.width = 849; newt.height = 454; }
   bioB.el.appendChild(newt);
   const TILT = 16, SIN = Math.sin(TILT * Math.PI / 180);
+  // 11-13 (Ivy): on the Bioindicators card it climbs: up and down the card, not just along it
+  const tiltNow = () => NS.surf === 'bio' ? 58 : TILT;
   const nrand = mulberry32(4471);
   const NS = { surf: 'bio', x: 0, y: 0, dir: -1, rot: 0, target: null, queue: [], legs: 0 };
   let nTimer = null, nPlaced = false;
@@ -1286,8 +1289,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     return !n.avoid.some(q => l < q.r && r > q.l && t < q.b && b > q.t);
   }
   function lineClear(n, a, b, loose) {
-    const d = Math.hypot(b.x - a.x, b.y - a.y), k = Math.max(1, Math.ceil(d / 8));
-    for (let i = 0; i <= k; i++) if (!clearAt(n, lerp(a.x, b.x, i / k), lerp(a.y, b.y, i / k), TILT, loose)) return false;
+    const d = Math.hypot(b.x - a.x, b.y - a.y), k = Math.max(1, Math.ceil(d / 8)), rot = headingRot(b.x - a.x, b.y - a.y);   // clearance for the angle it will actually walk at
+    for (let i = 0; i <= k; i++) if (!clearAt(n, lerp(a.x, b.x, i / k), lerp(a.y, b.y, i / k), rot, loose)) return false;
     return true;
   }
   function wanderTo(n, from, y0, y1) {
@@ -1295,8 +1298,10 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     for (let i = 0; i < 120; i++) {
       const x = lerp(n.R.l, n.R.r, nrand()), y = lerp(y0, y1, nrand());
       const dx = x - from.x, dy = y - from.y;
-      if (Math.abs(dx) < n.w * .5 || Math.abs(dx) > n.w * 4 || Math.abs(dy) > Math.abs(dx) * .8) continue;   // short legs, more turns
-      if (clearAt(n, x, y, TILT) && lineClear(n, from, { x, y }, true)) return { x, y };
+      const climb = NS.surf === 'bio';
+      if (climb ? (Math.hypot(dx, dy) < n.w * .5 || Math.abs(dx) > n.w * 3 || Math.abs(dy) > n.w * 2.2 || (i < 60 && Math.abs(dy) < n.w * .6))
+                : (Math.abs(dx) < n.w * .5 || Math.abs(dx) > n.w * 4 || Math.abs(dy) > Math.abs(dx) * .8)) continue;   // short legs, more turns; on the card most legs climb
+      if (clearAt(n, x, y, headingRot(dx, dy)) && lineClear(n, from, { x, y }, true)) return { x, y };
     }
     return null;
   }
@@ -1334,7 +1339,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     const n = surf(), inside = { x: clamp(NS.x, n.R.l, n.R.r), y: NS.surf === 'bio' ? n.R.b : n.R.t };
     NS.queue = [inside];
   }
-  function headingRot(dx, dy) { return clamp(Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI, -TILT, TILT) * (dx > 0 ? 1 : -1); }
+  function headingRot(dx, dy) { const T = tiltNow(); return clamp(Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI, -T, T) * (dx > 0 ? 1 : -1); }
   function drawNewt(wob) {
     newt.style.transform = `translate(${NS.x.toFixed(1)}px,${NS.y.toFixed(1)}px) rotate(${(NS.rot + (wob || 0)).toFixed(2)}deg) scaleX(${NS.dir > 0 ? -1 : 1})`;
     // on the plate it fades with the plate's content
