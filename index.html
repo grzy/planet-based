@@ -873,7 +873,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   let mode = 'walk', runLeft = 0;
   // the wink: every 8 to 14 swaps the cycle lands on the tongue sun and holds it. Own seed, filmable
   const wrand = mulberry32(1010);
-  const untilWink = () => 8 + Math.floor(wrand() * 7);
+  const untilWink = () => 22 + Math.floor(wrand() * 13);   // 11-13 (Ivy): the tongue is rarer, about every 22 to 34 swaps
   let winkIn = untilWink();
   const calmSeen = new Set();
   function nextDelay() {
