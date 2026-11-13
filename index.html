@@ -775,7 +775,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     introTimers.forEach(clearTimeout); introTimers = [];
     introAnims.forEach(a => { a.cancel(); }); introAnims = [];
     blocks.forEach(b => b.el.classList.remove('moving'));
-    introRunning = false; introDone = true;
+    introRunning = false; introDone = true; window.__heroSettled = performance.now();
     pin.classList.remove('intro', 'sealed');
     // decode the plate images now, so none of them decodes mid-glide
     pin.querySelectorAll('.media img').forEach(im => { if (im.decode) im.decode().catch(() => {}); });
@@ -824,6 +824,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   const wrand = mulberry32(1010);
   const untilWink = () => 8 + Math.floor(wrand() * 7);
   let winkIn = untilWink();
+  const calmSeen = new Set();
   function nextDelay() {
     if (sunIdx === tIdx) { runLeft = 0; const d = 1600 + wrand() * 1000; fidget(d); return d; }
     if (runLeft <= 0) {
@@ -839,9 +840,13 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   function sunFrame() {
     let n = sunIdx;
-    if (tIdx >= 0 && --winkIn <= 0) { n = tIdx; winkIn = untilWink(); }
+    // 11-13 (Ivy): the tongue is the special one. Never on arrival: only once the hero has fully settled
+    // (intro done, bees landed: ~4s after), and only after the sun has shown every calm face at least once since
+    if (calmSeen.size < sunImgs.length - 1 || !introDone || performance.now() - (window.__heroSettled || 1e12) < 4000) { if (winkIn < 1) winkIn = 1; }
+    if (tIdx >= 0 && --winkIn <= 0 && calmSeen.size >= sunImgs.length - 1 && introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000) { n = tIdx; winkIn = untilWink(); calmSeen.clear(); }
     else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);
     sunImgs[sunIdx].classList.remove('on'); sunImgs[n].classList.add('on'); sunIdx = n;
+    if (n !== tIdx && introDone && window.__heroSettled && performance.now() - window.__heroSettled >= 4000) calmSeen.add(n);
     const rot = (srand() - .5) * 2.6, sc = 1 + (srand() - .5) * .028, jx = (srand() - .5) * 3, jy = (srand() - .5) * 3;
     sunJit.style.transform = `translate(${jx}px,${jy}px) rotate(${rot}deg) scale(${sc})`;
     sunTimer = setTimeout(sunFrame, nextDelay());
@@ -1505,7 +1510,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     const cb = document.getElementById('cBee'); if (cb.__place) cb.__place();
     if (first) {
       if (motion && window.scrollY < 4) startIntroWhenReady();
-      else { introDone = true; startSun(); if (!reduceQ.matches) playLogo(); }
+      else { introDone = true; window.__heroSettled = performance.now(); startSun(); if (!reduceQ.matches) playLogo(); }
       doc.classList.remove('boot');                        // the script has the page now: hand over from the head's hold
     }
   }
@@ -1518,7 +1523,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     ]);
     const beat = new Promise(r => setTimeout(r, Math.max(0, 1600 - performance.now())));  // the loader word holds, fully visible, for at least 1.6 s
     Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 2600))])]).then(() => {
-      if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; render(); startSun(); return; }
+      if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; window.__heroSettled = performance.now(); render(); startSun(); return; }
       runIntro(false);
     });
   }
