@@ -2,3 +2,8 @@
 .playwright-mcp/
 *.log
 sounds/cougar-candidates/
+
+# 11-12: Midjourney masters and intermediate lifts stay local (82M+); assets/cut holds the clean finals
+assets/mj/
+assets/lift/
+assets/scraps/
