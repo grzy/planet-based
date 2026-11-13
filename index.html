@@ -286,26 +286,28 @@ html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:cen
 .foot span:first-child{text-transform:none}
 
 /* hero arrival, one sequence from the moment the blocks lock:
-   0     the logo: two flat bars rise in and hold   .8  the p blooms in as its bar fades   1.15 the b, as one breath
+   0     the logo: two flat bars rise in and hold   .8  the bars grow into the p, then the b (morph), or hand over (fade)
    1.6   the sun flickers in (stop-motion)          1.95 the peony blooms    2.2 the dahlia
    2.4   the thesis, then the dateline and lines    2.8 the resting bee lands, 3.2 the flying bee sets off (script)
    The block copies take over only once the type has faded, so they never show the logo mid-grow */
 .reveal .hero .mark,.reveal .slice .mark{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
-/* the logo: two plain bars, flat top and bottom, at the stems' exact x, width, top and bottom. Only drawn while it plays */
+/* the logo: two plain bars, flat top and bottom, at the stems' exact x, width, top and bottom. Only drawn while it plays.
+   Two ways from bars to letters (?logo=morph, ?logo=fade); the resting letters are always the one pure outlined path */
 .mark .pb-bar{display:none;fill:currentColor}
-.grow .hero .mark .pb-bar{display:inline;animation:barOut .6s cubic-bezier(.45,0,.55,1) both}
-.grow .hero .mark .pb-bar-p{animation-delay:1.05s}
-.grow .hero .mark .pb-bar-b{animation-delay:1.4s}
+.mark .pb-morph{display:none;fill:currentColor}
+.logo-run .hero .mark .pb-glyph{opacity:0}
+/* morph: the bars become the shapes that grow into the letters (driven by the script) */
+.logo-morph .hero .mark .pb-morph{display:inline}
+/* fade: the bars hold, settle just inside the stems' outline, then hand over to the letters */
+.logo-fade .hero .mark .pb-bar{display:inline;transform-box:fill-box;transform-origin:50% 50%;animation:barSettle .3s .8s cubic-bezier(.45,0,.55,1) both,barOut .5s 1.12s cubic-bezier(.45,0,.55,1) both}
+.logo-fade .hero .mark .pb-bar-p{--bt:15;--bb:0}
+.logo-fade .hero .mark .pb-bar-b{--bt:16;--bb:12}
+.logo-fade .hero .mark .pb-glyph{animation:glyphIn .5s 1.12s cubic-bezier(.45,0,.55,1) both}
 @keyframes barOut{from{opacity:1}to{opacity:0}}
-/* the letters bloom in through a feathered band that widens out of each stem: the mask starts empty, the band fades in,
-   widens on one continuous curve. When it is done the script takes the mask off, so the resting letters are the plain path */
-.mark .bl{transform:scaleX(14)}
-.grow .hero .mark .bl{animation:pbWiden 1.25s cubic-bezier(.33,.12,.2,1) both}
-.grow .hero .mark .bo{animation:pbIn .3s cubic-bezier(.33,.12,.2,1) both}
-.grow .hero .mark .bl-p,.grow .hero .mark .bo-p{animation-delay:.8s}
-.grow .hero .mark .bl-b,.grow .hero .mark .bo-b{animation-delay:1.15s}
-@keyframes pbWiden{from{transform:scaleX(1)}to{transform:scaleX(14)}}
-@keyframes pbIn{from{opacity:0}to{opacity:1}}
+@keyframes glyphIn{from{opacity:0}to{opacity:1}}
+@keyframes barSettle{from{transform:none}to{transform:translateY(calc((var(--bt) - var(--bb)) * .5px)) scaleY(var(--bs))}}
+.logo-fade .hero .mark .pb-bar-p{--bs:.983}
+.logo-fade .hero .mark .pb-bar-b{--bs:.969}
 .reveal .hero .thesis,.reveal .slice .thesis{animation:fade .8s 2.4s ease-out both}
 .reveal .hero .dateline,.reveal .hero .dl-sub,.reveal .slice .dateline,.reveal .slice .dl-sub{animation:fade .7s 2.55s ease-out both}
 .reveal .hero .dateline .rule,.reveal .slice .dateline .rule{animation:draw 1s 2.6s cubic-bezier(.6,0,.2,1) both}
@@ -425,7 +427,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
           <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <span class="reg tl" aria-hidden="true"></span><span class="reg tr" aria-hidden="true"></span><span class="reg bl" aria-hidden="true"></span><span class="reg br" aria-hidden="true"></span>
           <span class="punch p1" aria-hidden="true"></span><span class="punch p2" aria-hidden="true"></span>
-          <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1" viewBox="0 0 978 1330" aria-hidden="true" focusable="false"><defs><filter id="pbFeather" filterUnits="userSpaceOnUse" x="-130" y="-260" width="1240" height="1720"><feGaussianBlur stdDeviation="40"/></filter><clipPath id="pbSideP"><rect x="-100" y="-200" width="605" height="1800"/></clipPath><clipPath id="pbSideB"><rect x="505" y="-200" width="600" height="1800"/></clipPath><mask id="pbGrow" maskUnits="userSpaceOnUse" x="-40" y="-40" width="1060" height="1410"><g clip-path="url(#pbSideP)"><g class="bo bo-p" filter="url(#pbFeather)"><rect class="bl bl-p" x="77" y="320" width="70" height="1100" fill="#fff" style="transform-origin:112px 0"/></g></g><g clip-path="url(#pbSideB)"><g class="bo bo-b" filter="url(#pbFeather)"><rect class="bl bl-b" x="587" y="-120" width="71" height="1130" fill="#fff" style="transform-origin:622.5px 0"/></g></g></mask></defs><rect class="pb-bar pb-bar-p" x="77" y="445" width="70" height="885"/><rect class="pb-bar pb-bar-b" x="587" y="4" width="71" height="908"/><path class="pb-glyph" d="M4 1330L4 1314L99 1302L119 1302L225 1314L225 1330ZM73 1330Q75 1307 76 1269Q76 1232 77 1107Q77 981 77 949L77 645Q77 617 77 595Q76 573 76 553Q75 534 74 514L0 497L0 482L139 438L147 446L147 530L147 534L147 826L147 830L147 949Q147 981 148 1107Q148 1232 149 1269Q150 1307 151 1330ZM278 915Q251 915 225 906Q199 896 176 876Q153 855 134 822L120 822L127 797Q164 841 194 858Q225 875 265 875Q301 875 330 852Q359 830 376 784Q393 738 393 670Q393 570 356 523Q318 477 262 477Q235 477 212 488Q189 499 169 520Q149 540 131 568L125 539L138 539Q153 510 174 488Q196 465 224 452Q252 438 286 438Q336 438 377 464Q418 489 443 540Q467 590 467 666Q467 745 442 801Q416 856 373 886Q330 915 278 915ZM515 902L515 886L584 877Q585 847 586 814Q586 781 587 748Q587 716 587 691L587 68L511 51L511 37L653 0L661 8L657 364L657 533L657 536L657 827L657 829L657 913ZM788 915Q761 915 735 906Q709 896 686 876Q663 855 644 822L630 822L637 797Q674 841 704 858Q735 875 776 875Q813 875 841 852Q870 830 887 784Q903 738 903 670Q903 570 866 523Q829 477 772 477Q746 477 723 488Q699 499 679 520Q659 540 641 568L635 539L648 539Q663 510 685 488Q707 465 735 452Q763 438 797 438Q846 438 887 464Q928 489 953 540Q978 590 978 666Q978 745 952 801Q927 856 884 886Q841 915 788 915Z"/></svg><svg class="mono-pb v2" viewBox="0 0 1150 1422" aria-hidden="true" focusable="false"><path d="M0 1422L0 1412L1 1412Q37 1412 59 1390Q81 1368 81 1332L81 547Q80 503 62 485Q44 467 0 467L0 457L99 457Q158 457 180 446Q202 435 212 419L222 419L223 547Q246 502 293 472Q340 442 392 442Q448 442 491 476Q534 510 558 569Q583 627 583 703Q583 787 553 849Q523 911 468 945Q414 979 339 979Q298 979 272 967Q246 954 225 925L225 1332Q225 1368 247 1390Q269 1412 305 1412L306 1412L306 1422ZM318 962Q372 962 400 895Q427 827 427 700Q427 482 339 482Q305 482 272 509Q239 536 225 575L225 808Q225 880 250 921Q275 962 318 962ZM646 979L646 128Q646 92 624 70Q601 48 565 48L565 38L667 38Q726 38 748 27Q770 16 780 0L790 0L790 541Q813 496 855 469Q896 442 946 442Q1005 442 1051 477Q1097 512 1124 572Q1150 632 1150 709Q1150 789 1121 850Q1091 911 1038 945Q985 979 914 979Q795 979 754 880L656 979ZM885 962Q938 962 965 896Q992 830 992 702Q992 590 971 536Q950 482 905 482Q865 482 835 511Q804 540 790 576L790 827Q794 889 819 926Q844 962 885 962Z"/></svg><svg class="mono-pb v3" viewBox="0 0 1179 1400" aria-hidden="true" focusable="false"><path d="M217 528Q223 514 239 492Q255 471 287 454Q319 437 370 437Q404 437 442 451Q480 465 514 496Q548 527 570 577Q591 627 591 700Q591 792 558 850Q525 909 472 936Q419 963 358 963Q282 963 228 915L228 1245Q228 1285 246 1312Q264 1340 301 1340Q316 1340 316 1355L316 1385Q316 1400 301 1400L15 1400Q0 1400 0 1385L0 1355Q0 1340 16 1340Q53 1340 70 1312Q88 1285 88 1245L88 651Q88 624 85 599Q82 574 70 556Q57 539 29 536Q22 535 20 532Q18 528 18 523L18 489Q18 476 32 476Q82 476 114 472Q146 467 170 458Q193 449 216 438Q219 436 222 436Q224 436 225 436L226 436Q228 436 228 439Q228 440 228 444Q227 448 225 466Q223 485 217 528ZM228 772Q232 803 246 832Q259 861 283 879Q307 897 340 897Q388 897 415 873Q442 849 452 811Q463 773 463 732Q463 636 424 580Q386 524 324 524Q284 524 260 546Q235 569 228 590ZM676 270Q676 243 672 218Q669 193 657 176Q645 158 617 155Q605 154 605 142L605 108Q605 102 608 100Q612 97 619 95Q699 69 743 43Q787 17 807 2Q810 0 812 0L813 0Q815 0 815 2L815 486Q829 466 861 452Q894 437 936 437Q977 437 1019 451Q1062 465 1098 496Q1134 527 1156 578Q1179 628 1179 701Q1179 777 1147 836Q1116 896 1057 930Q998 963 917 963Q851 963 796 940Q741 918 708 868Q676 817 676 735ZM815 756Q815 805 831 836Q847 867 873 882Q899 897 927 897Q976 897 1002 874Q1029 850 1039 812Q1050 774 1050 733Q1050 637 1009 581Q969 525 892 525Q850 525 815 551Z"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
+          <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1" viewBox="0 0 978 1330" aria-hidden="true" focusable="false"><rect class="pb-bar pb-bar-p" x="77" y="445" width="70" height="885"/><rect class="pb-bar pb-bar-b" x="587" y="4" width="71" height="908"/><g class="pb-morph" aria-hidden="true"></g><path class="pb-glyph" d="M4 1330L4 1314L99 1302L119 1302L225 1314L225 1330ZM73 1330Q75 1307 76 1269Q76 1232 77 1107Q77 981 77 949L77 645Q77 617 77 595Q76 573 76 553Q75 534 74 514L0 497L0 482L139 438L147 446L147 530L147 534L147 826L147 830L147 949Q147 981 148 1107Q148 1232 149 1269Q150 1307 151 1330ZM278 915Q251 915 225 906Q199 896 176 876Q153 855 134 822L120 822L127 797Q164 841 194 858Q225 875 265 875Q301 875 330 852Q359 830 376 784Q393 738 393 670Q393 570 356 523Q318 477 262 477Q235 477 212 488Q189 499 169 520Q149 540 131 568L125 539L138 539Q153 510 174 488Q196 465 224 452Q252 438 286 438Q336 438 377 464Q418 489 443 540Q467 590 467 666Q467 745 442 801Q416 856 373 886Q330 915 278 915ZM515 902L515 886L584 877Q585 847 586 814Q586 781 587 748Q587 716 587 691L587 68L511 51L511 37L653 0L661 8L657 364L657 533L657 536L657 827L657 829L657 913ZM788 915Q761 915 735 906Q709 896 686 876Q663 855 644 822L630 822L637 797Q674 841 704 858Q735 875 776 875Q813 875 841 852Q870 830 887 784Q903 738 903 670Q903 570 866 523Q829 477 772 477Q746 477 723 488Q699 499 679 520Q659 540 641 568L635 539L648 539Q663 510 685 488Q707 465 735 452Q763 438 797 438Q846 438 887 464Q928 489 953 540Q978 590 978 666Q978 745 952 801Q927 856 884 886Q841 915 788 915Z"/></svg><svg class="mono-pb v2" viewBox="0 0 1150 1422" aria-hidden="true" focusable="false"><path d="M0 1422L0 1412L1 1412Q37 1412 59 1390Q81 1368 81 1332L81 547Q80 503 62 485Q44 467 0 467L0 457L99 457Q158 457 180 446Q202 435 212 419L222 419L223 547Q246 502 293 472Q340 442 392 442Q448 442 491 476Q534 510 558 569Q583 627 583 703Q583 787 553 849Q523 911 468 945Q414 979 339 979Q298 979 272 967Q246 954 225 925L225 1332Q225 1368 247 1390Q269 1412 305 1412L306 1412L306 1422ZM318 962Q372 962 400 895Q427 827 427 700Q427 482 339 482Q305 482 272 509Q239 536 225 575L225 808Q225 880 250 921Q275 962 318 962ZM646 979L646 128Q646 92 624 70Q601 48 565 48L565 38L667 38Q726 38 748 27Q770 16 780 0L790 0L790 541Q813 496 855 469Q896 442 946 442Q1005 442 1051 477Q1097 512 1124 572Q1150 632 1150 709Q1150 789 1121 850Q1091 911 1038 945Q985 979 914 979Q795 979 754 880L656 979ZM885 962Q938 962 965 896Q992 830 992 702Q992 590 971 536Q950 482 905 482Q865 482 835 511Q804 540 790 576L790 827Q794 889 819 926Q844 962 885 962Z"/></svg><svg class="mono-pb v3" viewBox="0 0 1179 1400" aria-hidden="true" focusable="false"><path d="M217 528Q223 514 239 492Q255 471 287 454Q319 437 370 437Q404 437 442 451Q480 465 514 496Q548 527 570 577Q591 627 591 700Q591 792 558 850Q525 909 472 936Q419 963 358 963Q282 963 228 915L228 1245Q228 1285 246 1312Q264 1340 301 1340Q316 1340 316 1355L316 1385Q316 1400 301 1400L15 1400Q0 1400 0 1385L0 1355Q0 1340 16 1340Q53 1340 70 1312Q88 1285 88 1245L88 651Q88 624 85 599Q82 574 70 556Q57 539 29 536Q22 535 20 532Q18 528 18 523L18 489Q18 476 32 476Q82 476 114 472Q146 467 170 458Q193 449 216 438Q219 436 222 436Q224 436 225 436L226 436Q228 436 228 439Q228 440 228 444Q227 448 225 466Q223 485 217 528ZM228 772Q232 803 246 832Q259 861 283 879Q307 897 340 897Q388 897 415 873Q442 849 452 811Q463 773 463 732Q463 636 424 580Q386 524 324 524Q284 524 260 546Q235 569 228 590ZM676 270Q676 243 672 218Q669 193 657 176Q645 158 617 155Q605 154 605 142L605 108Q605 102 608 100Q612 97 619 95Q699 69 743 43Q787 17 807 2Q810 0 812 0L813 0Q815 0 815 2L815 486Q829 466 861 452Q894 437 936 437Q977 437 1019 451Q1062 465 1098 496Q1134 527 1156 578Q1179 628 1179 701Q1179 777 1147 836Q1116 896 1057 930Q998 963 917 963Q851 963 796 940Q741 918 708 868Q676 817 676 735ZM815 756Q815 805 831 836Q847 867 873 882Q899 897 927 897Q976 897 1002 874Q1029 850 1039 812Q1050 774 1050 733Q1050 637 1009 581Q969 525 892 525Q850 525 815 551Z"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
           <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><b>Based in Mill Valley, California</b></p>
           <p class="dl-sub">A design + creative technology studio</p>
           <p class="thesis"><span class="t1">Technology that</span><span class="t2"><span class="pen-u">gives energy back</span>.</span></p>
@@ -731,7 +733,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   function runIntro(replay) {
     introRunning = true; introDone = false; hurried = false;
     stopSun();
-    pin.classList.remove('reveal', 'sealed', 'split', 'grow');
+    pin.classList.remove('reveal', 'sealed', 'split', 'logo-run', 'logo-morph', 'logo-fade');
     pin.classList.add('intro', 'sliding');
     const order = ['wall', 'uni', 'top', 'bee', 'bio', 'low'];
     const delays = [0, 110, 230, 320, 470, 580].map(d => d + (replay ? 80 : 120));
@@ -789,17 +791,66 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   // the logo: two plain strokes, a held beat, then the letters grow out of them. L (or ?logo=replay) plays it again
   const glyph = document.querySelector('.hero .mark .pb-glyph');
-  let logoDone = null;
+  const LOGO_DEFAULT = 'morph';
+  const logoMode = (location.search.match(/[?&]logo=(morph|fade)(&|$)/) || [])[1] || LOGO_DEFAULT;
+  let logoDone = null, morphRaf = 0, morph = null;
+  // morph pieces: each letter's outline is its own closed shapes (stem with its serifs, the foot, the bowl). Every piece
+  // starts as part of the bar (the stem pieces ARE the bars, the foot and bowl start as slivers inside them) and grows
+  // into its outline. Separate solid paths, same fill: no winding tricks, no masks, nothing translucent
+  function buildMorph() {
+    if (morph || !glyph || !window.flubber) return morph;
+    const subs = glyph.getAttribute('d').match(/M[^M]+/g);   // foot, p stem, p bowl, b stem, b bowl
+    if (!subs || subs.length !== 5) return null;
+    const R = (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
+    const plan = [
+      { l: 'p', from: R(77, 445, 70, 885), to: subs[1] },      // the p bar becomes the p's stem and spur
+      { l: 'p', from: R(77, 1296, 70, 34), to: subs[0] },      // the foot spreads out of the bar's bottom
+      { l: 'p', from: R(139, 470, 8, 420), to: subs[2] },      // the bowl swells out of the bar's right side
+      { l: 'b', from: R(587, 4, 71, 908), to: subs[3] },       // the b bar becomes the b's stem, flag and spur
+      { l: 'b', from: R(650, 450, 8, 450), to: subs[4] }       // the bowl swells out of the bar's right side
+    ];
+    const layer = glyph.parentNode.querySelector('.pb-morph');
+    layer.textContent = '';
+    morph = plan.map(q => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.setAttribute('d', q.from); layer.appendChild(el);
+      return { l: q.l, el, f: flubber.interpolate(q.from, q.to, { maxSegmentLength: 6 }) };
+    });
+    return morph;
+  }
+  if (logoMode === 'morph') {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/flubber@0.4.2/build/flubber.min.js';
+    sc.onload = () => (window.requestIdleCallback || setTimeout)(buildMorph);
+    document.head.appendChild(sc);
+  }
+  const smootherstep = t => t * t * t * (t * (t * 6 - 15) + 10);
+  function endLogo() {
+    cancelAnimationFrame(morphRaf); clearTimeout(logoDone);
+    pin.classList.remove('logo-run', 'logo-morph', 'logo-fade');   // back to the one pure outlined path
+  }
   function playLogo() {
     if (reduceQ.matches || !glyph) return;
-    clearTimeout(logoDone);
-    glyph.setAttribute('mask', 'url(#pbGrow)');            // the mask exists only for the animation
-    pin.classList.remove('grow'); void pin.offsetWidth; pin.classList.add('grow');
-    // when the b's band has finished widening: back to the plain outlined path, bars gone, no mask anywhere
-    logoDone = setTimeout(() => { glyph.removeAttribute('mask'); pin.classList.remove('grow'); }, (1.15 + 1.25) * 1000 + 80);
+    endLogo();
+    const mode = logoMode === 'morph' && buildMorph() ? 'morph' : 'fade';
+    void pin.offsetWidth;
+    pin.classList.add('logo-run', 'logo-' + mode);
+    if (mode === 'fade') { logoDone = setTimeout(endLogo, 1700); return; }
+    // morph: the bars hold for a beat, then the p grows, the b follows a third of the way in. One smooth curve each
+    morph.forEach(m => m.el.setAttribute('d', m.f(0)));
+    const t0 = performance.now() + 800, D = 1100, LAG = 350;
+    const step = now => {
+      const tp = clamp((now - t0) / D), tb = clamp((now - t0 - LAG) / D);
+      const ep = smootherstep(tp), eb = smootherstep(tb);
+      morph.forEach(m => { const e = m.l === 'p' ? ep : eb; if (m.e !== e) { m.e = e; m.el.setAttribute('d', m.f(e)); } });
+      if (tb < 1) morphRaf = requestAnimationFrame(step); else endLogo();
+    };
+    morphRaf = requestAnimationFrame(step);
   }
   addEventListener('keydown', e => { if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) playLogo(); });
-  if (/[?&]logo=replay(&|$)/.test(location.search)) setInterval(() => { if (window.scrollY < 4) playLogo(); }, 6500);
+  // review hook: ?debug freezes the morph at a given progress, __logoAt(p, b)
+  if (/[?&]debug(&|$)/.test(location.search)) window.__logoAt = (tp, tb) => { endLogo(); if (!buildMorph()) return 'no morph'; pin.classList.add('logo-run', 'logo-morph'); morph.forEach(m => m.el.setAttribute('d', m.f(smootherstep(clamp(m.l === 'p' ? tp : tb))))); return 'ok'; };
+  if (/[?&](logo=replay|replay)(&|$)/.test(location.search)) setInterval(() => { if (window.scrollY < 4) playLogo(); }, 6500);
   // a scroll or key during the intro fast-forwards it (every block finishes its glide within ~0.3 s) instead of snapping
   function hurryIntro() {
     if (!introRunning || hurried) return;
