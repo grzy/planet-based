@@ -4,1215 +4,1449 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>planetbased.io</title>
-<link rel="icon" href="favicon.svg?v=2" type="image/svg+xml">
+<meta name="description" content="A design + creative technology studio in Mill Valley, California.">
+<script>
+// ?mark=word swaps the pb monogram for the wordmark; ?mark=pb2 / pb3 try other faces. Set before anything is drawn or cloned
+(function () {
+  var m = (location.search.match(/[?&]mark=(word|pb2|pb3)(&|$)/) || [])[1];
+  if (m) document.documentElement.classList.add('mark-' + m);
+})();
+// font trial: ?font=fraunces (or the last pick, remembered) swaps every serif. Source Serif stays the default
+(function () {
+  var ok = ['source', 'fraunces', 'gloock', 'young', 'bodoni', 'cormorant'], q = (location.search.match(/[?&]font=([a-z]+)/) || [])[1], f = null;
+  // 11-12 (Ivy): keep Source Serif; a remembered trial font only applies while testing with ?fonts
+  if (/[?&]fonts(&|$)/.test(location.search)) { try { f = localStorage.getItem('pb-font'); } catch (e) {} }
+  if (q && ok.indexOf(q) >= 0) { f = q; try { localStorage.setItem('pb-font', q); } catch (e) {} }
+  if (!f || ok.indexOf(f) < 0) f = 'source';
+  var d = document.documentElement; d.dataset.font = f;
+  // the pb monogram is outlined Source Serif, so a trial font shows itself in the wordmark instead (unless ?mark= says otherwise)
+  if (f !== 'source' && !/[?&]mark=/.test(location.search)) d.classList.add('mark-word', 'mark-auto');
+  if (f !== 'source') document.write('<link id="trialFonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0,0&family=Gloock&family=Young+Serif&family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap">');
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300..700&display=swap" rel="stylesheet">
+<link rel="preload" href="img/sun-1.webp" as="image">
 <style>
+@font-face{font-family:"Ubuntu Sans Mono";src:url(fonts/ubuntu-sans-mono-400.woff2) format("woff2");font-weight:400 600;font-display:swap}
+
 :root{
-  --oat:#b7a891;        /* darker oatmeal -- real cooked-oats, not cream */
-  --ink:#241d16;
-  --cream:#efe9dd;
-  --radius:18px;
-  --radius-sm:6px;
-  /* ONE glass UI language -- every floating surface (arrows, place label, chip,
-     credits) uses these so nothing feels like a different component. */
-  --glass-bg:rgba(16,20,13,.66);
-  --glass-brd:rgba(255,255,255,.7);
-  --glass-blur:blur(11px);
+  --green:#356B47;
+  --green-lo:#2c5c3d;
+  --sea:#B1D9DC;
+  --sea-d:#8BB5AA;
+  --paper:#F1F2E3;
+  --shade:#96958D;
+  --ink:#0E1112;
+  --ink-2:#5f5e58;
+  --hair:rgba(150,149,141,.55);
+  --serif:"Source Serif 4", Georgia, serif;
+  --mono:"Ubuntu Sans Mono", ui-monospace, monospace;
+  --m:clamp(20px, 4.5vw, 128px);
+  --gut:clamp(14px, 1.67vw, 44px);
+  --b:clamp(14px, 1.9vw, 44px);
+  --band:clamp(60px, 8.5vh, 108px);
+  --nw:clamp(110px, 8.5vw, 200px);
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  background:#0b0d09;
-  color:var(--cream);
-  font-family:"Ubuntu Sans Mono",monospace;
-  height:100vh;overflow:hidden;position:relative;
-  opacity:0;
-  animation:pageIn 1.2s cubic-bezier(0.83,0,0.17,1) .05s forwards;
-}
-@keyframes pageIn{to{opacity:1}}
-@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes fadeIn{to{opacity:1}}   /* opacity only -- the wall must never shift position */
+html{background:var(--paper);color:var(--ink);font-synthesis:none;-webkit-font-smoothing:antialiased;overflow-x:clip}
+body{background:var(--paper);font-family:var(--serif);font-optical-sizing:auto;overflow-x:clip}
+img{display:block;max-width:100%}
+a{color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-body::after{
-  content:"";position:fixed;inset:-50%;z-index:50;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity:.05;
-}
+/* ---------- font trial: each face tuned so it looks meant; measures adjusted so the 3-line captions and 4-line studio rag hold ---------- */
+html[data-font="fraunces"]{--serif:"Fraunces",Georgia,serif;--capw:47ch;--studiow:30.7ch}
+html[data-font="gloock"]{--serif:"Gloock",Georgia,serif;--capw:45.5ch;--studiow:29.7ch}
+html[data-font="young"]{--serif:"Young Serif",Georgia,serif;--capw:55ch;--studiow:35.7ch}
+html[data-font="bodoni"]{--serif:"Bodoni Moda",Georgia,serif;--capw:49ch;--studiow:31.7ch}
+html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54ch;--studiow:34.7ch}
+[data-font="fraunces"] :is(.thesis,.mark .word,.cap h2,.contact a.mail,.media.face span){font-variation-settings:"opsz" 144,"SOFT" 0,"WONK" 0}
+[data-font="fraunces"] :is(.dateline,.dl-sub,.cap p,.studio,.quiet){font-variation-settings:"opsz" 24,"SOFT" 0,"WONK" 0}
+[data-font="bodoni"] :is(.thesis,.mark .word,.cap h2,.contact a.mail,.media.face span){font-variation-settings:"opsz" 96}
+[data-font="bodoni"] :is(.dateline,.dl-sub,.cap p,.studio,.quiet){font-variation-settings:"opsz" 11}
+/* Cormorant runs light and small: one weight up, a touch larger */
+[data-font="cormorant"] :is(.cap p,.studio,.quiet,.dl-sub){font-weight:500}
+[data-font="cormorant"] .dateline,[data-font="cormorant"] .thesis .t2{font-weight:500}
+[data-font="cormorant"] .thesis .t1,[data-font="cormorant"] .dateline b{font-weight:700}
+[data-font="cormorant"] .cap h2,[data-font="cormorant"] .contact a.mail{font-weight:600}
+[data-font="cormorant"] .cap p{font-size:calc(clamp(16px,1.18vw,22px) * 1.12)}
+[data-font="cormorant"] .studio{font-size:calc(clamp(20px,1.6vw,34px) * 1.1)}
+/* the switcher: a quiet paper pill at the top */
+.fontpick{position:fixed;top:10px;left:50%;translate:-50% 0;z-index:30;display:flex;gap:2px;padding:3px;border:1px solid var(--ink);border-radius:999px;background:var(--paper);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;line-height:1}
+.fontpick button{all:unset;cursor:pointer;padding:.55em .9em;border-radius:999px;color:var(--ink-2)}
+.fontpick button:hover{color:var(--ink)}
+.fontpick button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.fontpick button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+@media (max-width:759px){.fontpick{top:auto;bottom:10px;font-size:9.5px}.fontpick button{padding:.5em .6em}}
 
-/* wordmark = handwritten; nav = clear mono. white, with a whisper of shadow. */
-.brand{
-  position:fixed;top:clamp(18px,2.6vh,28px);left:clamp(22px,3.4vw,48px);z-index:30;
-  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;max-width:80vw;
-  color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
-  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .25s forwards;
-}
-.brand h1{
-  /* ⚠️ text-transform: NONE (2026-09-19). The wordmark is the domain, set
-     exactly as it is typed: one word, lowercase, with .io. This rule was
-     uppercasing it regardless of the markup, so changing the HTML alone
-     would still have rendered PLANETBASED.IO.
-     ⚠️ Tracking drops .42em -> .14em with it. .42 was set for two SPACED
-     CAPS words; on one lowercase word it reads as letters drifting apart
-     rather than as a lockup. */
-  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;
-  font-size:12.5px;letter-spacing:.14em;line-height:1;text-transform:none;
-}
-.brand .sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;opacity:.85}
-/* about + contact, tucked top-right (mirrors the brand top-left) */
-.topnav{
-  position:fixed;top:clamp(18px,2.6vh,28px);right:clamp(22px,3.4vw,48px);z-index:30;
-  display:flex;gap:22px;align-items:baseline;
-  font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;
-  color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
-  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .3s forwards;
-}
-.topnav a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
-.topnav a:hover{opacity:1}
-
-.stage{display:contents}
-.wall-frame{
-  position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;
-  opacity:0;animation:fadeIn 1.4s cubic-bezier(0.83,0,0.17,1) .4s forwards;
-}
-.wall-frame > img, .wall-frame > canvas{   /* only the background layers, not the card's wave */
-  position:absolute;inset:0;width:100%;height:100%;display:block;
-}
-.wall-frame img{object-fit:cover;filter:brightness(.93) saturate(1.03)}
-#glCanvas{opacity:0;transition:opacity .8s ease-in-out}
-#glCanvas.on{opacity:1}
-#fxCanvas{pointer-events:none}
-
-/* ---------- the voices: names that live on the wall, in te reo ----------
-   at rest they invert against the foliage (mix-blend). on hover they drop the
-   blend and light up in their own voice's color, letters spreading + moving. */
-.voices{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
-.voices.show{opacity:1}
-.voices.leaving{opacity:0;transition:none}   /* travel: hide the old names INSTANTLY, before they rebuild, so nothing flashes mid-fade */
-.voice{
-  position:absolute;transform:translate(-50%,-50%);
-  font-family:"Ubuntu Sans Mono",monospace;font-weight:400;
-  font-size:clamp(19px,1.6vw,26px);letter-spacing:.02em;line-height:1;
-  white-space:nowrap;cursor:pointer;pointer-events:auto;
-  padding:18px 20px;   /* generous hover target */
-  color:#fff;opacity:.92;text-shadow:0 1px 3px rgba(8,10,6,.6);
-  transition:opacity .5s cubic-bezier(0.83,0,0.17,1),
-             letter-spacing .5s cubic-bezier(0.83,0,0.17,1),
-             color .45s cubic-bezier(0.83,0,0.17,1);
-  -webkit-user-select:none;user-select:none;
-}
-.voice:hover{opacity:1}
-.voice.on{
-  color:var(--vcol,#fff);opacity:1;
-  letter-spacing:.26em;    /* spread wide while it sings */
-}
-.voice__l{display:inline-block;will-change:transform}
-
-/* the center stage: every intro moment lives here and dissolves in/out as one family */
-.center{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;
-  display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;
-  pointer-events:none;
-  opacity:0;filter:blur(2px);
-  transition:opacity 1.5s ease, filter 1.5s ease;
-}
-.center.show{opacity:1;filter:blur(0)}
-.center.hint{top:50%}   /* the hint sits dead center on the page */
-.arm{
-  font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;text-align:center;
-  font-size:clamp(40px,5vw,66px);letter-spacing:.006em;white-space:nowrap;text-transform:none;
-  font-feature-settings:"dlig" 1,"liga" 1,"swsh" 1;   /* the ct/st connecting ligatures -- "studio" links up */
-  color:#fff;text-shadow:0 1px 6px rgba(8,10,6,.6);
-  background:none;border:0;padding:0;
-}
-/* the place name, painted from its ecosystem's own flower colors */
-.arm.place{
-  background:var(--place-grad, #fff);-webkit-background-clip:text;background-clip:text;
-  color:transparent;text-shadow:none;letter-spacing:.18em;
-  font-size:clamp(22px,2.8vw,36px);
-}
-.arm-sub{
-  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;font-size:clamp(11.5px,1.1vw,13.5px);letter-spacing:.34em;text-transform:uppercase;
-  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
+/* ---------- the green: painted-canvas backdrop + soft edge falloff + fine noise ---------- */
+.tex,.ptex{
+  background-color:var(--green);
+  background-image:
+    var(--noise),
+    radial-gradient(ellipse 125% 115% at 48% 42%, rgba(14,17,18,0) 52%, rgba(14,17,18,.22) 100%),
+    url("img/green-backdrop-4.webp");
+  background-size:240px 240px,100% 100%,cover;
+  background-position:0 0,0 0,50% 50%;
+  background-repeat:repeat,no-repeat,no-repeat;
 }
 
-/* species card: a live sound-wave sitting above the credit, tight to the zone.
-   no stroke -- matches the credits panel. the wave IS the bird's real voice. */
-.chip{
-  position:absolute;z-index:5;width:300px;   /* wide enough to avoid widows, tight enough to space cleanly */
-  display:flex;flex-direction:column;   /* guarantees wave-above-text, no overlap */
-  background:var(--glass-bg);color:var(--cream);
-  border-radius:var(--radius);overflow:hidden;   /* no stroke on cards -- only the arrows get one */
-  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  opacity:0;transform:translateY(4px);pointer-events:none;
-  transition:opacity .55s cubic-bezier(0.83,0,0.17,1), transform .55s cubic-bezier(0.83,0,0.17,1);
-}
-.chip.on{opacity:1;transform:none;pointer-events:auto}
-.chip__wave{display:block;width:100%;height:34px;flex:0 0 34px}
-.chip__body{padding:3px 16px 15px;font-size:10.5px;line-height:1.66;letter-spacing:.06em;text-align:center;text-wrap:balance}
-.chip .n{font-size:12.5px;letter-spacing:.12em}
-.chip .sci{font-style:normal;opacity:.65}
-.chip .soon{opacity:.9;letter-spacing:.14em;text-transform:uppercase;font-size:9.5px}
-.chip a{color:var(--cream);opacity:.75;text-decoration:none;border-bottom:1px solid rgba(239,233,221,.35)}
-.chip a:hover{opacity:1}
+/* ---------- hero art (same markup in the hero and in every slice) ---------- */
+.hero,.slice{container-type:size}
+.art{position:absolute;inset:0;color:var(--sea)}
 
-footer{
-  position:fixed;z-index:30;
-  left:clamp(22px,3.4vw,48px);right:clamp(22px,3.4vw,48px);bottom:clamp(18px,3vh,26px);
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
-  font-family:"Ubuntu Sans Mono",monospace;
-  font-size:11px;letter-spacing:.14em;color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
-  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .6s forwards;
-}
-.tucked{display:flex;gap:22px}
-.tucked a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
-.tucked a:hover{opacity:1}
-.foot-note{opacity:.85}
-.foot-note a{color:#fff;text-decoration:none}
+/* register line language: column guides, corner marks, punched holes, a ticked ruler */
+.guides{position:absolute;top:0;bottom:0;left:var(--m);right:var(--m);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);pointer-events:none}
+.guides span{border-left:1px solid rgba(177,217,220,.085);border-right:1px solid rgba(177,217,220,.085)}
+.reg{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(177,217,220,.75);transform:scale(.6)}
+.reg::before,.reg::after{content:"";position:absolute;background:rgba(177,217,220,.75)}
+.reg::before{left:50%;top:-6px;bottom:-6px;width:1px}
+.reg::after{top:50%;left:-6px;right:-6px;height:1px}
+.reg.tl{left:calc(var(--m) * .5);top:calc(var(--m) * .5)}
+.reg.tr{left:calc(100% - var(--m) * .5);top:calc(var(--m) * .5)}
+.reg.bl{left:calc(var(--m) * .5);top:calc(100% - var(--m) * .5)}
+.reg.br{left:calc(100% - var(--m) * .5);top:calc(100% - var(--m) * .5)}
+.punch{position:absolute;left:calc(var(--m) * .5);width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;background:var(--paper);
+  box-shadow:inset 0 2px 3px rgba(20,48,30,.45), 0 1px 0 rgba(241,242,227,.18)}
+.punch.p1{top:27cqh}.punch.p2{top:79cqh}
+.mark-word .punch.p1{top:44cqh}
+.ruler{position:absolute;left:var(--m);right:var(--m);bottom:7cqh;height:7px;border-top:1px solid rgba(177,217,220,.6);
+  background-image:repeating-linear-gradient(to right, rgba(177,217,220,.6) 0 1px, transparent 1px 100%);
+  background-size:calc((100% + var(--gut)) / 12) 6px;background-repeat:repeat-x}
 
-/* credits: a centered glass card in the same UI language as the chip.
-   a scrim behind it dims the wall + closes on click, so it never fights the footer. */
-.scrim{
-  position:fixed;inset:0;z-index:40;background:rgba(6,8,5,.5);
-  opacity:0;pointer-events:none;transition:opacity .45s ease;
-}
-.scrim.on{opacity:1;pointer-events:auto}
-.credits{
-  position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);z-index:41;
-  width:max-content;max-width:min(620px,92vw);max-height:78vh;overflow:auto;
-  background:var(--glass-bg);color:var(--cream);
-  border-radius:var(--radius);   /* no stroke -- cards read as glass, only arrows get an outline */
-  padding:24px 30px;
-  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  box-shadow:0 24px 70px rgba(0,0,0,.55);
-  font-size:11px;line-height:1.7;letter-spacing:.05em;
-  opacity:0;pointer-events:none;
-  transition:opacity .45s cubic-bezier(0.83,0,0.17,1), transform .45s cubic-bezier(0.83,0,0.17,1);
-}
-.credits.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
-.credits__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.credits h2{font-size:11px;letter-spacing:.2em;font-weight:500}
-.credits__x{
-  background:none;border:0;color:var(--cream);opacity:.6;cursor:pointer;
-  font-family:inherit;font-size:14px;line-height:1;padding:4px;transition:opacity .3s;
-}
-.credits__x:hover{opacity:1}
-.credits__intro{opacity:.7;margin-bottom:16px}
-.credits__row{margin-bottom:13px}
-.credits__row .name{letter-spacing:.08em}
-/* build-details body dimmed to match the sound-credits detail text; the section
-   labels (The wall / The type ...) stay bright like the credit names */
-#buildPanel .credits__row{color:rgba(239,233,221,.6)}
-#buildPanel .credits__row .name{color:var(--cream)}
-.credits a{color:var(--cream);opacity:.8;border-bottom:1px solid rgba(239,233,221,.35);text-decoration:none}
-.credits a:hover{opacity:1}
-.credits .lic{opacity:.5}
+/* the mark: pb monogram by default, wordmark with ?mark=word */
+.mark{position:absolute;left:var(--m);top:12.5cqh;font-weight:430;line-height:1}
+/* three faces, each outlined with the p descender and b ascender drawn long; the viewBox is the ink, so the p's serif sits on the margin.
+   v1 Source Serif 4 (opsz 60), v2 Gloock, v3 Young Serif. All share one ink height */
+.mark .mono-pb{display:none;height:min(58cqh,38cqw);width:auto;fill:currentColor;overflow:visible}
+.mark .mono-pb.v1{display:block}
+.mark-pb2 .mark .mono-pb.v1,.mark-pb3 .mark .mono-pb.v1{display:none}
+.mark-pb2 .mark .mono-pb.v2,.mark-pb3 .mark .mono-pb.v3{display:block}
+.mark .word{display:none;font-size:min(12.5cqh,7.1cqw);letter-spacing:-.03em;font-variation-settings:"opsz" 60;text-box:trim-both cap alphabetic;white-space:nowrap}
+.mark-word .mark .mono-pb,.mark-word .mark .mono-pb.v1{display:none}
+.mark-word .mark .word{display:block}
+.mark-word .mark{top:19cqh}
+/* the wordmark runs wide, so the peony moves below-left of the sun, still clear of it */
+.mark-word .peony{left:calc(61cqw - min(38cqh,24cqw) * .8 - min(17cqh,11cqw) / 2);top:calc(40cqh + min(38cqh,24cqw) * .5 - min(17cqh,11cqw) / 2)}
 
-/* travel arrows + the current place, revealed once you're inside */
-.arrow{
-  position:absolute;top:50%;transform:translateY(-50%);z-index:20;
-  width:52px;height:52px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:"Ubuntu Sans Mono",monospace;font-size:26px;line-height:1;padding-bottom:3px;
-  color:#fff;background:var(--glass-bg);border:0;   /* no stroke -- just the glass disc */
-  cursor:pointer;opacity:0;pointer-events:none;
-  box-shadow:0 3px 16px rgba(0,0,0,.45);
-  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  transition:opacity .7s ease, background .3s, transform .3s;
+.dateline{
+  position:absolute;top:7cqh;left:var(--m);right:var(--m);
+  display:flex;align-items:center;
+  font-size:min(2.6cqh,1.55cqw);font-weight:380;letter-spacing:-.005em;line-height:1;
+  font-variation-settings:"opsz" 24;
 }
-.arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
-.arrow.glow{animation:arrowGlow 5s ease-in-out 1}         /* one-time, a beat after the arrows appear: glass -> fills red -> holds -> dissolves back */
-.arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
-@media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
-@keyframes arrowGlow{   /* the disc fills warm poppy, holds so you notice the arrows, then dissolves to the glass UI */
-  0%{background-color:rgba(16,20,13,.66)}      /* start as the settled glass */
-  7%{background-color:rgba(255,90,66,.55)}     /* fill red quickly -- no default-state gap */
-  48%{background-color:rgba(255,90,66,.55)}    /* hold -- "oh, there are the arrows" */
-  100%{background-color:rgba(16,20,13,.66)}    /* dissolve back to the default glass (--glass-bg) */
+.dateline .rule{flex:1;height:1px;background:var(--sea);margin:0 1.1em;transform-origin:left center;opacity:.8}
+.dateline b{font-weight:600}
+.dateline > span:first-child,.dateline b{text-box:trim-both cap alphabetic}
+.dl-sub{
+  position:absolute;right:var(--m);top:calc(7cqh + min(2.6cqh,1.55cqw)*1.6);
+  font-size:min(2.6cqh,1.55cqw);font-weight:340;line-height:1;font-variation-settings:"opsz" 24;
 }
-@media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
-.arrow--prev{left:clamp(16px,2.5vw,36px)}
-.arrow--next{right:clamp(16px,2.5vw,36px)}
-.wall-place{
-  position:absolute;left:50%;bottom:clamp(52px,7vh,72px);transform:translateX(-50%);z-index:20;
-  font-family:"Ubuntu Sans Mono",monospace;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
-  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);opacity:0;pointer-events:none;white-space:nowrap;
-  background:var(--glass-bg);padding:9px 20px;border-radius:999px;
-  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  transition:opacity .6s ease;
+.thesis{
+  position:absolute;left:var(--m);bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .62);
+  font-size:min(6.4cqh,3.8cqw);line-height:1.02;letter-spacing:-.018em;font-variation-settings:"opsz" 48;
 }
-.wall-place.on{opacity:1}
+.thesis > span{display:block}
+/* one difference: weight. The first line is bold, the promise is light with a pencil line under it */
+.thesis .t1{font-weight:620}
+.thesis .t2{font-weight:330}
+.thesis .pen-u{position:relative;display:inline-block}
+.thesis .pen-u::after{content:"";position:absolute;left:-.12em;right:-.24em;top:88%;height:.4em;background:var(--sea);transform:scaleX(-1);
+  -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat}
 
-/* placer mode */
-.placer-help{
-  position:fixed;top:26px;right:clamp(22px,3.4vw,48px);z-index:60;
-  background:rgba(38,32,25,.95);color:var(--cream);border-radius:var(--radius-sm);
-  padding:12px 16px;font-size:10.5px;line-height:1.7;letter-spacing:.06em;display:none;
-}
+/* ---------- hero objects: their own layer, never cloned into the blocks ---------- */
+.pin{position:relative}
+.hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
+.objs{position:absolute;left:0;top:0;width:100%;height:100svh;min-height:560px;container-type:size;z-index:6;pointer-events:none;overflow:hidden}
+.obj{position:absolute;height:auto}
+.shadow{filter:drop-shadow(0 1.6cqh 2cqh rgba(20,44,28,.34)) drop-shadow(0 .3cqh .4cqh rgba(20,44,28,.26))}
+.sun{position:absolute;left:calc(61cqw - min(38cqh,24cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) / 2);width:min(38cqh,24cqw);height:min(38cqh,24cqw)}
+.sun .jit{position:absolute;inset:0;will-change:transform}
+.sun img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
+.sun img.on{opacity:1}
+.sun img.tongue{transform:scale(var(--k,1))}
+.peony{width:min(17cqh,11cqw);left:calc(61cqw - min(38cqh,24cqw) * .75 - min(17cqh,11cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) * .55 - min(17cqh,11cqw) / 2);transform:rotate(-14deg)}
+.dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:max(-12cqh,-7.6cqw);transform:rotate(9deg)}
+/* paper bees: one resting on the dahlia, one that drifts through now and then */
+.bee-rest{width:min(6.4cqh,4.1cqw);left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) * .88);bottom:calc(max(-12cqh,-7.6cqw) + min(31cqh,20cqw) * .86);transform:rotate(-12deg)}
+.bee-fly{position:absolute;left:0;top:0;width:min(7cqh,4.5cqw);aspect-ratio:1;visibility:hidden;will-change:transform}
+.bee-fly.flying{visibility:visible}
+.bee-fly img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
+.bee-fly img.on{opacity:1}
 
-@media (max-width:760px){
-  .brand{max-width:70vw}
-  .chip{width:min(300px,88vw)}
+/* ---------- work ---------- */
+.work{
+  display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);row-gap:clamp(96px,14vh,180px);
+  padding:clamp(96px,14vh,180px) var(--m) clamp(120px,16vh,200px);
 }
+.plate{position:relative;grid-column:1 / span 8;--c:1}
+.plate[data-k="bee"],.plate[data-k="bio"]{grid-column:5 / span 8}
+.frame{position:relative;overflow:hidden;z-index:1}
+.frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  box-shadow:inset 0 0 0 1px rgba(241,242,227,calc(var(--seam,0) * .55))}
+.slice{display:none}
+.pc{position:relative;display:grid;grid-template-rows:auto var(--band);padding:var(--b) var(--b) 0;opacity:var(--c)}
+.media{position:relative;aspect-ratio:1.566;overflow:hidden;background:var(--green-lo)}
+.media img,.media video{display:block;width:100%;height:100%;object-fit:cover}
+.cap a.go{text-decoration:none}
+.cap a.go:hover{color:var(--green)}
+/* the whole picture is a link too, for the plates that have somewhere to go */
+.media .go-cover{position:absolute;inset:0;z-index:2}
+.media video.hover-vid{position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s ease}
+.media video.hover-vid.on{opacity:1}
+.media.face{display:grid;place-items:center;background:rgba(241,242,227,.035);box-shadow:inset 0 0 0 1px rgba(177,217,220,.32)}
+.media.face span{font-size:clamp(34px,4.4vw,96px);font-weight:400;letter-spacing:-.025em;color:var(--sea);font-variation-settings:"opsz" 60}
+.band{position:relative;display:flex;align-items:center;gap:clamp(14px,1.4vw,28px);color:var(--sea);
+  font-family:var(--mono);font-size:clamp(10px,.74vw,16px);letter-spacing:.08em;text-transform:uppercase;line-height:1.35}
+.band::before{content:"";position:absolute;left:0;right:0;top:calc(var(--b) * -.001);height:6px;border-top:1px solid rgba(177,217,220,.42);
+  background-image:repeating-linear-gradient(to right, rgba(177,217,220,.42) 0 1px, transparent 1px 100%);background-size:calc(100% / 8) 5px;background-repeat:repeat-x}
+.band dl{display:flex;flex:1;min-width:0}
+.band dl div{flex:1 1 0;min-width:0;padding:0 clamp(10px,1vw,20px);border-left:1px solid rgba(177,217,220,.28)}
+.band dl div:first-child{border-left:0;padding-left:0}
+/* tools get the room they need and stay on one line */
+.band dl div.tools{flex:2.55 1 0}
+.band dl div:nth-child(3){flex:1.3 1 0}
+.band dl div:last-child{flex:.75 1 0}
+.band dd{white-space:nowrap;overflow:hidden;text-overflow:clip}
+.band dt{color:var(--sea-d);opacity:.9;margin-bottom:.25em}
+.band dd{color:var(--sea)}
+.hole{flex:none;width:13px;height:13px;border-radius:50%;background:var(--paper);
+  box-shadow:inset 0 1.5px 2px rgba(20,48,30,.5)}
+/* pencil underline, in sea-glass on the green */
+.penned{position:relative;display:inline-block}
+.penned::after{content:"";position:absolute;left:-.25em;right:-.5em;top:95%;height:.75em;background:var(--sea);opacity:.85;
+  -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat}
 
-/* ═══════════ mobile: a graceful coming-soon screen over the static wall ═══════════
-   the interactive WebGL experience is desktop-only for now; JS also skips booting it. */
-.mobile-msg{display:none}
-@media (max-width:700px){
-  .voices,.arrow,.center,.chip,.credits,.scrim,.wall-place,footer,.topnav,.brand,.placer-help{display:none!important}
-  #glCanvas,#fxCanvas{display:none}                     /* WebGL never boots -- the <img> wall shows through */
-  .wall-frame::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(6,8,5,.35),rgba(6,8,5,.72));z-index:3}
-  .mobile-msg{
-    display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;padding:34px;
-    text-align:center;color:#fff;
-    opacity:0;animation:fadeIn 1.2s ease .4s forwards;
-  }
-  .mm-inner{display:flex;flex-direction:column;gap:15px;align-items:center;max-width:330px}
-  .mm-eyebrow{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:none;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.7)}
-  .mm-title{font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(32px,10vw,42px);line-height:1.02;font-feature-settings:"dlig" 1,"liga" 1;text-shadow:0 1px 8px rgba(0,0,0,.6)}
-  .mm-sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.75;opacity:.9;text-shadow:0 1px 5px rgba(0,0,0,.85)}
-  .mm-contact{font-family:"Ubuntu Sans Mono",monospace;font-size:12px;letter-spacing:.12em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px;margin-top:8px;cursor:pointer}
+.cap{position:relative;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,6fr);column-gap:var(--gut);align-items:baseline;padding-top:clamp(18px,2.4vh,30px);opacity:var(--c)}
+.cap h2{font-size:clamp(28px,2.6vw,52px);font-weight:450;letter-spacing:-.02em;line-height:1;font-variation-settings:"opsz" 48}
+.cap .tt{position:relative;display:inline-block}
+/* a different pencil line under each title, drawn left to right the first time it is seen */
+.t-under{position:absolute;left:-4%;width:110%;max-width:none;top:96%;height:.34em;object-fit:fill;mix-blend-mode:multiply;opacity:.88;pointer-events:none;
+  clip-path:inset(0 100% 0 0);transition:clip-path .95s cubic-bezier(.6,0,.2,1) .15s}
+.inked .t-under{clip-path:inset(0 0 0 0)}
+/* the Beekeeper bee sits on the paper beside its title: small hops, a wing flicker */
+.cap-bee{position:absolute;left:calc(100% + .3em);bottom:.02em;width:1.15em;aspect-ratio:1;pointer-events:none;will-change:transform}
+.cap-bee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 2px 2px rgba(40,34,20,.2))}
+.cap-bee img.flick{transform:scaleX(-1)}
+.cap-bee img.on{opacity:1}
+/* one measure for every plate, set so each description runs exactly three lines */
+.cap p{font-size:clamp(16px,1.18vw,22px);line-height:1.38;font-weight:380;max-width:var(--capw,59ch);text-wrap:pretty;color:#26292a}
+
+.blk.exit{display:none}
+.loader{display:none}
+
+/* ---------- motion mode: pinned stage, the blocks ---------- */
+.motion .stage{position:relative}
+.motion .pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--paper)}
+.motion .hero{position:absolute;inset:0;height:auto;min-height:0;z-index:4}
+.motion .objs{height:100%;min-height:0}
+.motion .pin.split .hero{visibility:hidden}
+.motion .work{display:block;padding:0;position:absolute;inset:0;z-index:2}
+/* everything that moves is its own layer and only ever gets transform or opacity; sizes are fixed per measure, so no layout in the loop.
+   The one exception is the frame's window size (width/height), which is contained so it never reflows anything inside */
+.motion .plate,.motion .blk.exit{position:absolute;left:0;top:0;display:block;will-change:transform;contain:layout style}
+.motion .frame{position:absolute;left:0;top:0;width:100%;height:100%;background:none;contain:strict}
+.shade{display:none}
+.motion .shade{display:block;position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform,opacity;pointer-events:none;opacity:0;
+  box-shadow:0 26px 50px -30px rgba(24,52,34,.42),0 4px 10px -6px rgba(24,52,34,.2)}
+.motion .slice{display:block;position:absolute;left:0;top:0;z-index:0;pointer-events:none;will-change:transform}
+.motion .slice .art{will-change:opacity}
+.motion .hero .art{will-change:opacity}
+.motion .objs{will-change:transform,opacity}
+.motion .pc{position:absolute;left:0;top:0;z-index:1;grid-template-rows:1fr var(--band);transform-origin:0 0;will-change:transform,opacity}
+.motion .media{aspect-ratio:auto}
+.motion .cap{position:absolute;left:0;top:0;will-change:transform,opacity}
+
+/* intro: paper behind, paper hairline seams that soften away as the last block settles */
+.motion .pin.intro .hero{visibility:hidden}
+.motion .pin.intro .slice .art{opacity:0}
+.motion .pin.intro .objs{opacity:0}
+.motion .pin .frame{--seam:0;transition:--seam .45s cubic-bezier(.65,0,.35,1)}
+.motion .pin.intro .frame{--seam:1}
+.motion .pin.intro .shade{transition:opacity .45s cubic-bezier(.65,0,.35,1)}
+.motion .pin.intro.sealed .frame{--seam:0;transition:--seam .6s cubic-bezier(.65,0,.35,1)}
+.motion .moving .shade{opacity:1}
+.motion .loader{display:grid;position:absolute;inset:0;z-index:1;place-items:center;pointer-events:none}
+.motion .pin:not(.intro) .loader{opacity:0;transition:opacity .3s}
+.loader p{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+
+/* hero art arrival */
+/* the slice clones run the same arrival, in lockstep, so the swap from hero to blocks never shows */
+.reveal .hero .mark,.reveal .slice .mark{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+.reveal .hero .dateline,.reveal .hero .dl-sub,.reveal .slice .dateline,.reveal .slice .dl-sub{animation:fade .8s .22s ease-out both}
+.reveal .hero .dateline .rule,.reveal .slice .dateline .rule{animation:draw 1.1s .3s cubic-bezier(.6,0,.2,1) both}
+.reveal .hero .ruler,.reveal .slice .ruler{animation:draw 1.2s .35s cubic-bezier(.6,0,.2,1) both;transform-origin:left}
+.reveal .hero .thesis,.reveal .slice .thesis{animation:fade .9s .4s ease-out both}
+.reveal .hero .guides,.reveal .hero .reg,.reveal .hero .punch,.reveal .slice .guides,.reveal .slice .reg,.reveal .slice .punch{animation:fade 1s .5s ease-out both}
+.reveal .sun{animation:place .5s .12s cubic-bezier(.2,.8,.25,1) both}
+.reveal .dahlia{animation:place .5s .42s cubic-bezier(.2,.8,.25,1) both}
+.reveal .peony{animation:place .5s .54s cubic-bezier(.2,.8,.25,1) both}
+.reveal .bee-rest{animation:place .5s .7s cubic-bezier(.2,.8,.25,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(1.2cqh)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes place{from{opacity:0;scale:.95}to{opacity:1;scale:1}}
+@property --seam{syntax:"<number>";inherits:true;initial-value:0}
+
+/* ---------- closing: the studio line, the address, the garden, the cottage ---------- */
+.closing{position:relative;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);padding:clamp(120px,18vh,240px) var(--m) 0;align-items:end;align-content:end;
+  min-height:100vh;min-height:100svh}
+.contact{grid-column:1 / span 8;padding-bottom:calc(var(--nw) * .2)}
+.studio{font-size:clamp(20px,1.6vw,34px);line-height:1.32;font-weight:380;letter-spacing:-.008em;max-width:var(--studiow,37.5ch);text-wrap:pretty;color:#26292a;
+  font-variation-settings:"opsz" 32;margin-bottom:clamp(72px,11vh,140px)}
+.studio .pen{position:relative;white-space:nowrap}
+/* the ampersand in the display serif (Gloock, subset to one glyph) */
+.studio .pen img{position:absolute;left:-4%;width:110%;max-width:none;top:84%;height:.46em;object-fit:fill;mix-blend-mode:multiply;opacity:.95;pointer-events:none;transform:scaleX(-1) rotate(-1.5deg)}
+/* one quieter line under the address */
+.quiet{margin-top:clamp(12px,1.6vh,22px);font-size:clamp(17px,1.25vw,26px);font-weight:360;color:var(--ink-2);letter-spacing:-.005em}
+.stranger{position:relative;display:inline-block}
+/* the garden: a big flower and a small one, each a stop-motion flipbook of the paper dahlias and peonies, and their bees */
+.garden{position:absolute;inset:0;pointer-events:none;z-index:1}
+.flip{position:absolute;aspect-ratio:1;filter:drop-shadow(0 14px 16px rgba(40,34,20,.2)) drop-shadow(0 2px 3px rgba(40,34,20,.16))}
+.flip img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
+.flip img.on{opacity:1}
+/* anchored from the bottom: the closing is taller than the screen, and the bottom of it is what people see */
+.flip.big{left:47%;bottom:calc(46vh - 40px);width:min(36vh,25vw)}
+.flip.small{left:38%;bottom:calc(30vh - 40px);width:min(15vh,10.5vw);rotate:-10deg}
+/* the bee on the big flower: about the size of the visiting bee, kept near the flower's centre */
+.flip .perch{position:absolute;left:50%;top:50%;width:clamp(38px,2.9vw,64px);aspect-ratio:1;margin:calc(clamp(38px,2.9vw,64px) * -.5) 0 0 calc(clamp(38px,2.9vw,64px) * -.5);will-change:transform}
+.flip .perch img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 3px 3px rgba(40,34,20,.25))}
+.flip .perch img.on{opacity:1}
+.cbee{position:absolute;left:0;top:0;width:clamp(34px,2.6vw,58px);aspect-ratio:1;will-change:transform;visibility:hidden}
+.cbee.placed{visibility:visible}
+.cbee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 4px 4px rgba(40,34,20,.22))}
+.cbee img.on{opacity:1}
+.contact a.mail{display:inline-block;font-size:clamp(40px,6vw,140px);font-weight:400;letter-spacing:-.03em;line-height:1;text-decoration:none;font-variation-settings:"opsz" 60;white-space:nowrap;margin-left:-.04em}
+.contact a.mail:hover{color:var(--green)}
+.home{--cw:clamp(250px,21.5vw,500px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * 1.4);position:relative}
+/* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
+.pot-tree{position:absolute;width:calc(var(--cw) * .19);height:auto;left:calc(var(--cw) * .07);bottom:calc(var(--cw) * .037);
+  z-index:2;transform-origin:50% 96%;filter:drop-shadow(0 12px 14px rgba(40,34,20,.22)) drop-shadow(0 2px 3px rgba(40,34,20,.18))}
+.cottage{width:var(--cw);height:auto;transform:scaleX(-1);
+  filter:drop-shadow(0 18px 22px rgba(40,34,20,.24)) drop-shadow(0 3px 4px rgba(40,34,20,.2))}
+.floor{grid-column:1 / -1;position:relative}
+.floor .rule{height:9px;border-top:1px solid var(--ink);
+  background-image:repeating-linear-gradient(to right, var(--ink) 0 1px, transparent 1px 100%);
+  background-size:calc((100% + var(--gut)) / 12) 6px;background-repeat:repeat-x}
+.newt{position:absolute;left:0;top:0;z-index:5;width:var(--nw);height:auto;will-change:transform;visibility:hidden;pointer-events:none;
+  filter:drop-shadow(0 6px 5px rgba(40,34,20,.22))}
+.newt.placed{visibility:visible}
+.trail{position:absolute;z-index:3;height:auto;pointer-events:none;will-change:transform,opacity;
+  filter:drop-shadow(0 3px 3px rgba(40,34,20,.18))}
+.foot-wrap{padding:0 var(--m)}
+.foot{display:flex;justify-content:space-between;gap:20px;padding:14px 0 clamp(96px,12vh,140px);
+  font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.foot span:last-child{margin-right:-.09em}
+
+a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+
+/* phone */
+@media (max-width:759px){
+  .mark{top:13cqh}
+  .mark .mono-pb{height:min(40cqh,48cqw)}
+  .mark .word{font-size:12cqw}
+  .dateline{font-size:12px}
+  .dl-sub{font-size:12px;top:calc(7cqh + 20px)}
+  .thesis{font-size:min(6.4cqh,8.6cqw)}
+  .guides{grid-template-columns:repeat(4,1fr)}
+  .guides span:nth-child(n+5){display:none}
+  .punch{display:none}
+  .sun{left:calc(70cqw - 23cqh / 2);top:calc(45cqh - 23cqh / 2);width:23cqh;height:23cqh}
+  .peony{width:12cqh;left:calc(70cqw - 23cqh * .1 - 6cqh);top:calc(45cqh - 23cqh * .86 - 6cqh)}
+  .dahlia{width:19cqh;right:-8cqw;left:auto;top:58cqh;bottom:auto}
+  .mark-word .peony{left:calc(70cqw + 23cqh * .32 - 6cqh);top:calc(45cqh - 23cqh * .76 - 6cqh)}
+  .bee-rest{width:4.6cqh;left:calc(108cqw - 19cqh * .78);top:calc(58cqh - 4.6cqh * .55);bottom:auto}
+  .bee-fly{width:6.4cqh}
+  .work{row-gap:96px}
+  .plate,.plate[data-k="bee"],.plate[data-k="bio"]{grid-column:1 / -1}
+  .band dl div:nth-child(2){display:none}
+  .band dd{white-space:normal;overflow:visible}
+  .band dl div:first-child{flex:1.4 1 0}
+  .cap{grid-template-columns:1fr;row-gap:10px}
+  .contact,.home{grid-column:1 / -1}
+  .home{justify-self:end;margin-top:64px}
+  .home{--cw:min(62vw,270px)}
+  .flip.big{left:var(--m);bottom:190px;width:30vw}
+  .flip.small{left:46vw;bottom:36px;width:16vw}
+  .contact a.mail{font-size:clamp(28px,9vw,44px)}
+  .foot{flex-direction:column;gap:6px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
 </head>
 <body>
+<main>
+  <section class="stage" id="stage" aria-label="planetbased.io">
+    <div class="pin" id="pin">
+      <div class="loader" aria-hidden="true"><p>planetbased.io</p></div>
 
-<header class="brand">
-  <h1>planetbased.io</h1>
-</header>
-<nav class="topnav">
-  <a id="contactCopy">contact</a>
-</nav>
+      <div class="hero tex" id="hero">
+        <div class="art" id="art">
+          <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="reg tl" aria-hidden="true"></span><span class="reg tr" aria-hidden="true"></span><span class="reg bl" aria-hidden="true"></span><span class="reg br" aria-hidden="true"></span>
+          <span class="punch p1" aria-hidden="true"></span><span class="punch p2" aria-hidden="true"></span>
+          <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1" viewBox="0 0 978 1330" aria-hidden="true" focusable="false"><path d="M4 1330L4 1314L99 1302L119 1302L225 1314L225 1330ZM73 1330Q75 1307 76 1269Q76 1232 77 1107Q77 981 77 949L77 645Q77 617 77 595Q76 573 76 553Q75 534 74 514L0 497L0 482L139 438L147 446L147 530L147 534L147 826L147 830L147 949Q147 981 148 1107Q148 1232 149 1269Q150 1307 151 1330ZM278 915Q251 915 225 906Q199 896 176 876Q153 855 134 822L120 822L127 797Q164 841 194 858Q225 875 265 875Q301 875 330 852Q359 830 376 784Q393 738 393 670Q393 570 356 523Q318 477 262 477Q235 477 212 488Q189 499 169 520Q149 540 131 568L125 539L138 539Q153 510 174 488Q196 465 224 452Q252 438 286 438Q336 438 377 464Q418 489 443 540Q467 590 467 666Q467 745 442 801Q416 856 373 886Q330 915 278 915ZM515 902L515 886L584 877Q585 847 586 814Q586 781 587 748Q587 716 587 691L587 68L511 51L511 37L653 0L661 8L657 364L657 533L657 536L657 827L657 829L657 913ZM788 915Q761 915 735 906Q709 896 686 876Q663 855 644 822L630 822L637 797Q674 841 704 858Q735 875 776 875Q813 875 841 852Q870 830 887 784Q903 738 903 670Q903 570 866 523Q829 477 772 477Q746 477 723 488Q699 499 679 520Q659 540 641 568L635 539L648 539Q663 510 685 488Q707 465 735 452Q763 438 797 438Q846 438 887 464Q928 489 953 540Q978 590 978 666Q978 745 952 801Q927 856 884 886Q841 915 788 915Z"/></svg><svg class="mono-pb v2" viewBox="0 0 1150 1422" aria-hidden="true" focusable="false"><path d="M0 1422L0 1412L1 1412Q37 1412 59 1390Q81 1368 81 1332L81 547Q80 503 62 485Q44 467 0 467L0 457L99 457Q158 457 180 446Q202 435 212 419L222 419L223 547Q246 502 293 472Q340 442 392 442Q448 442 491 476Q534 510 558 569Q583 627 583 703Q583 787 553 849Q523 911 468 945Q414 979 339 979Q298 979 272 967Q246 954 225 925L225 1332Q225 1368 247 1390Q269 1412 305 1412L306 1412L306 1422ZM318 962Q372 962 400 895Q427 827 427 700Q427 482 339 482Q305 482 272 509Q239 536 225 575L225 808Q225 880 250 921Q275 962 318 962ZM646 979L646 128Q646 92 624 70Q601 48 565 48L565 38L667 38Q726 38 748 27Q770 16 780 0L790 0L790 541Q813 496 855 469Q896 442 946 442Q1005 442 1051 477Q1097 512 1124 572Q1150 632 1150 709Q1150 789 1121 850Q1091 911 1038 945Q985 979 914 979Q795 979 754 880L656 979ZM885 962Q938 962 965 896Q992 830 992 702Q992 590 971 536Q950 482 905 482Q865 482 835 511Q804 540 790 576L790 827Q794 889 819 926Q844 962 885 962Z"/></svg><svg class="mono-pb v3" viewBox="0 0 1179 1400" aria-hidden="true" focusable="false"><path d="M217 528Q223 514 239 492Q255 471 287 454Q319 437 370 437Q404 437 442 451Q480 465 514 496Q548 527 570 577Q591 627 591 700Q591 792 558 850Q525 909 472 936Q419 963 358 963Q282 963 228 915L228 1245Q228 1285 246 1312Q264 1340 301 1340Q316 1340 316 1355L316 1385Q316 1400 301 1400L15 1400Q0 1400 0 1385L0 1355Q0 1340 16 1340Q53 1340 70 1312Q88 1285 88 1245L88 651Q88 624 85 599Q82 574 70 556Q57 539 29 536Q22 535 20 532Q18 528 18 523L18 489Q18 476 32 476Q82 476 114 472Q146 467 170 458Q193 449 216 438Q219 436 222 436Q224 436 225 436L226 436Q228 436 228 439Q228 440 228 444Q227 448 225 466Q223 485 217 528ZM228 772Q232 803 246 832Q259 861 283 879Q307 897 340 897Q388 897 415 873Q442 849 452 811Q463 773 463 732Q463 636 424 580Q386 524 324 524Q284 524 260 546Q235 569 228 590ZM676 270Q676 243 672 218Q669 193 657 176Q645 158 617 155Q605 154 605 142L605 108Q605 102 608 100Q612 97 619 95Q699 69 743 43Q787 17 807 2Q810 0 812 0L813 0Q815 0 815 2L815 486Q829 466 861 452Q894 437 936 437Q977 437 1019 451Q1062 465 1098 496Q1134 527 1156 578Q1179 628 1179 701Q1179 777 1147 836Q1116 896 1057 930Q998 963 917 963Q851 963 796 940Q741 918 708 868Q676 817 676 735ZM815 756Q815 805 831 836Q847 867 873 882Q899 897 927 897Q976 897 1002 874Q1029 850 1039 812Q1050 774 1050 733Q1050 637 1009 581Q969 525 892 525Q850 525 815 551Z"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
+          <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><b>Based in Mill Valley, California</b></p>
+          <p class="dl-sub">A design + creative technology studio</p>
+          <p class="thesis"><span class="t1">Technology that</span><span class="t2"><span class="pen-u">gives energy back</span>.</span></p>
+          <span class="ruler" aria-hidden="true"></span>
+        </div>
+      </div>
 
-<main class="stage">
-  <figure class="wall-frame" id="frame">
-    <img id="wall" src="images/hawaii.jpg"
-      alt="A living wall of plants; travel between places and hear the birds that live there.">
-    <canvas id="glCanvas"></canvas>
-    <canvas id="fxCanvas"></canvas>
-    <div class="voices" id="voices"></div>
-    <button class="arrow arrow--prev" id="arrowPrev" aria-label="Previous place">‹</button>
-    <button class="arrow arrow--next" id="arrowNext" aria-label="Next place">›</button>
-    <div class="wall-place" id="wallPlace"></div>
-    <div class="center" id="center">
-      <button class="arm" id="arm">design studio coming soon</button>
-      <div class="arm-sub" id="armSub">headphones recommended · click to begin</div>
+      <div class="objs" id="objs" aria-hidden="true">
+        <img class="obj dahlia shadow" src="img/dahlia-2.webp" alt="" width="843" height="883">
+        <div class="sun shadow" id="sun">
+          <div class="jit" id="sunJit">
+            <img src="img/sun-1.webp" alt="" class="on"><img src="img/sun-2.webp" alt=""><img src="img/sun-3.webp" alt=""><img src="img/sun-4.webp" alt=""><img src="img/sun-5.webp" alt=""><img src="img/sun-6.webp" alt=""><img src="img/sun-10.webp" alt="" class="tongue" style="--k:1.13">
+          </div>
+        </div>
+        <img class="obj peony shadow" src="img/peony-1.webp" alt="" width="858" height="902">
+        <img class="obj bee-rest shadow" src="img/bee-2.webp" alt="" width="312" height="320">
+        <div class="bee-fly shadow" id="beeFly"><img src="img/bee-1.webp" alt="" class="on"><img src="img/bee-3.webp" alt=""></div>
+      </div>
+
+      <div class="work" id="work" aria-label="Work">
+        <article class="plate" data-k="uni">
+          <div class="frame ptex">
+            <div class="slice tex" aria-hidden="true" inert></div>
+            <div class="pc">
+              <div class="media" data-video="unicorn.mp4" data-ready><img src="img/unicorn.webp" alt="The Unicorn app beside a painted meadow: Quest, Story, Commits, and Keep panels." width="873" height="552"><a class="go-cover" href="https://ivygrzy.com/work/unicorn/" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"></a></div>
+              <div class="band"><span class="hole" aria-hidden="true"></span>
+                <dl>
+                  <div><dt>Project</dt><dd>Unicorn</dd></div>
+                  <div class="tools"><dt>Tools</dt><dd>Claude Code, Electron, Figma MCP</dd></div>
+                  <div><dt>When</dt><dd>Spring and fall 2026</dd></div>
+                  <div><dt>Status</dt><dd>Shipped</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="cap"><h2><span class="tt"><a class="go" href="https://ivygrzy.com/work/unicorn/" target="_blank" rel="noopener">Unicorn<span class="sr"> (opens in a new tab)</span></a><img class="t-under" src="img/pencil-under-8.webp" alt="" aria-hidden="true" width="171" height="24"></span></h2><p>A desktop app that sits beside your terminal. Your agents log each experiment as they work, so what you build is kept for you and your energy stays on the work itself.</p></div>
+        </article>
+
+        <article class="plate" data-k="bee">
+          <div class="frame ptex">
+            <div class="slice tex" aria-hidden="true" inert></div>
+            <div class="pc">
+              <div class="media" data-video="beekeeper.mp4"><img src="img/beekeeper.webp" alt="The home page of a beekeeper's website: an ink drawing of a dog walking through wildflowers." width="1440" height="900" decoding="async"></div>
+              <div class="band"><span class="hole" aria-hidden="true"></span>
+                <dl>
+                  <div><dt>Project</dt><dd>Beekeeper</dd></div>
+                  <div class="tools"><dt>Tools</dt><dd>HTML, CSS, Pages CMS</dd></div>
+                  <div><dt>When</dt><dd>Fall 2026</dd></div>
+                  <div><dt>Status</dt><dd>Shipped</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="cap"><h2><span class="tt">Beekeeper<img class="t-under" src="img/pencil-under-2.webp" alt="" aria-hidden="true" width="63" height="21"><span class="cap-bee" id="capBee" aria-hidden="true"><img src="img/bee-2.webp" alt="" class="on"><img src="img/bee-1.webp" alt="" class="flick"></span></span></h2><p>A website for a beekeeper who sells honey and answers swarm calls, moving the bees somewhere safe instead of exterminating them.</p></div>
+        </article>
+
+        <article class="plate" data-k="wall">
+          <div class="frame ptex">
+            <div class="slice tex" aria-hidden="true" inert></div>
+            <div class="pc">
+              <div class="media" data-video="living-wall.mp4"><img src="img/living-wall.webp" alt="A dense living wall of ferns, moss, and leaves." width="1800" height="1149" decoding="async"><a class="go-cover" href="/living-walls/" tabindex="-1" aria-hidden="true"></a></div>
+              <div class="band"><span class="hole" aria-hidden="true"></span>
+                <dl>
+                  <div><dt>Project</dt><dd>Living Walls</dd></div>
+                  <div class="tools"><dt>Tools</dt><dd>WebGL, Web Audio, xeno-canto recordings</dd></div>
+                  <div><dt>When</dt><dd>Summer 2026</dd></div>
+                  <div><dt>Status</dt><dd>Live</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="cap"><h2><span class="tt"><a class="go" href="/living-walls/">Living Walls</a><img class="t-under" src="img/pencil-under-4.webp" alt="" aria-hidden="true" width="148" height="25"></span></h2><p>Hover the walls and real recordings play from where each animal hides: mostly birds, plus a frog, a cougar and an orca. Every sound is a real recording, credited to the person who made it.</p></div>
+        </article>
+
+        <article class="plate" data-k="bio">
+          <div class="frame ptex">
+            <div class="slice tex" aria-hidden="true" inert></div>
+            <div class="pc">
+              <div class="media face" aria-hidden="true"><span>Bioindicators</span></div>
+              <div class="band"><span class="hole" aria-hidden="true"></span>
+                <dl>
+                  <div><dt>Project</dt><dd>Bioindicators</dd></div>
+                  <div class="tools"><dt>Tools</dt><dd>SwiftUI, Xcode</dd></div>
+                  <div><dt>When</dt><dd>Fall 2026</dd></div>
+                  <div><dt>Status</dt><dd>Up next</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="cap"><h2><span class="tt">Bioindicators<img class="t-under" src="img/pencil-under-1.webp" alt="" aria-hidden="true" width="102" height="24"></span></h2><p>An iPhone app for the trails you walk again and again. It keeps what you notice each day, so over time you start to understand what the trail is telling you.</p></div>
+        </article>
+      </div>
+
+      <div class="blk exit" data-k="top" aria-hidden="true"><div class="frame ptex"><div class="slice tex" inert></div></div></div>
+      <div class="blk exit" data-k="low" aria-hidden="true"><div class="frame ptex"><div class="slice tex" inert></div></div></div>
     </div>
-    <div class="chip" id="chip">
-      <canvas class="chip__wave" id="chipWave"></canvas>
-      <div class="chip__body" id="chipBody"></div>
+  </section>
+
+  <section class="closing" aria-label="Contact">
+    <div class="garden" aria-hidden="true">
+      <div class="flip big" id="flipBig"><img src="img/flip-dahlia-1.webp" alt="" class="on" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-3.webp" alt="" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><span class="perch" id="perch"><img src="img/bee-2.webp" alt="" class="on"><img src="img/bee-1.webp" alt="" class="flick"></span></div>
+      <div class="flip small" id="flipSmall"><img src="img/flip-peony-3.webp" alt="" class="on" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"></div>
+      <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
-  </figure>
+    <div class="contact">
+      <p class="studio">An independent studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes software you can <span class="pen">hear and feel<img src="img/pencil-underline.webp" alt="" aria-hidden="true" width="217" height="46"></span>.</p>
+      <a class="mail" href="mailto:hi@planetbased.io">hi@planetbased.io</a>
+      <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
+    </div>
+    <div class="home" id="home">
+      <img class="cottage" id="cottage" src="img/cottage-3.webp" alt="" aria-hidden="true" width="756" height="780" loading="lazy">
+      <img class="pot-tree" id="potTree" src="img/orange-1.webp" alt="" aria-hidden="true" width="557" height="1026" loading="lazy">
+    </div>
+    <div class="floor" id="floor">
+      <div class="rule" aria-hidden="true"></div>
+    </div>
+  </section>
 </main>
+<footer class="foot-wrap"><div class="foot"><span>planetbased.io © 2026</span><span>Technology that gives energy back</span></div></footer>
 
-<div class="scrim" id="scrim"></div>
-<div class="credits" id="creditsPanel"></div>
-<div class="credits" id="buildPanel">
-  <div class="credits__head"><h2>BUILD DETAILS</h2><button class="credits__x" aria-label="Close">✕</button></div>
-  <p class="credits__row"><span class="name">The wall</span><br>A custom WebGL fragment shader draws the photo as a GPU texture, redrawn every frame. Hovering ripples the wall with per-pixel UV displacement; moving between ecosystems cross-wipes two textures along a rippled edge.</p>
-  <p class="credits__row"><span class="name">The type</span><br>Each name is per-letter DOM spans driven by a Web Audio AnalyserNode reading the recording's live time-domain waveform, with spring physics. The letters rise + scatter to the sound.</p>
-  <p class="credits__row"><span class="name">The sound</span><br>Spatial audio through a Web Audio graph (filters, StereoPanner, depth gain), per-voice motion, leveled to &minus;20&nbsp;LUFS.</p>
-  <p class="credits__row"><span class="name">The recordings</span><br>Real, credited field recordings (bioacoustics). No synth, no AI audio.</p>
-</div>
-
-<footer>
-  <nav class="tucked">
-    <a id="creditsToggle">sound credits</a>
-    <a id="buildToggle">build details</a>
-  </nav>
-  <p class="foot-note"><a href="https://instagram.com/planetbased" target="_blank" rel="noopener">@planetbased</a></p>
-</footer>
-<div class="placer-help" id="placerHelp">
-  ZONE PLACER ✺ drag the names to move them<br>
-  C copies the JSON ✺ placements auto-save locally
-</div>
-
-<!-- mobile: the full living-wall experience is desktop-only for now -->
-<div class="mobile-msg">
-  <div class="mm-inner">
-    <p class="mm-eyebrow">planetbased.io</p>
-    <h2 class="mm-title">design studio coming soon</h2>
-    <p class="mm-sub">a living wall of real sounds ✺<br>best on desktop w/ headphones</p>
-    <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
-  </div>
-</div>
 
 <script>
 (() => {
-/* ═══════════ the atlas: four walls, each a place you can travel to ═══════════
-   label = the name as it lives on the wall, in its own language.
-   the word IS the bird -- you never see it, you read its name and hear its voice.
-   NZ is fully voiced; Hawaii/Vancouver/Congo are travel destinations whose casts
-   get sourced next (they show the wall + place name for now). */
-const NZ_CAST = [
-  {id:'tui', label:'tūī', en:'tūī', sci:'Prosthemadera novaeseelandiae',
-   file:'sounds/tui-song-whakatane.mp3', rec:'Ken George', start:1.5,  /* skip the quiet intro */
-   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1090728', x:.282, y:.370, r:.09,
-   wave:{style:'bars', col:'#e8a24a', gain:1.15, bars:34}},      /* warm confident bars */
-  {id:'bellbird', label:'korimako', en:'NZ bellbird', sci:'Anthornis melanura',
-   file:'sounds/bellbird-song.mp3', rec:'Ken George',
-   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089268', x:.493, y:.194, r:.08,
-   wave:{style:'line', col:'#4fd6c4', gain:1.0, bars:64}},       /* bright chiming line */
-  {id:'riroriro', label:'riroriro', en:'grey warbler', sci:'Gerygone igata',
-   file:'sounds/riroriro-grey-warbler.mp3', rec:'craig wilson',
-   loc:'Millerton, West Coast, Aotearoa New Zealand', lic:'CC BY 4.0',
-   xc:'https://xeno-canto.org/1060266', x:.220, y:.610, r:.08,
-   wave:{style:'line', col:'#cfe08a', gain:0.8, bars:96}},       /* delicate rapid trill */
-  {id:'fantail', label:'pīwakawaka', en:'fantail', sci:'Rhipidura fuliginosa',
-   file:'sounds/fantail-chatter.mp3', rec:'Ken George',
-   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1089267', x:.720, y:.300, r:.08,
-   wave:{style:'bars', col:'#e87a9b', gain:1.3, bars:48}},       /* erratic flitting bars */
-  {id:'kokako', label:'kōkako', en:'kōkako', sci:'Callaeas wilsoni',
-   file:'sounds/kokako-tiritiri.m4a', rec:'Meena Haribal',
-   loc:'Tiritiri Matangi Island, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/956968', x:.563, y:.642, r:.09,
-   wave:{style:'fill', col:'#a58cff', gain:1.1, bars:56}},       /* slow deep organ fill */
-];
-/* Hawaiʻi -- native forest voices (all real xeno-canto, credited) */
-const HAWAII_CAST = [
-  {id:'iiwi', label:'ʻiʻiwi', en:'ʻiʻiwi', sci:'Drepanis coccinea',
-   file:'sounds/hawaii-iiwi.mp3', rec:'Viral Joshi',
-   loc:'Hilo, Hawaiʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/794970', x:.685, y:.710, r:.09,
-   wave:{style:'bars', col:'#ff4d63', gain:1.2, bars:40}},        /* scarlet, liquid */
-  {id:'apapane', label:'ʻapapane', en:'ʻapapane', sci:'Himatione sanguinea',
-   file:'sounds/hawaii-apapane.mp3', rec:'Bobby Wilcox',
-   loc:'Alakaʻi Swamp, Kauaʻi', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/864171', x:.500, y:.149, r:.08,
-   wave:{style:'line', col:'#dc4f88', gain:1.0, bars:64}},        /* rose-crimson -- set apart from the ʻiʻiwi scarlet */
-  {id:'amakihi', label:'ʻamakihi', en:'Hawaiʻi ʻamakihi', sci:'Chlorodrepanis virens',
-   file:'sounds/hawaii-amakihi.mp3', rec:'Daniel Lane',
-   loc:'Mauna Kea, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27323', x:.316, y:.410, r:.08,
-   wave:{style:'line', col:'#b4d85e', gain:0.95, bars:72}},       /* green, bright trill */
-  {id:'omao', label:'ʻōmaʻo', en:'Hawaiian thrush', sci:'Myadestes obscurus',
-   file:'sounds/hawaii-omao.mp3', rec:'Daniel Lane',
-   loc:'Volcano, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
-   xc:'https://xeno-canto.org/27341', x:.760, y:.460, r:.09,
-   wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
-];
-/* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
-   xeno-canto recordings; orca + cougar are mammals (not on xeno-canto) so they show
-   a name + chip now and Ivy sources the audio (soon:true = "voice coming soon"). */
-const VANCOUVER_CAST = [
-  {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
-   file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
-   loc:'Salish Sea', lic:'CC0',
-   xc:'https://live.orcasound.net', x:.480, y:.670, r:.11,
-   wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
-  {id:'cougar', label:'mountain lion', en:'mountain lion (the bird-like chirp)', sci:'Puma concolor',
-   file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
-   loc:'Carmel Valley, California', lic:'CC BY-NC',
-   xc:'https://www.inaturalist.org/observations/62084711', x:.680, y:.570, r:.09,
-   wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
-  {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
-   file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
-   loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/706924', x:.452, y:.155, r:.07,
-   wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
-  {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
-   file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
-   loc:'Vancouver, British Columbia', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/770780', x:.225, y:.551, r:.08,
-   wave:{style:'fill', col:'#c8a2ff', gain:1.0, bars:60}},      /* eerie single-note flute */
-];
-/* Congo Basin -- all real xeno-canto recordings. NOTE: clean DR-Congo recordings are
-   scarce, so these are Congo Basin species recorded across the equatorial forest belt
-   (Uganda/Gabon/Cameroon). Locations are shown honestly in the credits. */
-const CONGO_CAST = [
-  {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
-   file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
-   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1053186', x:.170, y:.140, r:.09,
-   wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
-  {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
-   file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
-   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1052480', x:.500, y:.180, r:.09,
-   wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
-  {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
-   file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
-   loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/1133116', x:.780, y:.700, r:.09,
-   wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
-  {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
-   file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
-   loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
-   xc:'https://xeno-canto.org/986099', x:.410, y:.510, r:.08,
-   wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
-];
-
-/* each wall: a place, its image, its voices, and a place-name gradient pulled
-   from that ecosystem's own colors (no green -- green is everywhere, goes rainbow) */
-/* order matters: keep the two GREEN walls (Aotearoa + Vancouver) apart so the
-   travel feels like real distance, not two forests in a row. Congo breaks them up. */
-const WALLS = [
-  { id:'hawaii',    place:'Hawaiʻi',         img:'images/hawaii.jpg',    cast:HAWAII_CAST,   /* opens here -- most impact */
-    grad:'linear-gradient(100deg,#ff5a7e,#ff8a5c,#f2a24a,#e070b8)' },
-  { id:'nz',        place:'Aotearoa',        img:'images/nz.jpg',        cast:NZ_CAST,       /* green */
-    grad:'linear-gradient(100deg,#f2ecb0,#d7e18e,#aecb7a,#e8dfa8)' },
-  { id:'congo',     place:'Congo Basin',     img:'images/congo.jpg',     cast:CONGO_CAST,     /* red/tropical -- separates the greens */
-    grad:'linear-gradient(100deg,#ff6a5a,#ff9a4a,#e07a5a,#ffb07a)' },
-  { id:'vancouver', place:'Vancouver Island',img:'images/vancouver.jpg', cast:VANCOUVER_CAST, /* green */
-    grad:'linear-gradient(100deg,#c9a8e0,#8fb36a,#e0c06a,#b98ad0)' },
-];
-let cur = 0;
-let CAST = WALLS[cur].cast;                 /* the active wall's voices (reassigned on travel) */
-const wall = () => WALLS[cur];
-
-/* her ?place placements are saved per wall */
-function applySavedZones(w){
-  try{
-    const saved = JSON.parse(localStorage.getItem('pb-zones-v2-' + w.id) || 'null');
-    if (saved) w.cast.forEach(z => { const s = saved[z.id]; if (s) Object.assign(z, s); });
-  }catch(e){}
-}
-WALLS.forEach(applySavedZones);
-
-const frame  = document.getElementById('frame');
-const img    = document.getElementById('wall');
-const glc    = document.getElementById('glCanvas');
-const armBtn = document.getElementById('arm');
-const chip   = document.getElementById('chip');
-const chipBody = document.getElementById('chipBody');
-const waveC  = document.getElementById('chipWave');
-const wctx   = waveC.getContext('2d');
-const fxc    = document.getElementById('fxCanvas');
-const tctx   = fxc.getContext('2d');   /* 2D overlay: placer rings (+ future transition fx) */
-const voicesLayer = document.getElementById('voices');
-const placing = location.search.includes('place');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const DPR = Math.min(devicePixelRatio || 1, 1.5);
-const lerp = (a,b,t) => a+(b-a)*t;
-const JITTER = 0;   /* per-letter hand-scrawl: 0 for the mono placeholder, flip to 1 once a real handwritten font is chosen */
-
-let W=0, H=0, imgW=16, imgH=9;
-function sizeAll(){
-  W = frame.clientWidth; H = frame.clientHeight;
-  [glc, fxc].forEach(c => { c.width = W*DPR; c.height = H*DPR; });
-  positionVoices();
-  if (active) showChip(active);
-}
-
-/* cover math: canvas uv <-> image uv */
-function coverScale(){
-  const ca = W/H, ia = imgW/imgH;
-  return ca > ia ? {x:1, y:ia/ca} : {x:ca/ia, y:1};
-}
-const imgToCanvas = (u,v) => { const s = coverScale(); return {x:(u-.5)/s.x+.5, y:(v-.5)/s.y+.5}; };
-const canvasToImg = (u,v) => { const s = coverScale(); return {x:(u-.5)*s.x+.5, y:(v-.5)*s.y+.5}; };
-const zonePx = z => { const p = imgToCanvas(z.x, z.y); return {x:p.x*W, y:p.y*H, r:z.r*H/coverScale().y}; };
-
-/* ═══════════ the voices as living type ═══════════
-   each name is DOM, per-letter, so it can come alive on hover:
-   the letters scatter on spring physics and sway to the real audio. */
-function buildVoices(){
-  voicesLayer.innerHTML = '';               /* clear the previous wall's names */
-  CAST.forEach(z => {
-    const el = document.createElement('div');
-    el.className = 'voice'; el.dataset.id = z.id;
-    el.style.setProperty('--vcol', z.wave.col);
-    z.letters = [...z.label].map(ch => {
-      const s = document.createElement('span');
-      s.className = 'voice__l';
-      s.textContent = ch === ' ' ? ' ' : ch;
-      // physics state
-      s._x=0; s._y=0; s._vx=0; s._vy=0; s._ph=Math.random()*6.283;
-      // BAKED imperfection (only for a real handwritten font -- JITTER=0 for the mono placeholder)
-      s._rot = (Math.random()-.5)*9 * JITTER;
-      s._scl = 1 + (Math.random()*0.2-0.1) * JITTER;
-      s._bx  = (Math.random()-.5)*2.5 * JITTER;
-      s._by  = (Math.random()-.5)*5 * JITTER;
-      s.style.transform = `translate(${s._bx}px,${s._by}px) rotate(${s._rot}deg) scale(${s._scl})`;
-      el.appendChild(s);
-      return s;
-    });
-    z.el = el;
-    if (!placing){
-      el.addEventListener('pointerenter', () => { cancelClose(); activate(z); });
-      el.addEventListener('pointerleave', () => { if (active===z) scheduleClose(); });  /* delay so you can reach the card */
-      el.addEventListener('pointerdown', () => { cancelClose(); activate(z); });   /* touch */
-    } else {
-      el.style.cursor = 'grab';
-      el.addEventListener('pointerdown', e => { placerHeld = z; el.setPointerCapture(e.pointerId); });
-    }
-    voicesLayer.appendChild(el);
-  });
-}
-let placerHeld = null;
-function positionVoices(){
-  CAST.forEach(z => {
-    if (!z.el) return;
-    const p = zonePx(z);
-    z.el.style.left = p.x + 'px';
-    z.el.style.top  = p.y + 'px';
-  });
-}
-buildVoices();   /* create the DOM before placer/hover wiring runs */
-
-/* the wordmark, hand-set: split into letters, each slightly off -- like a person wrote it */
-(function jitterWordmark(){
-  const h1 = document.querySelector('.brand h1'); if (!h1) return;
-  const txt = h1.textContent; h1.textContent = '';
-  [...txt].forEach(ch => {
-    const s = document.createElement('span');
-    s.textContent = ch === ' ' ? ' ' : ch;
-    s.style.display = 'inline-block';
-    /* ⚠️ the dot in .io is NOT jittered. Every other glyph has enough body
-       to carry a few degrees of rotation and still read as a letter set by
-       hand; a rotated, rescaled full stop just reads as a speck of dust on
-       the screen, or as a rendering fault. It stays square. */
-    if (ch !== '.') {
-      const rot=(Math.random()-.5)*7*JITTER, scl=1+(Math.random()*0.16-0.08)*JITTER, by=(Math.random()-.5)*4*JITTER;
-      s.style.transform = `translateY(${by}px) rotate(${rot}deg) scale(${scl})`;
-    }
-    h1.appendChild(s);
-  });
-})();
-
-/* ═══════════ tremble shader: the song ripples through the leaves ═══════════
-   Amplitude history renders as displacement wavefronts expanding from the
-   singer's hiding spot -- the "animation data the shader reads" pattern
-   from the wave-propagation study (Creative Tech week 29). */
-const NHIST = 48;
-const VERT = `attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;vUv.y=1.-vUv.y;gl_Position=vec4(p,0.,1.);}`;
-const FRAG = `
-precision highp float;
-varying vec2 vUv;
-uniform sampler2D uTex;      /* current wall */
-uniform sampler2D uTexNext;  /* incoming wall during a travel wipe */
-uniform vec2 uCanvas, uImg, uZone;   /* uZone in canvas uv */
-uniform float uActive, uTime, uBurst;  /* uActive = level; uBurst = t when the current ring was born */
-uniform float uWipe, uWipeDir;         /* travel: 0..1 sweep progress; +1 next (reveal from right), -1 prev (from left) */
-float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-float noise(vec2 p){
-  vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),
-             mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
-}
-void main(){
-  float ca = uCanvas.x/uCanvas.y, ia = uImg.x/uImg.y;
-  vec2 s = ca > ia ? vec2(1., ia/ca) : vec2(ca/ia, 1.);
-  vec2 uvImg = (vUv-.5)*s+.5;
-
-  /* ONE clean ring per burst: born at uBurst, swells from center, expands out
-     and fades. No periodic re-emission, so nothing ever gets caught half-born at
-     the center (that was the leftover "indent" at the end of a burst). */
-  vec2 rel = (vUv-uZone)*vec2(ca,1.);
-  float d = length(rel);
-  float age = uTime - uBurst;
-  float w = 0.0;
-  if (age > 0.0){
-    float sp = 0.26;                                          /* expansion speed */
-    float r = age * sp;
-    float amp = exp(-age*0.9) * smoothstep(0.0, 0.14, age);   /* swell in, fade as it spreads */
-    w = exp(-pow((d - r)/0.055, 2.0)) * amp;
+  'use strict';
+  const doc = document.documentElement;
+  const pin = document.getElementById('pin');
+  const stage = document.getElementById('stage');
+  const art = document.getElementById('art');
+  const objs = document.getElementById('objs');
+  const sunJit = document.getElementById('sunJit');
+  const sunImgs = [...sunJit.querySelectorAll('img')];
+  const tongue = sunJit.querySelector('img.tongue');
+  // ?tongue=9 swaps in the alternate cheeky sun for comparison
+  if (tongue && new URLSearchParams(location.search).get('tongue') === '9') {
+    tongue.src = 'img/sun-9.webp'; tongue.style.setProperty('--k', '1.3');
   }
-  w *= uActive;
+  const tIdx = sunImgs.indexOf(tongue);
+  const reduceQ = matchMedia('(prefers-reduced-motion: reduce)');
 
-  float n = noise(vUv*70. + uTime*1.2);
-  vec2 dir = rel/max(d,1e-4);
-  vec2 off = dir * w * (0.020 + 0.006*n);          /* ripple: push outward along the wave */
-  vec2 sampUv = uvImg + off*s;
-  vec3 c = texture2D(uTex, sampUv).rgb;
-
-  /* travel: a rippled wavefront sweeps horizontally toward the arrow, revealing the
-     next wall behind it -- like water washing one place into the next. No black, no slide. */
-  if (uWipe > 0.0001){
-    float edge = (uWipeDir > 0.0) ? (1.0 - uWipe) : uWipe;      /* boundary x, sweeps toward the arrow */
-    edge += sin(vUv.y*8.0 + uTime*2.2)*0.045 + sin(vUv.y*21.0 - uTime*1.4)*0.015;  /* watery undulation */
-    float band = 0.08;
-    float m = (uWipeDir > 0.0) ? smoothstep(edge-band, edge+band, vUv.x)
-                               : 1.0 - smoothstep(edge-band, edge+band, vUv.x);
-    vec3 cN = texture2D(uTexNext, sampUv).rgb;
-    float crest = exp(-pow((vUv.x - edge)/band, 2.0));         /* a bright watery crest at the wavefront */
-    c = mix(c, cN, m);
-    c *= 1.0 + crest*0.14;
-  }
-  c *= 1.0 + w*0.18;                               /* light lifts on the crest */
-
-  /* settle the wall onto the darker oatmeal */
-  c *= .955;
-  float lum = dot(c, vec3(.299,.587,.114));
-  c = mix(vec3(lum), c, 1.02);
-  gl_FragColor = vec4(c,1.);
-}`;
-
-let gl=null, uni={}, glOK=false, wallTex=null, wallTexNext=null, pendingTex=null, pendingNextTex=null;
-const ampHist = new Float32Array(NHIST);
-function initGL(){
-  gl = glc.getContext('webgl', {antialias:false});
-  if (!gl) return;
-  const sh = (t,src) => { const s=gl.createShader(t); gl.shaderSource(s,src); gl.compileShader(s);
-    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null;} return s; };
-  const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
-  if (!vs || !fs) return;
-  const pr = gl.createProgram();
-  gl.attachShader(pr,vs); gl.attachShader(pr,fs); gl.linkProgram(pr); gl.useProgram(pr);
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(pr,'p');
-  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  ['uTex','uTexNext','uCanvas','uImg','uZone','uActive','uTime','uBurst','uWipe','uWipeDir'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
-  const mkTex = () => {
-    const t = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, t);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    return t;
-  };
-  wallTex = mkTex();
-  wallTexNext = mkTex();
-  gl.uniform1i(uni.uTex, 0);
-  gl.uniform1i(uni.uTexNext, 1);
-  uploadTex();     /* upload the current wall */
-}
-/* (re)upload a wall image as the texture -- called on load + every travel.
-   pass the freshly-loaded Image so we never sample the old <img> mid-swap. */
-function uploadTex(source, target){    /* target: 0/undefined = current wall, 1 = incoming (next) wall */
-  source = source || img;
-  if (!gl || !wallTex) return;
-  try{
-    const cap = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 3200);
-    let src = source;
-    if (source.naturalWidth > cap){
-      const c = document.createElement('canvas');
-      c.width = cap; c.height = Math.round(source.naturalHeight * cap / source.naturalWidth);
-      c.getContext('2d').drawImage(source, 0, 0, c.width, c.height);
-      src = c;
-    }
-    gl.activeTexture(target === 1 ? gl.TEXTURE1 : gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, target === 1 ? wallTexNext : wallTex);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
-    if (target !== 1){ glOK = true; glc.classList.add('on'); }   /* shader takes over from the <img> */
-  }catch(e){
-    console.warn('texture upload failed (file:// ?) -- run ./serve.sh', e);
-  }
-}
-
-/* ═══════════ audio: real recordings, armed by a real gesture ═══════════
-   each bird runs through an HRTF panner so on headphones it whirls around you --
-   a bird darting through dense foliage, its voice sweeping ear to ear. */
-let actx=null, armed=false;
-const chains = {};   /* zone.id -> {el, gain, analyser, panner} */
-function chain(z){
-  if (!z.file) return null;                 /* "coming soon" voices have no audio yet */
-  if (chains[z.id]) return chains[z.id];
-  const el = new Audio(z.file + '?v=2');   /* cache-bust: bump on any sound re-render (browsers cache mp3s hard) */
-  el.preload = 'auto';
-  el.loop = true;    /* keep the voice (and its live waveform) alive as long as you hover */
-  const src = actx.createMediaElementSource(el);
-  const hp = actx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 90;
-  const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 12000;  /* tame click energy */
-  const gain = actx.createGain(); gain.gain.value = 0;                 /* fade envelope */
-  const an = actx.createAnalyser(); an.fftSize = 1024;
-  const pan = actx.createStereoPanner();                               /* smooth, no HRTF clicks */
-  const depth = actx.createGain(); depth.gain.value = 1;               /* near/far swell */
-  src.connect(hp); hp.connect(lp); lp.connect(gain); gain.connect(an);
-  an.connect(pan); pan.connect(depth); depth.connect(actx.destination);
-  return chains[z.id] = {el, gain, analyser:an, pan, depth, td:new Uint8Array(an.fftSize), orbit:Math.random()*6.283};
-}
-/* Spatial motion, thought through per animal -- NO repeating ear-to-ear swing.
-   flyby = ONE pass from a side, settling to rest (darty little birds).
-   drift = a single slow arc, then rest (larger/roaming birds).
-   still = stays put, just a hair to its side (perched birds, and the sedentary
-   animals -- frog, mountain lion, orca -- that would never swoop past your face). */
-const MOTION = {
-  iiwi:['flyby',-1], apapane:['flyby',1], amakihi:['drift'], omao:['still'],
-  tui:['drift'], bellbird:['drift'], riroriro:['flyby',1], fantail:['flyby',-1], kokako:['still'],
-  greyparrot:['drift'], turaco:['still'], hornbill:['still'], reedfrog:['still'],
-  orca:['drift'], cougar:['still'], pacificwren:['flyby',-1], variedthrush:['drift'],
-};
-/* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
-   a hair back (mountain lion), the tiny ones present. 1 = full. */
-const VOL = {   /* per-voice mix by ear -- 1.0 = the -20 LUFS baseline. Ivy's levels. */
-  iiwi:1.0, apapane:0.62, amakihi:0.55, omao:0.72,
-  tui:0.6, bellbird:0.5, riroriro:0.75, fantail:0.6, kokako:0.5,
-  greyparrot:0.42, turaco:0.42, hornbill:0.42, reedfrog:0.68,
-  pacificwren:0.35, variedthrush:0.45, orca:0.65, cougar:0.7,
-};
-function stepFlight(){
-  if (!active || !actx) return;
-  const c = chains[active.id]; if (!c || !c.pan) return;
-  const z = active;
-  const m = MOTION[z.id] || ['drift'];
-  const el = t - (c.startT || t);                      /* seconds since this hover began */
-  const bias = (z.x - 0.5) * 0.85;                      /* clear L/R placement from the name's position */
-  let pan = bias, depth = 1;
-  if (m[0] === 'flyby'){
-    const dir = m[1] || -1;
-    const k = Math.min(1, el/2.6); const e = k*k*(3-2*k);
-    pan = dir*(1-e)*0.95 + bias*e;                      /* one clear pass: a side -> rest, then holds */
-    depth = 0.5 + 0.5*Math.sin(Math.min(el,2.6)/2.6*Math.PI);     /* a real approach: far -> near -> settle */
-  } else if (m[0] === 'drift'){
-    const k = Math.min(1, el/6);
-    pan = bias + Math.sin(k*Math.PI)*0.32;              /* a wide single arc you can feel, then rests */
-    depth = 0.85 + 0.15*Math.sin(k*Math.PI);
-  } else { /* still -- no motion, but clearly placed to its side so you feel where it is */
-    pan = bias;
-  }
-  c.pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,pan)), actx.currentTime, 0.2);
-  c.depth.gain.setTargetAtTime(depth, actx.currentTime, 0.25);
-}
-/* ═══════════ the intro: a living preloader ═══════════
-   the pond ripples continuously from center while you wait (drawing you in),
-   swells as you click, then settles. click anywhere → the place → the names wake. */
-let rippleLevel = 0, rippleEnd = 0, rippleStart = -999;   /* rippleStart = t the ring was born */
-function rippleBurst(dur = 2.6){ rippleStart = t; rippleEnd = t + dur; }   /* one ring, then still */
-/* arrow-travel: a rippled wavefront wipes the next wall in, toward the arrow pressed */
-let wipe = 0, wipeDir = 1, travelPhase = null, travelT = 0;
-const WIPE_DUR = 0.95;
-let onWipeDone = null;   /* reveal callback fired the instant the wipe completes */
-const center = document.getElementById('center');
-const armSub = document.getElementById('armSub');
-let introPhase = 'ripple';        /* ripple → wait → entering → place → done */
-
-/* on load: a beat to SEE the wall, one clean ring, THEN the invitation dissolves in */
-function beginIntro(){
-  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 650);
-  setTimeout(() => {
-    if (introPhase !== 'ripple') return;
-    introPhase = 'wait';
-    center.classList.add('show');    /* the invitation fades in, over the settling ripple */
-  }, 1700);
-}
-
-async function arm(){
-  if (introPhase !== 'wait') return;
-  actx = new (window.AudioContext||window.webkitAudioContext)();
-  await actx.resume();
-  armed = true; introPhase = 'entering';
-  CAST.forEach(z => chain(z));                    /* start buffering */
-  center.classList.remove('show');                /* the invitation dissolves out */
-  rippleBurst(2.4);                               /* one ring carries you in */
-  setTimeout(() => {
-    /* no place name in the center -- the bottom "Hawaiʻi · 1/4" label does that work.
-       just the hint, nudged up a touch, gone the moment you move. */
-    armBtn.style.display = 'none';
-    armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
-    center.classList.add('hint');
-    center.classList.add('show');
-    introPhase = 'place';
-    revealTravel();                               /* arrows + place label appear */
-    if (wall().cast.length){
-      setTimeout(() => voicesLayer.classList.add('show'), 800);
-    } else {                                       /* no names -> finish so arrows work */
-      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; }, 2600);
-    }
-  }, 1900);
-}
-frame.addEventListener('pointerdown', () => { if (!placing) arm(); });
-/* the hint clears the moment you move -- then it's just you and the wall */
-frame.addEventListener('pointermove', () => {
-  if (introPhase === 'place'){ center.classList.remove('show'); introPhase = 'done'; }
-});
-
-/* ═══════════ travel between walls ═══════════ */
-const arrowPrev = document.getElementById('arrowPrev');
-const arrowNext = document.getElementById('arrowNext');
-const wallPlaceEl = document.getElementById('wallPlace');
-let traveling = false;
-function updatePlaceLabel(){ wallPlaceEl.textContent = wall().place + '  ·  ' + (cur+1) + ' / ' + WALLS.length; }
-let arrowsIntroed = false;
-function revealTravel(){
-  if (placing) return;
-  updatePlaceLabel();
-  arrowPrev.classList.add('on'); arrowNext.classList.add('on'); wallPlaceEl.classList.add('on');
-  /* the red fill plays ONCE, the very first time the arrows appear -- once you know
-     they're there, they just stay as the blended glass UI. It fills as they fade in. */
-  if (!reduced && !arrowsIntroed){
-    arrowsIntroed = true;
-    /* a beat AFTER the arrows have appeared, so you notice them fill red -- not lost in the fade-in */
-    setTimeout(() => { arrowPrev.classList.add('glow'); arrowNext.classList.add('glow'); }, 250);
-  }
-}
-/* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
-function loadWall(idx, done){
-  const nextIdx = (idx + WALLS.length) % WALLS.length;
-  /* ROOT FIX: do NOT swap CAST/cur until the new wall's names are built. If CAST
-     points at a wall whose voices have no letters yet (during the image load gap),
-     the render loop throws in stepLetters and DIES -- freezing the texture on Hawaii
-     and killing every animation. Commit everything atomically inside finish.
-     Also reuse the same DOM <img> the initial (working) upload samples. */
-  const finish = () => {
-    cur = nextIdx; CAST = WALLS[cur].cast;      /* commit the wall + its voices together */
-    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
-    pendingTex = img;                            /* consumed inside the render loop */
-    buildVoices(); positionVoices(); buildCredits();
-    updatePlaceLabel();
-    if (done) done();
-  };
-  img.onload  = () => { img.decode ? img.decode().then(finish).catch(finish) : finish(); };
-  img.onerror = finish;
-  img.src = WALLS[nextIdx].img;                  /* load the next wall directly, not via cur */
-}
-/* travel = a rippled wavefront wipes the next wall in, toward the arrow. The old
-   names fade out fast first; the new names + pill fade in the instant the wipe lands. */
-function goToWall(dir){
-  if (traveling || (introPhase !== 'done' && introPhase !== 'place')) return;
-  traveling = true;
-  deactivate();
-  voicesLayer.classList.remove('show'); voicesLayer.classList.add('leaving');
-  wallPlaceEl.classList.remove('on');
-  center.classList.remove('show');
-  const nextIdx = (dir + cur + WALLS.length) % WALLS.length;
-  const commit = () => {
-    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
-    pendingNextTex = img;                        /* incoming wall -> uTexNext (unit 1) */
-    cur = nextIdx; CAST = WALLS[cur].cast;        /* commit wall + build its names now (hidden) */
-    buildVoices(); positionVoices(); buildCredits(); updatePlaceLabel();
-    if (armed) CAST.forEach(z => chain(z));       /* pre-buffer so the wave is live on first hover */
-    onWipeDone = () => {
-      voicesLayer.classList.remove('leaving');
-      introPhase = 'done';                          /* the "hover a name" hint shows on Hawaii only */
-      revealTravel();                               /* place pill + arrows back */
-      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 150);
-      traveling = false;
+  // seeded random: irregular, but the same every load (filmable)
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
-    if (reduced){ pendingTex = img; wipe = 0; onWipeDone(); return; }   /* no animation */
-    wipeDir = dir; travelPhase = 'wipe'; travelT = 0;   /* the cross-screen wipe IS the transition -- no center ripple */
-  };
-  img.onload  = () => { img.decode ? img.decode().then(commit).catch(commit) : commit(); };
-  img.onerror = commit;
-  img.src = WALLS[nextIdx].img;
-}
-arrowPrev.addEventListener('click', () => goToWall(-1));
-arrowNext.addEventListener('click', () => goToWall(1));
-
-let active=null, activeAmt=0, fadeTimer=null;
-function activate(z){
-  if (!armed || introPhase === 'entering' || introPhase === 'ripple' || introPhase === 'wait') return;
-  if (introPhase === 'place'){ center.classList.remove('show'); introPhase = 'done'; }  /* first hover starts it */
-  if (active === z) return;
-  if (active) quiet(active);
-  active = z;
-  z.el.classList.add('on');
-  // a gentle kick so the name visibly wakes on entry, then settles
-  z.letters.forEach(s => { s._vx += (Math.random()-.5)*5; s._vy += (Math.random()-.5)*5; });
-  const c = chain(z);
-  clearTimeout(fadeTimer);
-  if (c){                                 /* real recording -- play it (soon voices skip audio) */
-    if (actx.state === 'suspended') actx.resume();   /* in case it lapsed after travel */
-    c.startT = t;                         /* the motion pass runs once, from this hover */
-    c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
-    c.el.play().catch(()=>{});
-    c.gain.gain.setTargetAtTime(VOL[z.id] ?? 1, actx.currentTime, 0.15);
   }
-  showChip(z);
-}
-function quiet(z){
-  const c = chains[z.id]; if (!c) return;
-  c.gain.gain.setTargetAtTime(0, actx.currentTime, 0.25);
-  fadeTimer = setTimeout(() => c.el.pause(), 900);
-}
-function deactivate(){
-  if (!active) return;
-  active.el.classList.remove('on');
-  quiet(active); active = null;
-  chip.classList.remove('on');
-}
-/* a short grace period on leave so you can travel from the name onto the card
-   (to click the xeno-canto link) without it vanishing under your cursor */
-let closeTimer = null;
-function scheduleClose(){ clearTimeout(closeTimer); closeTimer = setTimeout(deactivate, 280); }
-function cancelClose(){ clearTimeout(closeTimer); }
-chip.addEventListener('pointerenter', cancelClose);
-chip.addEventListener('pointerleave', scheduleClose);
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
 
-function showChip(z){
-  const p = zonePx(z);
-  /* the word on the wall is the name -- the card just adds the proof */
-  chipBody.innerHTML = z.soon
-    ? `<span class="sci">${z.en}${z.sci ? ' ✺ '+z.sci : ''}</span><br>` +
-      `<span class="soon">voice coming soon</span><br>` +
-      `<span class="sci">${z.loc || ''}</span>`
-    : `<span class="sci">${z.en} ✺ ${z.sci}</span><br>` +
-      `rec. ${z.rec} ✺ ${z.loc}<br>` +
-      `<a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="sci">${z.lic}</span>`;
-  waveC.width = 300*DPR; waveC.height = 34*DPR;
-  /* dock the card right under the name -- tight to it */
-  const cw = 300, gap = 4, cardH = chip.offsetHeight || 96;
-  const below = p.y + 20 + gap;
-  const top = (below + cardH < H - 10) ? below : (p.y - 20 - gap - cardH);
-  chip.style.left = Math.min(Math.max(p.x - cw/2, 10), W - cw - 10) + 'px';
-  chip.style.top  = Math.max(10, top) + 'px';
-  chip.classList.add('on');
-}
+  // ---------- the block grid: hero cells on a 12 x 6 grid ----------
+  const SPEC = {
+    uni:  { c: [0, 0, 4, 4],  from: 'left' },
+    bio:  { c: [4, 0, 7, 4],  from: 'top' },
+    top:  { c: [7, 0, 12, 2], from: 'top',    exit: -1 },
+    wall: { c: [7, 2, 12, 6], from: 'right' },
+    bee:  { c: [0, 4, 5, 6],  from: 'bottom' },
+    low:  { c: [5, 4, 7, 6],  from: 'bottom', exit: 1 }
+  };
+  const RAIL = ['uni', 'bee', 'wall', 'bio'];
+  const blocks = [...pin.querySelectorAll('.plate, .blk.exit')].map(el => ({
+    el, k: el.dataset.k, spec: SPEC[el.dataset.k],
+    slice: el.querySelector('.slice'), pc: el.querySelector('.pc'), cap: el.querySelector('.cap'), prevT: 0
+  }));
+  // a lift shadow per block, drawn once at full strength and scaled/faded on the compositor
+  blocks.forEach(b => { const sh = document.createElement('div'); sh.className = 'shade'; sh.setAttribute('aria-hidden', 'true'); b.el.prepend(sh); b.shade = sh; });
+  // write a style only when it changed: unchanged writes still cost style work every frame
+  const put = (el, prop, v) => { const c = el.__pb || (el.__pb = {}); if (c[prop] !== v) { c[prop] = v; el.style[prop] = v; } };
+  const heroArt = document.getElementById('art');
+  // clone the hero art into every slice so the mark and the lines split with the blocks
+  blocks.forEach(b => {
+    const c = art.cloneNode(true);
+    c.removeAttribute('id');
+    const h = c.querySelector('h1'), d = document.createElement('div');
+    d.className = h.className; d.innerHTML = h.innerHTML; d.querySelector('.sr')?.remove();
+    h.replaceWith(d);
+    b.slice.appendChild(c); b.art = c;
+  });
 
-/* ═══════════ per-letter physics: the name moves to its own voice ═══════════
-   each letter samples the live waveform at its own position, so the word
-   dances to the actual recording -- not a generic sway. */
-function stepLetters(){
-  const c = active && chains[active.id] ? chains[active.id] : null;
-  if (c) c.analyser.getByteTimeDomainData(c.td);
-  for (const z of CAST){
-    if (!z.letters) continue;   /* names still building mid-travel -- skip until ready */
-    const on = (z === active);
-    const n = z.letters.length;
-    z.letters.forEach((s, i) => {
-      let ax = -s._x*0.20, ay = -s._y*0.20;   // spring home
-      if (on && c && !reduced){
-        // this letter's slice of the actual audio waveform
-        const idx = Math.floor((i+0.5)/n * c.td.length);
-        const samp = (c.td[idx] - 128) / 128;         // -1..1, live
-        ay += samp * 9.5;                              // bounce to the sound
-        ax += Math.sin(t*2.6 + s._ph) * 1.1;           // gentle life
+  let motion = false, W = 0, H = 0, L = {}, introRunning = false, introDone = false, stageTop = 0;
+
+  function measure() {
+    W = pin.clientWidth; H = pin.clientHeight;
+    const X = k => Math.round(W * k / 12), Y = k => Math.round(H * k / 6);
+    blocks.forEach(b => {
+      const [a, c, d, e] = b.spec.c;
+      b.hr = { x: X(a), y: Y(c), w: X(d) - X(a), h: Y(e) - Y(c) };
+      b.slice.style.width = W + 'px'; b.slice.style.height = H + 'px';
+    });
+    // rail grid: same 12 columns as the page
+    const tmp = document.createElement('div'); tmp.style.cssText = 'position:absolute;visibility:hidden;width:var(--m);height:var(--gut)';
+    const tb = document.createElement('div'); tb.style.cssText = 'position:absolute;visibility:hidden;width:var(--b);height:var(--band)';
+    pin.append(tmp, tb);
+    const m = tmp.offsetWidth, gut = tmp.offsetHeight, bd = tb.offsetWidth, band = tb.offsetHeight;
+    tmp.remove(); tb.remove();
+    const col = (W - 2 * m - 11 * gut) / 12;
+    const span = n => n * col + (n - 1) * gut;
+    const capH = Math.max(96, H * .13);
+    let pw = span(8);
+    let imgH = (pw - 2 * bd) / 1.566;
+    let ph = bd + imgH + band;
+    const maxPh = H - capH - Math.max(120, H * .16);
+    if (ph > maxPh) { ph = maxPh; imgH = ph - bd - band; pw = imgH * 1.566 + 2 * bd; }
+    const gap = span(2) + 2 * gut;
+    const y = Math.round(Math.max(72, (H - ph - capH) / 2));
+    // lead in with the same space that sits between plates, but never push Unicorn past the right margin
+    const lead = Math.max(m, Math.min(gap, W - m - pw));
+    let x = lead; const rail = {};
+    RAIL.forEach(k => { rail[k] = { x: Math.round(x), y, w: Math.round(pw), h: Math.round(ph) }; x += pw + gap; });
+    const last = rail[RAIL[RAIL.length - 1]];
+    const RT = Math.max(0, last.x + last.w + m - W);
+    // FADE: the type, marks, rules and hero objects fade out on the whole green before anything moves
+    const FADE = H * .22, SP = H * .42, MP = H * 1.05, REST = H * .24, HOLD = H * .3;
+    L = { m, gut, col, rail, RT, FADE, SP, MP, REST, HOLD, G: Math.max(14, gut) };
+    stage.style.height = Math.round(H + FADE + SP + MP + REST + RT + HOLD) + 'px';
+    stageTop = stage.getBoundingClientRect().top + window.scrollY;     // read once here, never in the scroll loop
+    // fixed sizes for everything inside a block: the plate content is laid out once at its rail size and only scaled
+    blocks.forEach(b => {
+      const base = b.spec.exit ? { w: b.hr.w, h: b.hr.h } : rail[b.k];
+      b.base = base;
+      b.shade.style.width = base.w + 'px'; b.shade.style.height = base.h + 'px';
+      if (b.pc) { b.pc.style.width = base.w + 'px'; b.pc.style.height = base.h + 'px'; }
+      if (b.cap) b.cap.style.width = base.w + 'px';
+      b.el.__pb = {}; b.shade.__pb = {}; b.slice.__pb = {}; b.art.__pb = {}; if (b.pc) b.pc.__pb = {}; if (b.cap) b.cap.__pb = {};
+    });
+    heroArt.__pb = {}; objs.__pb = {};
+  }
+
+  // the slice is a window onto the full hero green; keep the window inside it so the texture never runs out
+  function setBlock(b, x, y, w, h, gx, gy) {
+    x = Math.round(x * 2) / 2; y = Math.round(y * 2) / 2; w = Math.round(w); h = Math.round(h);
+    put(b.el, 'transform', `translate3d(${x}px,${y}px,0)`);
+    put(b.el, 'width', w + 'px'); put(b.el, 'height', h + 'px');
+    const sx = clamp(gx, 0, Math.max(0, W - w)), sy = clamp(gy, 0, Math.max(0, H - h));
+    put(b.slice, 'transform', `translate3d(${-sx}px,${-sy}px,0)`);
+    // the green may slide under the window, but the lines and type stay pinned to their block
+    put(b.art, 'transform', (sx !== gx || sy !== gy) ? `translate3d(${sx - gx}px,${sy - gy}px,0)` : 'none');
+    const kx = w / b.base.w, ky = h / b.base.h;
+    put(b.shade, 'transform', `scale(${kx.toFixed(4)},${ky.toFixed(4)})`);
+    if (b.pc) put(b.pc, 'transform', `scale(${Math.min(kx, ky).toFixed(4)})`);
+    if (b.cap) put(b.cap, 'transform', `translate3d(0,${h}px,0)`);
+  }
+
+  function render() {
+    if (!motion || introRunning) return;
+    const s = Math.max(0, window.scrollY - stageTop);
+    const split = s > .5;
+    if (pin.classList.contains('split') !== split) pin.classList.toggle('split', split);
+
+    // one sequence: fade (the green is still whole), then part, then travel to the rail. Scrolling back runs it in reverse,
+    // so the type only returns once the blocks have merged
+    const a = 1 - smooth(0, L.FADE, s);
+    put(heroArt, 'opacity', a.toFixed(3));
+    const p = Math.max(0, s - L.FADE);
+    const e = ease(clamp(p / L.SP));
+    const g = e * L.G, push = e * W * .022;
+    const t = clamp((p - L.SP) / L.MP);
+    const railX = clamp(p - L.SP - L.MP - L.REST, 0, L.RT);   // the first stop rests before the rail moves
+
+    blocks.forEach(b => {
+      const hr = b.hr;
+      const dx = ((hr.x + hr.w / 2) - W / 2) / (W / 2), dy = ((hr.y + hr.h / 2) - H / 2) / (H / 2);
+      const sx = hr.x + g / 2 + dx * push, sy = hr.y + g / 2 + dy * push * .6, sw = hr.w - g, sh = hr.h - g;
+      const order = b.spec.exit ? 0 : RAIL.indexOf(b.k);
+      const ti = ease(clamp((t - order * .07) / .79));
+      let tx, ty, tw, th;
+      if (b.spec.exit) { tx = sx; ty = sy + b.spec.exit * (H * .9 + sh); tw = sw; th = sh; }
+      else { const r = L.rail[b.k]; tx = r.x - railX; ty = r.y; tw = r.w; th = r.h; }
+      let x = lerp(sx, tx, ti), y = lerp(sy, ty, ti), w = lerp(sw, tw, ti), h = lerp(sh, th, ti);
+      if (ti === 0 && g === 0) { x = hr.x; y = hr.y; w = hr.w; h = hr.h; }
+      setBlock(b, x, y, w, h, hr.x + g / 2, hr.y + g / 2);
+      // the hero type and lines fade out early and gently; the work fades in late. They overlap a little so nothing pops
+      put(b.art, 'opacity', (a * (1 - smooth(0, .36, ti))).toFixed(3));
+      const c = smooth(.42, .9, ti).toFixed(3);
+      if (b.pc) put(b.pc, 'opacity', c);
+      if (b.cap) put(b.cap, 'opacity', c);
+      if (b.cap && !b.inked && +c > .85) { b.inked = true; b.cap.classList.add('inked'); }
+      put(b.shade, 'opacity', (e * (1 - ti) * .6 + ti * .35).toFixed(3));
+      b.prevT = ti; b.ti = ti;
+    });
+
+    // the newt rides in on the Bioindicators card: its fade follows the card every frame, so it never pops
+    if (window.__pbNewt) window.__pbNewt();
+
+    // the sun, the flowers, and the tree belong to the hero: they lift away as the blocks part
+    const o = smooth(0, L.FADE, s);
+    put(objs, 'opacity', (1 - o).toFixed(3));
+    put(objs, 'transform', `translate3d(0,${(-o * H * .04).toFixed(1)}px,0)`);
+  }
+
+  // ---------- preloader: blocks slide in from their edges and lock into one green ----------
+  let introAnims = [], introTimers = [];
+  let hurried = false;
+  function runIntro(replay) {
+    introRunning = true; introDone = false; hurried = false;
+    stopSun();
+    pin.classList.remove('reveal', 'sealed', 'split');
+    pin.classList.add('intro');
+    const order = ['wall', 'uni', 'top', 'bee', 'bio', 'low'];
+    const delays = [0, 190, 430, 560, 905, 1090].map(d => d + (replay ? 80 : 360));
+    const durs = [820, 880, 760, 840, 900, 780];
+    blocks.forEach(b => {
+      setBlock(b, b.hr.x, b.hr.y, b.hr.w, b.hr.h, b.hr.x, b.hr.y);
+      // hand the art and the shadow back to the intro CSS; keep the plate content hidden
+      b.art.style.opacity = ''; b.art.__pb.opacity = undefined; b.shade.style.opacity = ''; b.shade.__pb.opacity = undefined;
+      if (b.pc) put(b.pc, 'opacity', '0'); if (b.cap) put(b.cap, 'opacity', '0');
+      b.prevT = 0;
+    });
+    heroArt.style.opacity = ''; heroArt.__pb.opacity = undefined; objs.style.opacity = ''; objs.style.transform = ''; objs.__pb = {};
+    let lastLock = 0, lastIdx = 0;
+    order.forEach((k, i) => { const at = delays[i] + durs[i]; if (at > lastLock) { lastLock = at; lastIdx = i; } });
+    let end = 0;
+    order.forEach((k, i) => {
+      const b = blocks.find(x => x.k === k), hr = b.hr;
+      let ox = 0, oy = 0;
+      if (b.spec.from === 'left') ox = -(hr.x + hr.w + 60);
+      if (b.spec.from === 'right') ox = W - hr.x + 60;
+      if (b.spec.from === 'top') oy = -(hr.y + hr.h + 60);
+      if (b.spec.from === 'bottom') oy = H - hr.y + 60;
+      const at = (dx, dy) => `translate3d(${hr.x + dx}px,${hr.y + dy}px,0)`;
+      put(b.el, 'transform', at(ox, oy));
+      // the same in-out curve the scroll uses, no overshoot: each block glides in and settles
+      const a = b.el.animate([{ transform: at(ox, oy) }, { transform: at(0, 0) }],
+        { duration: durs[i], delay: delays[i], fill: 'forwards', easing: 'cubic-bezier(.65,0,.35,1)' });
+      introAnims.push(a);
+      introTimers.push(setTimeout(() => b.el.classList.add('moving'), delays[i]));
+      const lockAt = delays[i] + durs[i] * .8;     // the lift starts settling as the block arrives
+      introTimers.push(setTimeout(() => {
+        b.el.classList.remove('moving');
+        if (i === lastIdx) pin.classList.add('sealed');
+      }, lockAt));
+      end = Math.max(end, delays[i] + durs[i]);
+    });
+    introTimers.push(setTimeout(finishIntro, Math.max(end, lastLock) + 640));
+  }
+  function finishIntro() {
+    if (!introRunning) return;
+    introTimers.forEach(clearTimeout); introTimers = [];
+    introAnims.forEach(a => { a.cancel(); }); introAnims = [];
+    blocks.forEach(b => b.el.classList.remove('moving'));
+    introRunning = false; introDone = true;
+    pin.classList.remove('intro', 'sealed');
+    // decode the plate images now, so none of them decodes mid-glide
+    pin.querySelectorAll('.media img').forEach(im => { if (im.decode) im.decode().catch(() => {}); });
+    // and the closing's flowers, bees and house, so the first look down there does not stall
+    setTimeout(() => document.querySelectorAll('.closing img').forEach(im => { im.loading = 'eager'; if (im.decode) im.decode().catch(() => {}); }), 1200);
+    pin.classList.add('reveal');
+    render();
+    startSun();
+  }
+  // a scroll or key during the intro fast-forwards it (every block finishes its glide within ~0.3 s) instead of snapping
+  function hurryIntro() {
+    if (!introRunning || hurried) return;
+    hurried = true;
+    introTimers.forEach(clearTimeout); introTimers = [];
+    let left = 0;
+    introAnims.forEach(a => {
+      const rem = Math.max(0, a.effect.getComputedTiming().endTime - (a.currentTime || 0)), rate = Math.max(1, rem / 300);
+      a.updatePlaybackRate(rate); left = Math.max(left, rem / rate);
+    });
+    blocks.forEach(b => b.el.classList.remove('moving'));
+    pin.classList.add('sealed');
+    introTimers.push(setTimeout(finishIntro, left + 60));
+  }
+  ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, hurryIntro, { passive: true }));
+
+  // ---------- stop-motion sun: irregular, seeded ----------
+  let sunTimer = null, sunIdx = 0;
+  const srand = mulberry32(20261112);
+  let mode = 'walk', runLeft = 0;
+  // the wink: every 8 to 14 swaps the cycle lands on the tongue sun and holds it. Own seed, filmable
+  const wrand = mulberry32(1010);
+  const untilWink = () => 8 + Math.floor(wrand() * 7);
+  let winkIn = untilWink();
+  function nextDelay() {
+    if (sunIdx === tIdx) { runLeft = 0; const d = 1600 + wrand() * 1000; fidget(d); return d; }
+    if (runLeft <= 0) {
+      const r = srand();
+      if (r < .17) { mode = 'hold'; runLeft = 1; }
+      else if (r < .42) { mode = 'rush'; runLeft = 3 + Math.floor(srand() * 5); }
+      else { mode = 'walk'; runLeft = 2 + Math.floor(srand() * 5); }
+    }
+    runLeft--;
+    if (mode === 'hold') { const d = 650 + srand() * 1000; if (d > 1000) fidget(d); return d; }
+    if (mode === 'rush') return 55 + srand() * 35;
+    return 110 + srand() * 120;
+  }
+  function sunFrame() {
+    let n = sunIdx;
+    if (tIdx >= 0 && --winkIn <= 0) { n = tIdx; winkIn = untilWink(); }
+    else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);
+    sunImgs[sunIdx].classList.remove('on'); sunImgs[n].classList.add('on'); sunIdx = n;
+    const rot = (srand() - .5) * 2.6, sc = 1 + (srand() - .5) * .028, jx = (srand() - .5) * 3, jy = (srand() - .5) * 3;
+    sunJit.style.transform = `translate(${jx}px,${jy}px) rotate(${rot}deg) scale(${sc})`;
+    sunTimer = setTimeout(sunFrame, nextDelay());
+  }
+  // while the sun holds still, a flower sways a little (sometimes both, staggered). Never the same one twice running. Own seed, filmable
+  const frand = mulberry32(5150);
+  const fidgets = [
+    { el: objs.querySelector('.peony'), kind: 'sway' },
+    { el: objs.querySelector('.dahlia'), kind: 'sway', rider: objs.querySelector('.bee-rest') }
+  ];
+  let lastF = -1, fTimers = [];
+  function fidget(hold) {
+    if (reduceQ.matches || !introDone || introRunning) return;
+    if (motion && parseFloat(objs.style.opacity || '1') < .6) return;
+    const first = lastF < 0 ? Math.floor(frand() * fidgets.length) : (lastF + 1) % fidgets.length;
+    const picks = hold > 1100 && frand() < .45 ? [first, (first + 1) % fidgets.length] : [first];
+    lastF = picks[picks.length - 1];
+    let at = 110 + frand() * 240;
+    picks.forEach(i => { fTimers.push(setTimeout(() => moveOne(fidgets[i]), at)); at += 320 + frand() * 420; });
+  }
+  function moveOne(f) {
+    if (!f.el || (f.anim && f.anim.playState === 'running')) return;
+    const sgn = frand() < .5 ? -1 : 1;
+    if (f.kind === 'sway') {
+      const a = sgn * (1.5 + frand() * 1.3), kf = { rotate: ['0deg', a + 'deg', (-a * .55) + 'deg', (a * .22) + 'deg', '0deg'] };
+      const opt = { duration: 1300 + frand() * 500, easing: 'ease-in-out' };
+      f.anim = f.el.animate(kf, opt);
+      if (f.rider) {                                   // the resting bee turns with its flower, about the flower's centre
+        const fr = f.el.getBoundingClientRect(), br = f.rider.getBoundingClientRect();
+        f.rider.style.transformOrigin = `${(fr.left + fr.width / 2 - br.left).toFixed(1)}px ${(fr.top + fr.height / 2 - br.top).toFixed(1)}px`;
+        f.rider.animate(kf, opt);
       }
-      s._vx = (s._vx + ax)*0.82; s._vy = (s._vy + ay)*0.82;
-      s._x += s._vx; s._y += s._vy;
-      // physics offset ON TOP of the baked per-letter imperfection
-      s.style.transform =
-        `translate(${(s._bx+s._x).toFixed(2)}px,${(s._by+s._y).toFixed(2)}px) rotate(${s._rot}deg) scale(${s._scl})`;
+    }
+  }
+  // hover (or focus) the address: the potted tree by the cottage rustles from its pot
+  const mail = document.querySelector('.contact a.mail');
+  const potTree = document.getElementById('potTree');
+  let lastShake = 0;
+  function shake(el, deg, dur) {
+    if (!el) return;
+    el.getAnimations().forEach(a => { if (a.effect && a.effect.getKeyframes().some(k => 'rotate' in k)) a.cancel(); });
+    const r = [1, -.35, .1, 0].map(k => (k * deg).toFixed(2) + 'deg');
+    const sh = [.25, -.2, .1, 0].map(k => `${k.toFixed(2)}px 0`);   // the faintest leaf-shiver, no swing
+    el.animate({ rotate: ['0deg', ...r], translate: ['0 0', ...sh] }, { duration: dur, easing: 'ease-out' });
+  }
+  function onAddress() {
+    const now = performance.now();
+    if (now - lastShake < 900) return;
+    lastShake = now;
+    if (!reduceQ.matches) shake(potTree, .55, 520);
+  }
+  mail.addEventListener('pointerenter', onAddress);
+  mail.addEventListener('focus', onAddress);
+
+  // ---------- a paper bee drifts through now and then: in from the right, a visit to the peony, out over the top. Seeded ----------
+  const beeFly = document.getElementById('beeFly');
+  const beeImgs = [...beeFly.querySelectorAll('img')];
+  const brand = mulberry32(8808);
+  let beeTimer = null, beeFlying = false, beeFirst = true;
+  function catmull(p0, p1, p2, p3, t) {
+    const t2 = t * t, t3 = t2 * t;
+    return {
+      x: .5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+      y: .5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
+    };
+  }
+  function beePath() {
+    const o = objs.getBoundingClientRect(), Wd = o.width, Hd = o.height, bw = beeFly.offsetWidth;
+    const pr = objs.querySelector('.peony').getBoundingClientRect();
+    const j = k => (brand() - .5) * k;
+    // the visit is the peony's centre, where the nectar is
+    const visit = { x: (pr.left + pr.right) / 2 - o.left + j(bw * .15), y: (pr.top + pr.bottom) / 2 - o.top - bw * .15 + j(bw * .12) };
+    const pts = [
+      { x: Wd + bw * 2, y: Hd * (.2 + brand() * .06) },
+      { x: Wd + bw, y: Hd * (.2 + brand() * .05) },
+      { x: lerp(Wd, visit.x, .55), y: Math.min(visit.y, Hd * .16) - bw * (.4 + brand() * .6) },
+      visit,
+      { x: visit.x - Wd * .1, y: Hd * (.06 + brand() * .04) },
+      { x: Wd * (.36 + j(.06)), y: -bw * 1.2 },
+      { x: Wd * .3, y: -bw * 3 }
+    ];
+    let line = [];
+    for (let i = 0; i < pts.length - 3; i++) for (let k = 0; k < 24; k++) line.push(catmull(pts[i], pts[i + 1], pts[i + 2], pts[i + 3], k / 24));
+    line.push(pts[pts.length - 2]);
+    // never over the sun's face: any part of the path whose bee would touch the sun (plus a margin) is lifted over it,
+    // then eased so the detour stays a curve
+    const sr = objs.querySelector('.sun').getBoundingClientRect(), mg = bw * .35;
+    const S = { l: sr.left - o.left - bw / 2 - mg, r: sr.right - o.left + bw / 2 + mg, t: sr.top - o.top - bw / 2 - mg, b: sr.bottom - o.top + bw / 2 + mg };
+    const inSun = q => q.x > S.l && q.x < S.r && q.y > S.t && q.y < S.b;
+    for (let pass = 0; pass < 4; pass++) {
+      const lift = line.map(q => inSun(q) ? S.t - q.y : 0);
+      if (!lift.some(v => v)) break;
+      const sm = lift.map((v, i) => { let m = v; for (let k = -6; k <= 6; k++) m = Math.min(m, lift[clamp(i + k, 0, lift.length - 1)] * (1 - Math.abs(k) / 7)); return m; });
+      line = line.map((q, i) => ({ x: q.x, y: q.y + sm[i] }));
+    }
+    line = line.map(q => inSun(q) ? { x: q.x, y: S.t } : q);                 // a last hard guarantee
+    let acc = 0; const L = [0];
+    for (let i = 1; i < line.length; i++) { acc += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y); L.push(acc); }
+    // where the visit is on the line: the point closest to it
+    let vi = 0, best = 1e9; line.forEach((q, i) => { const d = Math.hypot(q.x - visit.x, q.y - visit.y); if (d < best) { best = d; vi = i; } });
+    return { line, L, total: acc, visitAt: L[vi], bw };
+  }
+  function beeAt(P, d) {
+    let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
+    const a = P.line[i - 1], b = P.line[i], t = clamp((d - P.L[i - 1]) / Math.max(1e-6, P.L[i] - P.L[i - 1]));
+    return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), dx: b.x - a.x, dy: b.y - a.y };
+  }
+  function flyBee() {
+    beeTimer = null;
+    if (reduceQ.matches || document.hidden || introRunning || (motion && parseFloat(objs.style.opacity || '1') < .9)) { scheduleBee(6000); return; }
+    const P = beePath();
+    let d = 0, frame = 0, visited = false, bob = 0;
+    beeFlying = true; beeFly.classList.add('flying');
+    const step = () => {
+      // brisk on the way to the flower, lazier after the nectar
+      const stride = P.bw * (visited ? .1 + brand() * .12 : .22 + brand() * .14);
+      let wait = 70 + brand() * 60;
+      if (!visited && d + stride >= P.visitAt) {                          // landed on the centre: linger, shuffle a little, then fly on
+        d = P.visitAt; visited = true;
+        const q0 = beeAt(P, d); let k = 0, n = 3 + Math.floor(brand() * 4);
+        const shuffle = () => {
+          if (k++ >= n) { beeTimer = setTimeout(step, 300); return; }
+          frame ^= (brand() < .35 ? 1 : 0); beeImgs.forEach((im, i) => im.classList.toggle('on', i === frame));
+          const jx = (brand() - .5) * P.bw * .14, jy = (brand() - .5) * P.bw * .1, rr = (brand() - .5) * 14;
+          beeFly.style.transform = `translate(${(q0.x - P.bw / 2 + jx).toFixed(1)}px,${(q0.y - P.bw / 2 + jy).toFixed(1)}px) rotate(${rr.toFixed(1)}deg) scaleX(${brand() < .5 ? 1 : -1})`;
+          beeTimer = setTimeout(shuffle, 420 + brand() * 520);
+        };
+        beeFly.style.transform = `translate(${(q0.x - P.bw / 2).toFixed(1)}px,${(q0.y - P.bw / 2).toFixed(1)}px) scaleX(${q0.dx > 0 ? -1 : 1})`;
+        beeTimer = setTimeout(shuffle, 500);
+        return;
+      }
+      else { d += stride; if (brand() < (visited ? .08 : .03)) wait = 380 + brand() * 600; }   // a hover, now and then
+      const q = beeAt(P, d);
+      frame ^= 1; beeImgs.forEach((im, i) => im.classList.toggle('on', i === frame));
+      bob = (brand() - .5) * P.bw * .08;
+      const face = q.dx > 0 ? -1 : 1;                                          // both flying bees face left in the art
+      const tilt = clamp(Math.atan2(q.dy, Math.abs(q.dx) + 1e-6) * 180 / Math.PI * .5, -12, 12) * (q.dx > 0 ? 1 : -1);
+      beeFly.style.transform = `translate(${(q.x - P.bw / 2).toFixed(1)}px,${(q.y - P.bw / 2 + bob).toFixed(1)}px) rotate(${tilt.toFixed(1)}deg) scaleX(${face})`;
+      if (d >= P.total) { beeFlying = false; beeFly.classList.remove('flying'); scheduleBee(); return; }
+      beeTimer = setTimeout(step, wait);
+    };
+    step();
+  }
+  function scheduleBee(ms) {
+    clearTimeout(beeTimer);
+    if (reduceQ.matches) { beeFly.classList.remove('flying'); beeFlying = false; return; }
+    beeTimer = setTimeout(flyBee, ms || 20000 + brand() * 20000);
+  }
+
+  function startSun() {
+    stopSun();
+    if (reduceQ.matches) { // one calm sun, never the wink
+      sunImgs.forEach((im, i) => im.classList.toggle('on', i === 0)); sunIdx = 0; sunJit.style.transform = '';
+      return;
+    }
+    if (document.hidden) return;
+    sunTimer = setTimeout(sunFrame, 420);
+    // the first flight comes 1.5 to 2.5 s after the hero has assembled, so it is seen before anyone scrolls
+    if (!beeTimer && !beeFlying) { scheduleBee(beeFirst ? 1500 + brand() * 1000 : 7000 + brand() * 4000); beeFirst = false; }
+  }
+  function stopSun() {
+    clearTimeout(sunTimer); sunTimer = null; fTimers.forEach(clearTimeout); fTimers = [];
+    clearTimeout(beeTimer); beeTimer = null; beeFlying = false; beeFly.classList.remove('flying');
+  }
+  document.addEventListener('visibilitychange', () => document.hidden ? stopSun() : (introRunning || startSun()));
+
+  // ---------- shared bits for the critters ----------
+  const closing = document.querySelector('.closing');
+  const cottage = document.getElementById('cottage');
+  const floor = document.getElementById('floor');
+  const vis = new Map();                                   // element -> in view
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    vis.set(e.target, e.isIntersecting); (e.target.__onVis || []).forEach(f => f(e.isIntersecting));
+  }), { threshold: .05 }) : null;
+  function watch(el, f) { (el.__onVis || (el.__onVis = [])).push(f); if (io) io.observe(el); else f(true); }
+  const relTo = (el, host) => { const r = el.getBoundingClientRect(), h = host.getBoundingClientRect(); return { l: r.left - h.left, t: r.top - h.top, r: r.right - h.left, b: r.bottom - h.top }; };
+  const grow = (q, p, pb) => ({ l: q.l - p, t: q.t - p, r: q.r + p, b: q.b + (pb == null ? p : pb) });
+  // layout position inside a positioned host, ignoring transforms (the plates are scaled and slid on the compositor)
+  function offIn(el, host) {
+    let x = 0, y = 0, e = el;
+    while (e && e !== host) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+    return { l: x, t: y, r: x + el.offsetWidth, b: y + el.offsetHeight };
+  }
+
+  // ---------- titles: the pencil line draws in once, when a title is first seen (static layout; motion inks them in render) ----------
+  blocks.forEach(b => { if (b.cap) watch(b.cap, on => { if (on && !motion && !b.inked) { b.inked = true; b.cap.classList.add('inked'); } }); });
+
+  // ---------- the Beekeeper bee: sits by its title on the paper, hops a little, flickers its wings ----------
+  (() => {
+    const bee = document.getElementById('capBee');
+    if (!bee) return;
+    const [rest, flick] = bee.querySelectorAll('img');
+    const r = mulberry32(606);
+    const capEl = bee.closest('.cap');
+    let x = 0, face = 1, t = null, on = false;
+    const draw = (y) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y || 0).toFixed(1)}px) scaleX(${face})`; };
+    function tick() {
+      t = null;
+      if (!on || reduceQ.matches || (motion && +(capEl.style.opacity || 1) < .5)) { t = setTimeout(tick, 900); return; }
+      const em = parseFloat(getComputedStyle(bee).width) || 30, roll = r();
+      if (roll < .45) {                                    // a wing flicker: two quick frames
+        rest.classList.remove('on'); flick.classList.add('on');
+        setTimeout(() => { flick.classList.remove('on'); rest.classList.add('on'); }, 70 + r() * 50);
+        if (r() < .5) setTimeout(() => { rest.classList.remove('on'); flick.classList.add('on'); setTimeout(() => { flick.classList.remove('on'); rest.classList.add('on'); }, 70); }, 190);
+        t = setTimeout(tick, 700 + r() * 1600);
+      } else if (roll < .85) {                             // a small hop, three stop-motion frames
+        const nx = clamp(x + (r() - .5) * em * .6, 0, em * .3), hy = -em * (.18 + r() * .14);
+        if ((nx - x) * face < -2 && r() < .6) face = -face;
+        const x0 = x;
+        x = lerp(x0, nx, .5); draw(hy);
+        setTimeout(() => { x = nx; draw(hy * .35); setTimeout(() => draw(0), 90); }, 90);
+        t = setTimeout(tick, 900 + r() * 2000);
+      } else { face = -face; draw(0); t = setTimeout(tick, 1200 + r() * 1800); }   // a turn to look the other way
+    }
+    watch(capEl, v => { on = v; if (on && !t) t = setTimeout(tick, 600); });
+  })();
+
+  // ---------- the garden: two flipbook flowers, irregular and seeded, like the sun ----------
+  function flipbook(el, seed) {
+    const frames = [...el.querySelectorAll(':scope > img')], r = mulberry32(seed);
+    let i = 0, timer = null, mode = 'walk', left = 0, on = false;
+    function delay() {
+      if (left <= 0) { const q = r(); if (q < .3) { mode = 'hold'; left = 1; } else if (q < .5) { mode = 'rush'; left = 2 + Math.floor(r() * 3); } else { mode = 'walk'; left = 2 + Math.floor(r() * 3); } }
+      left--;
+      return mode === 'hold' ? 1400 + r() * 1800 : mode === 'rush' ? 90 + r() * 60 : 260 + r() * 260;
+    }
+    function step() {
+      timer = null;
+      if (!on || reduceQ.matches) return;
+      let n = i; while (n === i) n = Math.floor(r() * frames.length);
+      frames[i].classList.remove('on'); frames[n].classList.add('on'); i = n;
+      frames[i].style.transform = `rotate(${((r() - .5) * 5).toFixed(1)}deg) scale(${(1 + (r() - .5) * .03).toFixed(3)})`;
+      timer = setTimeout(step, delay());
+    }
+    watch(closing, v => { on = v; if (on && !timer) timer = setTimeout(step, 500 + r() * 500); if (!on) { clearTimeout(timer); timer = null; } });
+  }
+  flipbook(document.getElementById('flipBig'), 4242);
+  flipbook(document.getElementById('flipSmall'), 9191);
+
+  // the bee on the big flower: crawls and hops in small steps around the centre (the nectar), turns, flickers its wings
+  (() => {
+    const bee = document.getElementById('perch'), flower = document.getElementById('flipBig');
+    const [rest, flick] = bee.querySelectorAll('img');
+    const r = mulberry32(3131);
+    let x = 0, y = -4, face = 1, rot = -8, t = null, on = false;
+    const draw = (lift) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y + (lift || 0)).toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scaleX(${face})`; };
+    const wing = (n) => { if (n <= 0) return; rest.classList.remove('on'); flick.classList.add('on'); setTimeout(() => { flick.classList.remove('on'); rest.classList.add('on'); setTimeout(() => wing(n - 1), 80); }, 70 + r() * 40); };
+    function tick() {
+      t = null;
+      if (!on || reduceQ.matches) return;
+      const R = flower.offsetWidth * .13, q = r();
+      if (q < .55) {                                        // a crawl: two or three small stop-motion steps toward a new spot near the centre
+        const a = r() * Math.PI * 2, d = R * Math.sqrt(r()), tx = Math.cos(a) * d, ty = Math.sin(a) * d * .8 - 4;
+        if ((tx - x) * face < 0 && Math.abs(tx - x) > 3) face = -face;
+        rot = clamp(Math.atan2(ty - y, Math.abs(tx - x) + 1) * 57 * .5, -18, 18) * face - 6;
+        const n = 2 + Math.floor(r() * 2), x0 = x, y0 = y;
+        for (let i = 1; i <= n; i++) setTimeout(() => { x = lerp(x0, tx, i / n); y = lerp(y0, ty, i / n); draw(i < n && r() < .4 ? -3 : 0); }, i * (110 + r() * 60));
+        t = setTimeout(tick, n * 170 + 500 + r() * 1300);
+      } else if (q < .75) { face = -face; draw(0); t = setTimeout(tick, 600 + r() * 1200); }   // a turn
+      else { wing(1 + Math.floor(r() * 2)); t = setTimeout(tick, 700 + r() * 1400); }           // a wing flicker
+    }
+    draw(0);
+    watch(closing, v => { on = v; if (on && !t) t = setTimeout(tick, 400 + r() * 600); if (!on) { clearTimeout(t); t = null; } });
+  })();
+
+  // ---------- the visiting bee: rests on the small flower, now and then flies to "stranger" and rests on the word ----------
+  (() => {
+    const bee = document.getElementById('cBee');
+    const imgs = [...bee.querySelectorAll('img')], restImg = imgs[0], wings = imgs.slice(1);
+    const small = document.getElementById('flipSmall'), big = document.getElementById('flipBig'), word = document.getElementById('stranger');
+    const r = mulberry32(5353);
+    let pos = null, face = 1, at = 'small', timer = null, on = false, k = 0;
+    const bw = () => bee.offsetWidth;
+    function spot(name) {
+      const w = bw();
+      if (name === 'word') { const q = relTo(word, closing); return { x: lerp(q.l, q.r, .55) - w / 2, y: q.t - w * .62 }; }
+      if (name === 'big') { const q = relTo(big, closing); return { x: q.l + (q.r - q.l) * .12 - w / 2, y: q.t + (q.b - q.t) * .3 - w / 2 }; }
+      const q = relTo(small, closing); return { x: lerp(q.l, q.r, .5) - w / 2, y: q.t + (q.b - q.t) * .08 - w / 2 };
+    }
+    function show(resting) {
+      restImg.classList.toggle('on', resting);
+      if (resting) wings.forEach(w => w.classList.remove('on')); else { k ^= 1; wings.forEach((w, j) => w.classList.toggle('on', j === k)); }
+      // the resting cut-out faces right, the flying ones face left
+      const flip = resting ? (face > 0 ? 1 : -1) : (face > 0 ? -1 : 1);
+      bee.style.transform = `translate(${pos.x.toFixed(1)}px,${pos.y.toFixed(1)}px) scaleX(${flip})`;
+    }
+    function place() { pos = spot(at); show(true); bee.classList.add('placed'); }
+    function fly(to, then) {
+      const a = { ...pos }, b = spot(to), w = bw();
+      const c = { x: (a.x + b.x) / 2 + (r() - .5) * w * 3, y: Math.min(a.y, b.y) - w * (1.5 + r() * 2) };
+      const len = Math.hypot(b.x - a.x, b.y - a.y) + w * 3, steps = Math.max(8, Math.round(len / (w * .32)));
+      let i = 0;
+      const step = () => {
+        if (!on) { timer = setTimeout(step, 400); return; }
+        i++;
+        const t = i / steps, u = 1 - t;
+        const x = u * u * a.x + 2 * u * t * c.x + t * t * b.x, y = u * u * a.y + 2 * u * t * c.y + t * t * b.y;
+        face = x >= pos.x ? 1 : -1; pos = { x, y: y + (r() - .5) * w * .06 };
+        if (i >= steps) { pos = b; at = to; show(true); then(); return; }
+        show(false);
+        timer = setTimeout(step, r() < .07 ? 300 + r() * 500 : 70 + r() * 60);
+      };
+      step();
+    }
+    function next() {
+      timer = null;
+      if (!on || reduceQ.matches) return;
+      if (at === 'small') {
+        const go = r() < .35 ? 'big' : 'word';
+        fly(go, () => { timer = setTimeout(go === 'big' ? () => fly('small', () => { timer = setTimeout(next, 6000 + r() * 6000); }) : next, go === 'big' ? 900 + r() * 900 : 5000 + r() * 4000); });
+      } else fly('small', () => { timer = setTimeout(next, 7000 + r() * 7000); });
+    }
+    watch(closing, v => { on = v; if (!pos) place(); if (on && !timer && !reduceQ.matches) timer = setTimeout(next, 3000 + r() * 3000); });
+    bee.__place = () => { if (!timer) place(); };
+  })();
+
+  // ---------- the newt: lives on the Bioindicators plate and roams down into the closing and back. Stop-motion,
+  // flips to face its way, tilts a little, pauses, turns round. Never over type, the cottage, its tree or the flowers ----------
+  const bioB = blocks.find(b => b.k === 'bio');
+  const newt = new Image();
+  newt.className = 'newt'; newt.alt = ''; newt.setAttribute('aria-hidden', 'true'); newt.decoding = 'async';
+  if (new URLSearchParams(location.search).get('newt') === '2') { newt.src = 'img/newt-2.webp'; newt.width = 851; newt.height = 322; }
+  else { newt.src = 'img/newt-1.webp'; newt.width = 849; newt.height = 454; }
+  bioB.el.appendChild(newt);
+  const TILT = 16, SIN = Math.sin(TILT * Math.PI / 180);
+  const nrand = mulberry32(4471);
+  const NS = { surf: 'bio', x: 0, y: 0, dir: -1, rot: 0, target: null, queue: [], legs: 0 };
+  let nTimer = null, nPlaced = false;
+  // pin in its final place: the Bioindicators plate sits right above the closing, so the newt can cross
+  const adjacent = () => !motion || window.scrollY >= stageTop + stage.offsetHeight - H - 1;
+  function surfBio() {
+    const host = bioB.el, w = newt.offsetWidth, h = newt.offsetHeight, pad = Math.max(10, w * .1);
+    const pw = motion ? bioB.base.w : host.offsetWidth, ph = motion ? bioB.base.h : host.offsetHeight;
+    const capY = motion ? bioB.base.h : 0;
+    const inCap = el => { const q = offIn(el, bioB.cap); const c = motion ? { l: 0, t: capY } : { l: bioB.cap.offsetLeft, t: bioB.cap.offsetTop }; return { l: q.l + c.l, t: q.t + c.t, r: q.r + c.l, b: q.b + c.t }; };
+    const avoid = [
+      offIn(host.querySelector('.media.face span'), host),
+      offIn(host.querySelector('.band'), host),
+      inCap(bioB.cap.querySelector('.tt')), inCap(bioB.cap.querySelector('p'))
+    ].map(q => grow(q, pad));
+    const bottom = motion ? H - L.rail.bio.y : (pin.getBoundingClientRect().bottom - host.getBoundingClientRect().top);
+    // room beside the plate on the paper (on the left, where the gap to the next plate is), so it can walk round the band
+    return { host, w, h, avoid, R: { l: -w * 1.7, r: pw + w * .3 - w, t: 4, b: bottom - h * .7 }, edge: bottom - h * .3 };
+  }
+  function surfClose() {
+    const w = newt.offsetWidth, h = newt.offsetHeight, pad = Math.max(12, w * .12);
+    const els = [cottage, document.getElementById('potTree'), document.getElementById('flipBig'), document.getElementById('flipSmall'),
+      ...closing.querySelectorAll('.studio, .mail, .quiet')];
+    const avoid = els.map(e => grow(relTo(e, closing), pad));
+    const f = relTo(floor, closing), m = f.l;
+    return { host: closing, w, h, avoid, R: { l: m, r: f.r - w, t: h * .4, b: f.t - h - w * SIN * .5 }, edge: -h * .3 };
+  }
+  const surf = () => NS.surf === 'bio' ? surfBio() : surfClose();
+  function clearAt(n, x, y, rot, loose) {
+    const lift = n.w * Math.sin(Math.abs(rot) * Math.PI / 180) * .5;
+    const l = x + n.w * .04, r = x + n.w * .96, t = y + n.h * .06 - lift, b = y + n.h * .94 + lift;
+    if (!loose && (x < n.R.l - 1 || x > n.R.r + 1 || y < n.R.t - 1 || y > n.R.b + 1)) return false;
+    return !n.avoid.some(q => l < q.r && r > q.l && t < q.b && b > q.t);
+  }
+  function lineClear(n, a, b, loose) {
+    const d = Math.hypot(b.x - a.x, b.y - a.y), k = Math.max(1, Math.ceil(d / 8));
+    for (let i = 0; i <= k; i++) if (!clearAt(n, lerp(a.x, b.x, i / k), lerp(a.y, b.y, i / k), TILT, loose)) return false;
+    return true;
+  }
+  function wanderTo(n, from, y0, y1) {
+    if (y0 == null) { y0 = n.R.t; y1 = n.R.b; }
+    for (let i = 0; i < 120; i++) {
+      const x = lerp(n.R.l, n.R.r, nrand()), y = lerp(y0, y1, nrand());
+      const dx = x - from.x, dy = y - from.y;
+      if (Math.abs(dx) < n.w * .5 || Math.abs(dx) > n.w * 4 || Math.abs(dy) > Math.abs(dx) * .8) continue;   // short legs, more turns
+      if (clearAt(n, x, y, TILT) && lineClear(n, from, { x, y }, true)) return { x, y };
+    }
+    return null;
+  }
+  // a step toward the crossing edge. On the plate the band and caption fill the width, so it goes round them by the
+  // paper lane on the plate's left; in the closing the top is open
+  function towardEdge(n, from) {
+    const down = NS.surf === 'bio';
+    for (let i = 0; i < 160; i++) {
+      const lane = down && i < 100;
+      const x = lane ? lerp(n.R.l, n.R.l + n.w * .3, nrand()) : lerp(n.R.l, n.R.r, nrand());
+      const y = down ? lerp(from.y, n.R.b, nrand()) : lerp(n.R.t, from.y, nrand());
+      const dx = x - from.x, dy = y - from.y;
+      if (Math.abs(dx) > n.w * 5 || Math.abs(dy) > Math.max(Math.abs(dx) * 2.4, n.w * .6)) continue;
+      if (Math.hypot(dx, dy) < n.w * .4) continue;
+      if (clearAt(n, x, y, TILT) && lineClear(n, from, { x, y }, true)) return { x, y };
+    }
+    return null;
+  }
+  // a way across: walk to the edge (bottom of the plate area, or top of the closing) at a clear spot, then step over
+  function doorFrom(n, from) {
+    for (let i = 0; i < 40; i++) {
+      const x = lerp(n.R.l, n.R.r, nrand()), inside = { x, y: NS.surf === 'bio' ? n.R.b : n.R.t }, out = { x, y: n.edge };
+      if (Math.abs(inside.y - from.y) > Math.max(Math.abs(inside.x - from.x), n.w) * 1.2) continue;
+      if (clearAt(n, inside.x, inside.y, TILT) && lineClear(n, from, inside, true) && lineClear(n, inside, out, true)) return [inside, out];
+    }
+    return null;
+  }
+  function crossOver() {
+    // re-home the newt on the other surface, at the same spot on screen
+    const from = NS.surf === 'bio' ? bioB.el : closing, to = NS.surf === 'bio' ? closing : bioB.el;
+    const fr = from.getBoundingClientRect(), tr = to.getBoundingClientRect();
+    NS.x += fr.left - tr.left; NS.y += fr.top - tr.top;
+    NS.surf = NS.surf === 'bio' ? 'close' : 'bio';
+    to.appendChild(newt); drawNewt(0);
+    const n = surf(), inside = { x: clamp(NS.x, n.R.l, n.R.r), y: NS.surf === 'bio' ? n.R.b : n.R.t };
+    NS.queue = [inside];
+  }
+  function headingRot(dx, dy) { return clamp(Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI, -TILT, TILT) * (dx > 0 ? 1 : -1); }
+  function drawNewt(wob) {
+    newt.style.transform = `translate(${NS.x.toFixed(1)}px,${NS.y.toFixed(1)}px) rotate(${(NS.rot + (wob || 0)).toFixed(2)}deg) scaleX(${NS.dir > 0 ? -1 : 1})`;
+    // on the plate it fades with the plate's content
+    // it rides in on the card: visible as soon as the card starts its way to the rail, never a pop
+    newt.style.opacity = NS.surf === 'bio' && motion ? smooth(0, .2, bioB.ti || 0).toFixed(3) : '1';
+  }
+  function placeNewt() {
+    if (!newt.offsetWidth) return;
+    if (NS.surf === 'close' && motion && !adjacent()) { /* leave it where it is in the closing */ }
+    const n = surf();
+    if (!nPlaced || !clearAt(n, NS.x, NS.y, 0)) {
+      for (let i = 0; i < 400; i++) {
+        const x = lerp(n.R.l, n.R.r, nrand()), y = lerp(n.R.t, n.R.b, nrand());
+        if (clearAt(n, x, y, 16)) { NS.x = x; NS.y = y; break; }
+      }
+      NS.rot = 0; NS.target = null; NS.queue = []; nPlaced = true;
+    }
+    drawNewt(0); newt.classList.add('placed');
+  }
+  function newtStep() {
+    nTimer = null;
+    if (reduceQ.matches) return;
+    const here = NS.surf === 'bio' ? bioB.el : closing;
+    if (!vis.get(here) && !(NS.surf === 'bio' && !io)) return;
+    if (NS.surf === 'bio' && motion && (bioB.ti || 0) < .2) { drawNewt(0); nTimer = setTimeout(newtStep, 500); return; }
+    const n = surf();
+    let wait;
+    if (!NS.target) {
+      if (NS.queue.length) NS.target = NS.queue.shift();
+      else {
+        NS.legs++;
+        const other = NS.surf === 'bio' ? closing : bioB.el;
+        // mostly a card newt: a rare trip down to the footer, and a quicker way home
+        const goChance = NS.surf === 'bio' ? (NS.legs > 3 ? .12 : 0) : (NS.legs > 1 ? .4 : 0);
+        if ((NS.wantCross || nrand() < goChance) && adjacent() && vis.get(other)) {   // head for the other surface, when it is in view too
+          const q = doorFrom(n, NS);
+          if (q) { NS.target = q[0]; NS.queue = [q[1], 'cross']; NS.legs = 0; NS.wantCross = false; }
+          else {                                                  // not there yet: work toward that edge first
+            NS.target = towardEdge(n, NS);
+            NS.wantCross = !!NS.target && nrand() < .9;
+          }
+        }
+        if (!NS.target) NS.target = wanderTo(n, NS);
+      }
+      if (NS.target === 'cross') { NS.target = null; if (adjacent()) crossOver(); else NS.queue = []; nTimer = setTimeout(newtStep, 160); return; }
+      if (!NS.target) { nTimer = setTimeout(newtStep, 1800); return; }
+      const dir = NS.target.x > NS.x ? 1 : -1;
+      if (dir !== NS.dir && Math.abs(NS.target.x - NS.x) > 4) {        // turn to face the way, a beat before setting off
+        nTimer = setTimeout(() => { NS.dir = dir; NS.rot = headingRot(NS.target.x - NS.x, NS.target.y - NS.y); drawNewt(0); nTimer = setTimeout(newtStep, 300 + nrand() * 380); }, 380 + nrand() * 420);
+        return;
+      }
+      NS.rot = headingRot(NS.target.x - NS.x, NS.target.y - NS.y);
+    }
+    const dx = NS.target.x - NS.x, dy = NS.target.y - NS.y, d = Math.hypot(dx, dy), stride = n.w * (.05 + nrand() * .09);
+    if (d <= stride) {
+      NS.x = NS.target.x; NS.y = NS.target.y; NS.target = null;
+      const roll = nrand();
+      if (roll < .14 && !NS.queue.length) {                           // a look back the other way, then on
+        NS.dir = -NS.dir; drawNewt(0); wait = 700 + nrand() * 900;
+      } else wait = NS.queue.length ? 140 + nrand() * 160 : 500 + nrand() * 1400;
+      drawNewt(0);
+    } else {
+      NS.x += dx / d * stride; NS.y += dy / d * stride;
+      wait = nrand() < .86 ? 75 + nrand() * 125 : 480 + nrand() * 900;
+      drawNewt((nrand() - .5) * 1.6);
+    }
+    nTimer = setTimeout(newtStep, wait);
+  }
+  const wake = () => { if (!nTimer && !reduceQ.matches) { if (!nPlaced) placeNewt(); nTimer = setTimeout(newtStep, 600); } };
+  watch(bioB.el, v => { if (v) wake(); });
+  watch(closing, v => { if (v) wake(); });
+  newt.addEventListener('load', placeNewt);
+  window.__pbNewt = () => { if (NS.surf === 'bio') { const o = motion ? smooth(0, .2, bioB.ti || 0).toFixed(3) : '1'; if (newt.style.opacity !== o) newt.style.opacity = o; } };
+  if (/[?&]debug(&|$)/.test(location.search)) window.__bee = () => { clearTimeout(beeTimer); flyBee(); };
+  if (/[?&]debug(&|$)/.test(location.search)) window.__newt = { surfBio, surfClose, NS, clearAt, wanderTo, doorFrom, adjacent, vis, closing, bio: bioB.el };
+
+  // ---------- video slots: a plate with data-video="name.mp4" plays video/name.mp4 in place of its image.
+  // Switched on by <html data-videos="on"> once the files are in video/ (or ?video to try it), so there are no 404s before then.
+  // The image is the poster, and nothing swaps unless the video actually loads, so the layout never moves ----------
+  const videosOn = doc.dataset.videos === 'on' || /[?&]video(&|$)/.test(location.search);
+  const vidIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target.querySelector('video'); if (!v || v.classList.contains('hover-vid')) return;
+    if (e.isIntersecting && !reduceQ.matches) v.play().catch(() => {}); else v.pause();
+  })) : null;
+  pin.querySelectorAll('.media[data-video]').forEach(m => {
+    if (!(videosOn || m.hasAttribute('data-ready'))) return;     // data-ready: the file is there (Unicorn)
+    const img = m.querySelector('img');
+    const v = document.createElement('video');
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'metadata';
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('loop', '');
+    v.poster = img.currentSrc || img.src;
+    v.setAttribute('aria-hidden', 'true');
+    v.addEventListener('loadeddata', () => {
+      img.replaceWith(v);
+      if (!reduceQ.matches) { v.autoplay = true; v.play().catch(() => {}); }
+      if (vidIO) vidIO.observe(m);
+    }, { once: true });
+    v.addEventListener('error', () => v.remove(), { once: true });
+    v.src = 'video/' + m.dataset.video;
+  });
+  // Living Wall: hover plays video/living-wall.mp4 over the still, if the file exists (no file, nothing happens)
+  (() => {
+    const m = pin.querySelector('.plate[data-k="wall"] .media');
+    if (!m) return;
+    let v = null, absent = false, over = false;
+    m.addEventListener('pointerenter', () => {
+      over = true;
+      if (absent || reduceQ.matches) return;
+      if (!v) {
+        v = document.createElement('video');
+        v.className = 'hover-vid'; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+        v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true');
+        v.addEventListener('error', () => { absent = true; v.remove(); v = null; }, { once: true });
+        v.addEventListener('canplay', () => { if (over && v) { v.play().catch(() => {}); v.classList.add('on'); } });
+        v.src = 'video/living-wall.mp4';
+        m.appendChild(v);
+      } else { v.play().catch(() => {}); v.classList.add('on'); }
+    });
+    m.addEventListener('pointerleave', () => { over = false; if (v) { v.pause(); v.classList.remove('on'); } });
+  })();
+
+  // ---------- a flower trail in the closing: small paper flowers drop behind the cursor, flip a frame or two, and fade.
+  // Opt-in with ?trail=1. Mouse only, off for reduced motion. Seeded, capped at 14 ----------
+  const trailOn = /[?&]trail=1(&|$)/.test(location.search);
+  const TRAIL = { dahlia: ['dahlia-1', 'dahlia-2', 'dahlia-3', 'dahlia-4'], peony: ['peony-1', 'peony-2', 'peony-3'] };
+  const trand = mulberry32(2718);
+  const trail = [];
+  let tAcc = 0, tNext = 90, tLast = null, tPre = false;
+  const mailEl = document.querySelector('.contact a.mail');
+  function preloadTrail() {
+    if (tPre) return; tPre = true;
+    Object.values(TRAIL).flat().forEach(n => { const im = new Image(); im.src = `img/trail-${n}.webp`; if (im.decode) im.decode().catch(() => {}); });
+  }
+  function retire(f, fast) {
+    if (f.gone) return; f.gone = true;
+    clearTimeout(f.flip); clearTimeout(f.life);
+    const a = f.el.animate({ opacity: [getComputedStyle(f.el).opacity, 0], scale: [1, .55] }, { duration: fast ? 220 : 650, easing: 'cubic-bezier(.4,0,.7,.2)', fill: 'forwards' });
+    a.onfinish = () => { f.el.remove(); const i = trail.indexOf(f); if (i >= 0) trail.splice(i, 1); };
+  }
+  function dropFlower(x, y, cx, cy) {
+    if (trail.filter(f => !f.gone).length >= 14) retire(trail.find(f => !f.gone), true);
+    const kind = trand() < .55 ? 'dahlia' : 'peony', set = TRAIL[kind];
+    const i0 = Math.floor(trand() * set.length), i1 = (i0 + 1 + Math.floor(trand() * (set.length - 1))) % set.length;
+    const el = document.createElement('img');
+    el.className = 'trail'; el.alt = ''; el.setAttribute('aria-hidden', 'true'); el.decoding = 'async';
+    el.src = `img/trail-${set[i0]}.webp`;
+    const size = 26 + trand() * 22, rot = (trand() - .5) * 40;
+    const mr = mailEl.getBoundingClientRect();
+    const overText = cx > mr.left && cx < mr.right && cy > mr.top && cy < mr.bottom;
+    el.style.cssText = `width:${size.toFixed(0)}px;left:${(x - size / 2).toFixed(1)}px;top:${(y - size / 2).toFixed(1)}px;rotate:${rot.toFixed(1)}deg;opacity:${overText ? .38 : .92}`;
+    closing.appendChild(el);
+    const f = { el, gone: false, frames: [set[i0], set[i1]], k: 0 };
+    el.animate({ scale: [.6, 1] }, { duration: 160, easing: 'cubic-bezier(.2,.8,.3,1)' });
+    // stop-motion: flip between two cut-outs of the same kind, with a little jump in angle, two or three times
+    let flips = 2 + Math.floor(trand() * 2);
+    const flip = () => {
+      if (f.gone || flips-- <= 0) return;
+      f.k ^= 1; el.src = `img/trail-${f.frames[f.k]}.webp`;
+      el.style.rotate = (rot + (trand() - .5) * 10).toFixed(1) + 'deg';
+      f.flip = setTimeout(flip, 120 + trand() * 140);
+    };
+    f.flip = setTimeout(flip, 140 + trand() * 120);
+    f.life = setTimeout(() => retire(f), 1500 + trand() * 1500);
+    trail.push(f);
+  }
+  if (trailOn) {
+    closing.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') preloadTrail(); });
+    closing.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || reduceQ.matches) return;
+      const cr = closing.getBoundingClientRect(), x = e.clientX - cr.left, y = e.clientY - cr.top;
+      if (tLast) tAcc += Math.hypot(x - tLast.x, y - tLast.y);
+      tLast = { x, y };
+      if (tAcc >= tNext) { tAcc = 0; tNext = 70 + trand() * 40; dropFlower(x, y, e.clientX, e.clientY); }
+    }, { passive: true });
+    closing.addEventListener('pointerleave', () => { tLast = null; tAcc = 0; });
+  }
+
+  // ---------- font switcher (only with ?fonts) ----------
+  if (/[?&]fonts(&|$)/.test(location.search)) {   // 11-12 (Ivy): Source Serif chosen; the switcher only shows with ?fonts
+    const FONTS = [['source', 'Source'], ['fraunces', 'Fraunces'], ['gloock', 'Gloock'], ['young', 'Young Serif'], ['bodoni', 'Bodoni Moda'], ['cormorant', 'Cormorant']];
+    const bar = document.createElement('div');
+    bar.className = 'fontpick'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Try a typeface');
+    const markForced = /[?&]mark=/.test(location.search);
+    const pick = f => {
+      doc.dataset.font = f;
+      try { localStorage.setItem('pb-font', f); } catch (e) {}
+      if (f !== 'source' && !document.getElementById('trialFonts')) {
+        const l = document.createElement('link'); l.id = 'trialFonts'; l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0,0&family=Gloock&family=Young+Serif&family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap';
+        document.head.appendChild(l);
+      }
+      if (!markForced) { doc.classList.toggle('mark-word', f !== 'source'); doc.classList.toggle('mark-auto', f !== 'source'); }
+      bar.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+      const u = new URL(location.href); u.searchParams.set('font', f); history.replaceState(null, '', u);
+      // sizes change with the face: re-measure what depends on them
+      if (document.fonts) document.fonts.ready.then(() => setMode(false));
+    };
+    FONTS.forEach(([f, label]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.f = f; b.textContent = label;
+      b.setAttribute('aria-pressed', String(doc.dataset.font === f));
+      b.addEventListener('click', () => pick(f));
+      bar.appendChild(b);
+    });
+    document.body.appendChild(bar);
+  }
+
+  // ---------- modes ----------
+  function clearInline() {
+    blocks.forEach(b => {
+      [b.el, b.shade, b.art, b.pc, b.cap].forEach(el => { if (el) { el.style.cssText = ''; el.__pb = {}; } });
+      b.slice.style.transform = '';
+    });
+    heroArt.style.opacity = ''; heroArt.__pb = {};
+    objs.style.cssText = ''; objs.__pb = {}; stage.style.height = '';
+  }
+  function setMode(first) {
+    const want = !location.search.includes('static') && !reduceQ.matches && innerWidth >= 760 && innerHeight >= 520;
+    if (want !== motion) {
+      motion = want;
+      doc.classList.toggle('motion', motion);
+      if (!motion) { if (introRunning) finishIntro(); clearInline(); pin.classList.remove('split', 'intro', 'sealed'); }
+    }
+    if (motion) { measure(); if (!introRunning) render(); }
+    placeNewt();
+    const cb = document.getElementById('cBee'); if (cb.__place) cb.__place();
+    if (first) {
+      if (motion && window.scrollY < 4) startIntroWhenReady();
+      else { introDone = true; startSun(); }
+    }
+  }
+  function startIntroWhenReady() {
+    pin.classList.add('intro');
+    blocks.forEach(b => put(b.el, 'transform', 'translate3d(-200vw,0,0)'));
+    const ready = Promise.all([
+      document.fonts ? document.fonts.ready : Promise.resolve(),
+      ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
+    ]);
+    Promise.race([ready, new Promise(r => setTimeout(r, 2600))]).then(() => {
+      if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; render(); startSun(); return; }
+      runIntro(false);
     });
   }
-}
 
-/* amplitude of the active song drives the wavefronts */
-function currentAmp(){
-  if (!active || !actx) return 0;
-  const c = chains[active.id];
-  c.analyser.getByteTimeDomainData(c.td);
-  let sum=0;
-  for (let i=0;i<c.td.length;i+=4){ const v=(c.td[i]-128)/128; sum+=v*v; }
-  return Math.min(1, Math.sqrt(sum/(c.td.length/4))*3.2);
-}
-
-/* ═══════════ the sound-wave: the bird's real voice, drawn live ═══════════
-   horizontal waveform inside the card. it IS the recording's time-domain
-   data, so every bird's wave is genuinely its own -- plus a signature
-   style + color per voice. */
-const wpts = new Float32Array(128);      /* smoothed display samples (must be >= max bars; riroriro uses 96) */
-function drawWave(){
-  if (!chip.classList.contains('on')) return;
-  const w = waveC.width, h = waveC.height, mid = h/2;
-  wctx.clearRect(0,0,w,h);
-  if (!active) return;
-  const sig = active.wave;
-  const c = chains[active.id];
-  if (!c){   /* "coming soon" voice -- a gentle breathing pulse in its color so the card lives */
-    wctx.save();
-    wctx.strokeStyle = sig.col; wctx.globalAlpha = .5; wctx.lineWidth = 2*DPR; wctx.lineJoin = 'round';
-    wctx.beginPath();
-    for (let x=0;x<=w;x+=2){
-      const y = mid + Math.sin(x/w*12.56 + t*2) * mid*0.26 * (0.5+0.5*Math.sin(t*1.2));
-      x ? wctx.lineTo(x,y) : wctx.moveTo(x,y);
-    }
-    wctx.stroke(); wctx.restore();
-    return;
-  }
-  c.analyser.getByteTimeDomainData(c.td);
-
-  const N = sig.bars;
-  const step = Math.floor(c.td.length / N);
-  const BOOST = 1.5;                                     /* more punch across the board */
-  for (let i=0;i<N;i++){
-    const raw = (c.td[i*step] - 128) / 128;            /* -1..1 */
-    const target = raw * sig.gain * BOOST;
-    wpts[i] = reduced ? target*0.3 : lerp(wpts[i]||0, target, 0.62);
-  }
-
-  wctx.save();
-  // faint baseline
-  wctx.strokeStyle = 'rgba(239,233,221,.16)'; wctx.lineWidth = DPR;
-  wctx.beginPath(); wctx.moveTo(0,mid); wctx.lineTo(w,mid); wctx.stroke();
-
-  const cap = mid * 0.96;
-  const xAt = i => (N>1 ? i/(N-1) : 0) * w;             /* span exactly edge to edge */
-  const clamp = v => Math.max(-cap, Math.min(cap, v*mid));
-  if (sig.style === 'bars'){
-    const colW = w / N;
-    wctx.fillStyle = sig.col;
-    for (let i=0;i<N;i++){
-      const a = Math.min(Math.abs(wpts[i])*mid, cap) + 1.5*DPR;   /* min height = always alive */
-      wctx.fillRect(xAt(i) - colW*0.32, mid - a, colW*0.64, a*2);
-    }
-  } else if (sig.style === 'fill'){
-    wctx.fillStyle = sig.col; wctx.globalAlpha = 0.9;   /* kōkako: thick, wide, bold */
-    wctx.beginPath(); wctx.moveTo(0, mid);
-    for (let i=0;i<N;i++) wctx.lineTo(xAt(i), mid - clamp(wpts[i]));
-    for (let i=N-1;i>=0;i--) wctx.lineTo(xAt(i), mid + clamp(wpts[i]));
-    wctx.closePath(); wctx.fill(); wctx.globalAlpha = 1;
-    wctx.strokeStyle = sig.col; wctx.lineWidth = 1.6*DPR;   /* bright top edge for body */
-    wctx.beginPath();
-    for (let i=0;i<N;i++){ const x=xAt(i), y=mid-clamp(wpts[i]); i?wctx.lineTo(x,y):wctx.moveTo(x,y); }
-    wctx.stroke();
-  } else {  /* line */
-    wctx.strokeStyle = sig.col; wctx.lineWidth = 2.2*DPR; wctx.lineJoin = 'round'; wctx.lineCap = 'round';
-    wctx.beginPath();
-    for (let i=0;i<N;i++){
-      const x = xAt(i), y = mid - clamp(wpts[i]);
-      i ? wctx.lineTo(x,y) : wctx.moveTo(x,y);
-    }
-    wctx.stroke();
-  }
-  wctx.restore();
-}
-
-/* hover is handled on the voice elements themselves (see buildVoices) */
-document.addEventListener('visibilitychange', () => { if (document.hidden) deactivate(); });
-
-/* ═══════════ placer mode (?place): drag the names to cast the current wall ═══════════ */
-function placerSave(){
-  const out = {};
-  CAST.forEach(z => out[z.id] = {x:+z.x.toFixed(3), y:+z.y.toFixed(3), r:+z.r.toFixed(3)});
-  localStorage.setItem('pb-zones-v2-' + wall().id, JSON.stringify(out));
-  return out;
-}
-if (placing){
-  document.getElementById('placerHelp').style.display = 'block';
-  center.style.display = 'none';
-  frame.addEventListener('pointermove', e => {
-    if (!placerHeld) return;
-    const r = frame.getBoundingClientRect();
-    const p = canvasToImg((e.clientX-r.left)/W, (e.clientY-r.top)/H);
-    placerHeld.x = p.x; placerHeld.y = p.y; positionVoices(); placerSave();
-  });
-  window.addEventListener('pointerup', () => { placerHeld = null; });
-  window.addEventListener('keydown', e => {
-    if (e.key.toLowerCase() === 'c'){
-      const json = JSON.stringify(placerSave(), null, 2);
-      console.log(wall().id + ':', json);
-      navigator.clipboard?.writeText(json);
-    }
-  });
-}
-function drawPlacer(){
-  if (!placing) return;
-  tctx.clearRect(0,0,fxc.width,fxc.height);
-  tctx.save(); tctx.scale(DPR,DPR);
-  for (const z of CAST){          /* a small anchor dot under each name */
-    const p = zonePx(z);
-    tctx.fillStyle = 'rgba(239,233,221,.7)';
-    tctx.beginPath(); tctx.arc(p.x, p.y, 3, 0, 7); tctx.fill();
-  }
-  tctx.restore();
-}
-
-/* ═══════════ main loop ═══════════ */
-let t=0;
-function loop(){
-  /* the whole body is guarded: a single bad frame must NEVER kill the loop, or
-     the wall freezes + waveforms + letter physics all die at once (the travel bug). */
-  try{
-    t += 1/60;
-    activeAmt = lerp(activeAmt, active ? 1 : 0, 0.08);
-
-    /* one clean ring per burst, then it settles */
-    const rTarget = (t < rippleEnd && !reduced) ? 0.9 : 0;
-    rippleLevel = lerp(rippleLevel, rTarget, 0.14);
-
-    /* directional travel pull -- out (scene leaves toward the arrow), then in (next slides from the other side) */
-    if (travelPhase === 'wipe'){
-      travelT += 1/60;
-      const k = Math.min(1, travelT/WIPE_DUR);
-      wipe = k*k*(3-2*k);
-      if (k >= 1){
-        pendingTex = img;            /* commit: the incoming wall becomes the current texture */
-        wipe = 0; travelPhase = null;
-        if (onWipeDone){ const cb = onWipeDone; onWipeDone = null; cb(); }
-      }
-    }
-
-    if (pendingNextTex && gl){ uploadTex(pendingNextTex, 1); pendingNextTex = null; }
-    if (pendingTex && gl){ uploadTex(pendingTex, 0); pendingTex = null; }
-    if (glOK){
-      gl.viewport(0,0,glc.width,glc.height);
-      gl.uniform2f(uni.uCanvas, W, H);
-      gl.uniform2f(uni.uImg, imgW, imgH);
-      gl.uniform2f(uni.uZone, 0.5, 0.5);
-      gl.uniform1f(uni.uActive, reduced ? 0 : rippleLevel);
-      gl.uniform1f(uni.uTime, t);
-      gl.uniform1f(uni.uBurst, rippleStart);
-      gl.uniform1f(uni.uWipe, reduced ? 0 : wipe);
-      gl.uniform1f(uni.uWipeDir, wipeDir);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }
-    drawWave();
-    stepLetters();
-    stepFlight();
-    drawPlacer();
-  }catch(e){
-    if (!window.__pbErr){ window.__pbErr = String((e && e.stack) || e); console.error('[PB] loop threw:', e); }
-  }
-  requestAnimationFrame(loop);   /* always reschedule, no matter what */
-}
-
-function start(){
-  imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
-  sizeAll();
-  initGL();
-  loop();
-  beginIntro();     /* a few rings settle, then the invitation dissolves in */
-}
-/* MOBILE: never boot the WebGL wall + audio on phones (crash risk on mobile Safari,
-   and the hover UX doesn't translate to touch). Show the static coming-soon screen instead. */
-const isMobile = matchMedia('(max-width: 700px)').matches;
-if (isMobile){
-  document.body.classList.add('is-mobile');
-} else {
-  /* decode fully before the GPU upload -- progressive JPEGs can upload half-baked */
-  img.decode ? img.decode().then(start).catch(start) : img.addEventListener('load', start);
-}
-window.addEventListener('resize', sizeAll);
-
-/* credits panel: the contract, rendered per wall */
-const panel = document.getElementById('creditsPanel');
-function buildCredits(){
-  const head = '<div class="credits__head"><h2>SOUND CREDITS</h2><button class="credits__x" aria-label="Close">✕</button></div>';
-  if (!CAST.length){
-    panel.innerHTML = head +
-      '<p class="credits__intro">Voices for ' + wall().place + ' are being sourced now.</p>';
-    return;
-  }
-  /* trimmed: the chip already gives species + scientific name on hover, so the
-     list just carries the essential credit -- who, where, source, license. */
-  panel.innerHTML = head +
-    CAST.map(z => z.soon
-      ? `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc||''}</span><br>` +
-        `<span class="lic">voice coming soon${z.src ? ' ✺ '+z.src : ''}</span></p>`
-      : `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc}</span><br>` +
-        `rec. ${z.rec} ✺ <a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="lic">${z.lic}</span></p>`
-    ).join('');
-}
-buildCredits();
-const creditsToggle = document.getElementById('creditsToggle');
-const scrim = document.getElementById('scrim');
-const buildToggle = document.getElementById('buildToggle');
-const buildPanel = document.getElementById('buildPanel');
-function openCredits(){ buildPanel.classList.remove('on'); panel.classList.add('on'); scrim.classList.add('on'); }
-function closeCredits(){ panel.classList.remove('on'); scrim.classList.remove('on'); }
-function openBuild(){ panel.classList.remove('on'); buildPanel.classList.add('on'); scrim.classList.add('on'); }
-function closeBuild(){ buildPanel.classList.remove('on'); scrim.classList.remove('on'); }
-creditsToggle.addEventListener('click', () => panel.classList.contains('on') ? closeCredits() : openCredits());
-buildToggle.addEventListener('click', () => buildPanel.classList.contains('on') ? closeBuild() : openBuild());
-scrim.addEventListener('click', () => { closeCredits(); closeBuild(); });
-panel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeCredits(); });
-buildPanel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeBuild(); });
-
-/* contact = copy the email, same move as the portfolio */
-const contactCopy = document.getElementById('contactCopy');
-contactCopy.addEventListener('click', () => {
-  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
-    contactCopy.textContent = 'hi@planetbased.io ✺ copied';
-    setTimeout(() => contactCopy.textContent = 'contact', 1800);
-  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
-});
-/* mobile screen's contact -- tap to copy the same email */
-const contactCopyM = document.getElementById('contactCopyM');
-if (contactCopyM) contactCopyM.addEventListener('click', () => {
-  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
-    contactCopyM.textContent = 'copied ✺ hi@planetbased.io';
-    setTimeout(() => contactCopyM.textContent = 'hi@planetbased.io', 1800);
-  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
-});
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  let raf = 0;
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }, { passive: true });
+  let rt = 0;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => setMode(false), 80); });
+  reduceQ.addEventListener('change', () => { setMode(false); startSun(); });
+  cottage.addEventListener('load', () => { const cb = document.getElementById('cBee'); if (cb.__place) cb.__place(); });
+  setMode(true);
 })();
 </script>
 <!-- GoatCounter analytics (same account as grzy.goatcounter.com; create the "planetbased" site there) -->

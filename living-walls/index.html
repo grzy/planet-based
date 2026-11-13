@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- 11-12: moved from the home page to /living-walls/; base keeps its images/, sounds/ and favicon paths pointing at the site root -->
+<base href="/">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Living Walls · planetbased.io</title>
+<link rel="icon" href="favicon.svg?v=2" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Ubuntu+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --oat:#b7a891;        /* darker oatmeal -- real cooked-oats, not cream */
+  --ink:#241d16;
+  --cream:#efe9dd;
+  --radius:18px;
+  --radius-sm:6px;
+  /* ONE glass UI language -- every floating surface (arrows, place label, chip,
+     credits) uses these so nothing feels like a different component. */
+  --glass-bg:rgba(16,20,13,.66);
+  --glass-brd:rgba(255,255,255,.7);
+  --glass-blur:blur(11px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#0b0d09;
+  color:var(--cream);
+  font-family:"Ubuntu Sans Mono",monospace;
+  height:100vh;overflow:hidden;position:relative;
+  opacity:0;
+  animation:pageIn 1.2s cubic-bezier(0.83,0,0.17,1) .05s forwards;
+}
+@keyframes pageIn{to{opacity:1}}
+@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{to{opacity:1}}   /* opacity only -- the wall must never shift position */
+
+body::after{
+  content:"";position:fixed;inset:-50%;z-index:50;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity:.05;
+}
+
+/* wordmark = handwritten; nav = clear mono. white, with a whisper of shadow. */
+.brand{
+  position:fixed;top:clamp(18px,2.6vh,28px);left:clamp(22px,3.4vw,48px);z-index:30;
+  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;max-width:80vw;
+  color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
+  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .25s forwards;
+}
+.brand h1{
+  /* ⚠️ text-transform: NONE (2026-09-19). The wordmark is the domain, set
+     exactly as it is typed: one word, lowercase, with .io. This rule was
+     uppercasing it regardless of the markup, so changing the HTML alone
+     would still have rendered PLANETBASED.IO.
+     ⚠️ Tracking drops .42em -> .14em with it. .42 was set for two SPACED
+     CAPS words; on one lowercase word it reads as letters drifting apart
+     rather than as a lockup. */
+  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;
+  font-size:12.5px;letter-spacing:.14em;line-height:1;text-transform:none;
+}
+.brand .sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;opacity:.85}
+/* about + contact, tucked top-right (mirrors the brand top-left) */
+.topnav{
+  position:fixed;top:clamp(18px,2.6vh,28px);right:clamp(22px,3.4vw,48px);z-index:30;
+  display:flex;gap:22px;align-items:baseline;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;
+  color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
+  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .3s forwards;
+}
+.topnav a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
+.topnav a:hover{opacity:1}
+
+.stage{display:contents}
+.wall-frame{
+  position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;
+  opacity:0;animation:fadeIn 1.4s cubic-bezier(0.83,0,0.17,1) .4s forwards;
+}
+.wall-frame > img, .wall-frame > canvas{   /* only the background layers, not the card's wave */
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+}
+.wall-frame img{object-fit:cover;filter:brightness(.93) saturate(1.03)}
+#glCanvas{opacity:0;transition:opacity .8s ease-in-out}
+#glCanvas.on{opacity:1}
+#fxCanvas{pointer-events:none}
+
+/* ---------- the voices: names that live on the wall, in te reo ----------
+   at rest they invert against the foliage (mix-blend). on hover they drop the
+   blend and light up in their own voice's color, letters spreading + moving. */
+.voices{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
+.voices.show{opacity:1}
+.voices.leaving{opacity:0;transition:none}   /* travel: hide the old names INSTANTLY, before they rebuild, so nothing flashes mid-fade */
+.voice{
+  position:absolute;transform:translate(-50%,-50%);
+  font-family:"Ubuntu Sans Mono",monospace;font-weight:400;
+  font-size:clamp(19px,1.6vw,26px);letter-spacing:.02em;line-height:1;
+  white-space:nowrap;cursor:pointer;pointer-events:auto;
+  padding:18px 20px;   /* generous hover target */
+  color:#fff;opacity:.92;text-shadow:0 1px 3px rgba(8,10,6,.6);
+  transition:opacity .5s cubic-bezier(0.83,0,0.17,1),
+             letter-spacing .5s cubic-bezier(0.83,0,0.17,1),
+             color .45s cubic-bezier(0.83,0,0.17,1);
+  -webkit-user-select:none;user-select:none;
+}
+.voice:hover{opacity:1}
+.voice.on{
+  color:var(--vcol,#fff);opacity:1;
+  letter-spacing:.26em;    /* spread wide while it sings */
+}
+.voice__l{display:inline-block;will-change:transform}
+
+/* the center stage: every intro moment lives here and dissolves in/out as one family */
+.center{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;
+  display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;
+  pointer-events:none;
+  opacity:0;filter:blur(2px);
+  transition:opacity 1.5s ease, filter 1.5s ease;
+}
+.center.show{opacity:1;filter:blur(0)}
+.center.hint{top:50%}   /* the hint sits dead center on the page */
+.arm{
+  font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;text-align:center;
+  font-size:clamp(40px,5vw,66px);letter-spacing:.006em;white-space:nowrap;text-transform:none;
+  font-feature-settings:"dlig" 1,"liga" 1,"swsh" 1;   /* the ct/st connecting ligatures -- "studio" links up */
+  color:#fff;text-shadow:0 1px 6px rgba(8,10,6,.6);
+  background:none;border:0;padding:0;
+}
+/* the place name, painted from its ecosystem's own flower colors */
+.arm.place{
+  background:var(--place-grad, #fff);-webkit-background-clip:text;background-clip:text;
+  color:transparent;text-shadow:none;letter-spacing:.18em;
+  font-size:clamp(22px,2.8vw,36px);
+}
+.arm-sub{
+  font-family:"Ubuntu Sans Mono",monospace;font-weight:500;font-size:clamp(11.5px,1.1vw,13.5px);letter-spacing:.34em;text-transform:uppercase;
+  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
+}
+
+/* species card: a live sound-wave sitting above the credit, tight to the zone.
+   no stroke -- matches the credits panel. the wave IS the bird's real voice. */
+.chip{
+  position:absolute;z-index:5;width:300px;   /* wide enough to avoid widows, tight enough to space cleanly */
+  display:flex;flex-direction:column;   /* guarantees wave-above-text, no overlap */
+  background:var(--glass-bg);color:var(--cream);
+  border-radius:var(--radius);overflow:hidden;   /* no stroke on cards -- only the arrows get one */
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  opacity:0;transform:translateY(4px);pointer-events:none;
+  transition:opacity .55s cubic-bezier(0.83,0,0.17,1), transform .55s cubic-bezier(0.83,0,0.17,1);
+}
+.chip.on{opacity:1;transform:none;pointer-events:auto}
+.chip__wave{display:block;width:100%;height:34px;flex:0 0 34px}
+.chip__body{padding:3px 16px 15px;font-size:10.5px;line-height:1.66;letter-spacing:.06em;text-align:center;text-wrap:balance}
+.chip .n{font-size:12.5px;letter-spacing:.12em}
+.chip .sci{font-style:normal;opacity:.65}
+.chip .soon{opacity:.9;letter-spacing:.14em;text-transform:uppercase;font-size:9.5px}
+.chip a{color:var(--cream);opacity:.75;text-decoration:none;border-bottom:1px solid rgba(239,233,221,.35)}
+.chip a:hover{opacity:1}
+
+footer{
+  position:fixed;z-index:30;
+  left:clamp(22px,3.4vw,48px);right:clamp(22px,3.4vw,48px);bottom:clamp(18px,3vh,26px);
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  font-family:"Ubuntu Sans Mono",monospace;
+  font-size:11px;letter-spacing:.14em;color:#fff;text-shadow:0 1px 3px rgba(8,10,6,.55);
+  opacity:0;animation:riseIn 1.1s cubic-bezier(0.83,0,0.17,1) .6s forwards;
+}
+.tucked{display:flex;gap:22px}
+.tucked a{color:#fff;opacity:.85;text-decoration:none;transition:opacity .4s;cursor:pointer}
+.tucked a:hover{opacity:1}
+.foot-note{opacity:.85}
+.foot-note a{color:#fff;text-decoration:none}
+
+/* credits: a centered glass card in the same UI language as the chip.
+   a scrim behind it dims the wall + closes on click, so it never fights the footer. */
+.scrim{
+  position:fixed;inset:0;z-index:40;background:rgba(6,8,5,.5);
+  opacity:0;pointer-events:none;transition:opacity .45s ease;
+}
+.scrim.on{opacity:1;pointer-events:auto}
+.credits{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);z-index:41;
+  width:max-content;max-width:min(620px,92vw);max-height:78vh;overflow:auto;
+  background:var(--glass-bg);color:var(--cream);
+  border-radius:var(--radius);   /* no stroke -- cards read as glass, only arrows get an outline */
+  padding:24px 30px;
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:0 24px 70px rgba(0,0,0,.55);
+  font-size:11px;line-height:1.7;letter-spacing:.05em;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s cubic-bezier(0.83,0,0.17,1), transform .45s cubic-bezier(0.83,0,0.17,1);
+}
+.credits.on{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.credits__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.credits h2{font-size:11px;letter-spacing:.2em;font-weight:500}
+.credits__x{
+  background:none;border:0;color:var(--cream);opacity:.6;cursor:pointer;
+  font-family:inherit;font-size:14px;line-height:1;padding:4px;transition:opacity .3s;
+}
+.credits__x:hover{opacity:1}
+.credits__intro{opacity:.7;margin-bottom:16px}
+.credits__row{margin-bottom:13px}
+.credits__row .name{letter-spacing:.08em}
+/* build-details body dimmed to match the sound-credits detail text; the section
+   labels (The wall / The type ...) stay bright like the credit names */
+#buildPanel .credits__row{color:rgba(239,233,221,.6)}
+#buildPanel .credits__row .name{color:var(--cream)}
+.credits a{color:var(--cream);opacity:.8;border-bottom:1px solid rgba(239,233,221,.35);text-decoration:none}
+.credits a:hover{opacity:1}
+.credits .lic{opacity:.5}
+
+/* travel arrows + the current place, revealed once you're inside */
+.arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:20;
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:26px;line-height:1;padding-bottom:3px;
+  color:#fff;background:var(--glass-bg);border:0;   /* no stroke -- just the glass disc */
+  cursor:pointer;opacity:0;pointer-events:none;
+  box-shadow:0 3px 16px rgba(0,0,0,.45);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  transition:opacity .7s ease, background .3s, transform .3s;
+}
+.arrow.on{opacity:1;pointer-events:auto}                       /* visible by default, not a faint ghost */
+.arrow.glow{animation:arrowGlow 5s ease-in-out 1}         /* one-time, a beat after the arrows appear: glass -> fills red -> holds -> dissolves back */
+.arrow.on:hover{background:rgba(28,34,22,.8);transform:translateY(-50%) scale(1.09)}
+@media (prefers-reduced-motion:reduce){.arrow.glow{animation:none}}
+@keyframes arrowGlow{   /* the disc fills warm poppy, holds so you notice the arrows, then dissolves to the glass UI */
+  0%{background-color:rgba(16,20,13,.66)}      /* start as the settled glass */
+  7%{background-color:rgba(255,90,66,.55)}     /* fill red quickly -- no default-state gap */
+  48%{background-color:rgba(255,90,66,.55)}    /* hold -- "oh, there are the arrows" */
+  100%{background-color:rgba(16,20,13,.66)}    /* dissolve back to the default glass (--glass-bg) */
+}
+@media (prefers-reduced-motion:reduce){.arrow.on{animation:none}}
+.arrow--prev{left:clamp(16px,2.5vw,36px)}
+.arrow--next{right:clamp(16px,2.5vw,36px)}
+.wall-place{
+  position:absolute;left:50%;bottom:clamp(52px,7vh,72px);transform:translateX(-50%);z-index:20;
+  font-family:"Ubuntu Sans Mono",monospace;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);opacity:0;pointer-events:none;white-space:nowrap;
+  background:var(--glass-bg);padding:9px 20px;border-radius:999px;
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  transition:opacity .6s ease;
+}
+.wall-place.on{opacity:1}
+
+/* placer mode */
+.placer-help{
+  position:fixed;top:26px;right:clamp(22px,3.4vw,48px);z-index:60;
+  background:rgba(38,32,25,.95);color:var(--cream);border-radius:var(--radius-sm);
+  padding:12px 16px;font-size:10.5px;line-height:1.7;letter-spacing:.06em;display:none;
+}
+
+@media (max-width:760px){
+  .brand{max-width:70vw}
+  .chip{width:min(300px,88vw)}
+}
+
+/* ═══════════ mobile: a graceful coming-soon screen over the static wall ═══════════
+   the interactive WebGL experience is desktop-only for now; JS also skips booting it. */
+.mobile-msg{display:none}
+@media (max-width:700px){
+  .voices,.arrow,.center,.chip,.credits,.scrim,.wall-place,footer,.topnav,.brand,.placer-help{display:none!important}
+  #glCanvas,#fxCanvas{display:none}                     /* WebGL never boots -- the <img> wall shows through */
+  .wall-frame::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(6,8,5,.35),rgba(6,8,5,.72));z-index:3}
+  .mobile-msg{
+    display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;padding:34px;
+    text-align:center;color:#fff;
+    opacity:0;animation:fadeIn 1.2s ease .4s forwards;
+  }
+  .mm-inner{display:flex;flex-direction:column;gap:15px;align-items:center;max-width:330px}
+  .mm-eyebrow{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:none;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  .mm-title{font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(32px,10vw,42px);line-height:1.02;font-feature-settings:"dlig" 1,"liga" 1;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+  .mm-sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.75;opacity:.9;text-shadow:0 1px 5px rgba(0,0,0,.85)}
+  .mm-contact{font-family:"Ubuntu Sans Mono",monospace;font-size:12px;letter-spacing:.12em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px;margin-top:8px;cursor:pointer}
+}
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <h1>planetbased.io</h1>
+</header>
+<nav class="topnav">
+  <a id="contactCopy">contact</a>
+</nav>
+
+<main class="stage">
+  <figure class="wall-frame" id="frame">
+    <img id="wall" src="images/hawaii.jpg"
+      alt="A living wall of plants; travel between places and hear the birds that live there.">
+    <canvas id="glCanvas"></canvas>
+    <canvas id="fxCanvas"></canvas>
+    <div class="voices" id="voices"></div>
+    <button class="arrow arrow--prev" id="arrowPrev" aria-label="Previous place">‹</button>
+    <button class="arrow arrow--next" id="arrowNext" aria-label="Next place">›</button>
+    <div class="wall-place" id="wallPlace"></div>
+    <div class="center" id="center">
+      <button class="arm" id="arm">design studio coming soon</button>
+      <div class="arm-sub" id="armSub">headphones recommended · click to begin</div>
+    </div>
+    <div class="chip" id="chip">
+      <canvas class="chip__wave" id="chipWave"></canvas>
+      <div class="chip__body" id="chipBody"></div>
+    </div>
+  </figure>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="credits" id="creditsPanel"></div>
+<div class="credits" id="buildPanel">
+  <div class="credits__head"><h2>BUILD DETAILS</h2><button class="credits__x" aria-label="Close">✕</button></div>
+  <p class="credits__row"><span class="name">The wall</span><br>A custom WebGL fragment shader draws the photo as a GPU texture, redrawn every frame. Hovering ripples the wall with per-pixel UV displacement; moving between ecosystems cross-wipes two textures along a rippled edge.</p>
+  <p class="credits__row"><span class="name">The type</span><br>Each name is per-letter DOM spans driven by a Web Audio AnalyserNode reading the recording's live time-domain waveform, with spring physics. The letters rise + scatter to the sound.</p>
+  <p class="credits__row"><span class="name">The sound</span><br>Spatial audio through a Web Audio graph (filters, StereoPanner, depth gain), per-voice motion, leveled to &minus;20&nbsp;LUFS.</p>
+  <p class="credits__row"><span class="name">The recordings</span><br>Real, credited field recordings (bioacoustics). No synth, no AI audio.</p>
+</div>
+
+<footer>
+  <nav class="tucked">
+    <a id="creditsToggle">sound credits</a>
+    <a id="buildToggle">build details</a>
+  </nav>
+  <p class="foot-note"><a href="https://instagram.com/planetbased" target="_blank" rel="noopener">@planetbased</a></p>
+</footer>
+<div class="placer-help" id="placerHelp">
+  ZONE PLACER ✺ drag the names to move them<br>
+  C copies the JSON ✺ placements auto-save locally
+</div>
+
+<!-- mobile: the full living-wall experience is desktop-only for now -->
+<div class="mobile-msg">
+  <div class="mm-inner">
+    <p class="mm-eyebrow">planetbased.io</p>
+    <h2 class="mm-title">design studio coming soon</h2>
+    <p class="mm-sub">a living wall of real sounds ✺<br>best on desktop w/ headphones</p>
+    <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
+  </div>
+</div>
+
+<script>
+(() => {
+/* ═══════════ the atlas: four walls, each a place you can travel to ═══════════
+   label = the name as it lives on the wall, in its own language.
+   the word IS the bird -- you never see it, you read its name and hear its voice.
+   NZ is fully voiced; Hawaii/Vancouver/Congo are travel destinations whose casts
+   get sourced next (they show the wall + place name for now). */
+const NZ_CAST = [
+  {id:'tui', label:'tūī', en:'tūī', sci:'Prosthemadera novaeseelandiae',
+   file:'sounds/tui-song-whakatane.mp3', rec:'Ken George', start:1.5,  /* skip the quiet intro */
+   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1090728', x:.282, y:.370, r:.09,
+   wave:{style:'bars', col:'#e8a24a', gain:1.15, bars:34}},      /* warm confident bars */
+  {id:'bellbird', label:'korimako', en:'NZ bellbird', sci:'Anthornis melanura',
+   file:'sounds/bellbird-song.mp3', rec:'Ken George',
+   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1089268', x:.493, y:.194, r:.08,
+   wave:{style:'line', col:'#4fd6c4', gain:1.0, bars:64}},       /* bright chiming line */
+  {id:'riroriro', label:'riroriro', en:'grey warbler', sci:'Gerygone igata',
+   file:'sounds/riroriro-grey-warbler.mp3', rec:'craig wilson',
+   loc:'Millerton, West Coast, Aotearoa New Zealand', lic:'CC BY 4.0',
+   xc:'https://xeno-canto.org/1060266', x:.220, y:.610, r:.08,
+   wave:{style:'line', col:'#cfe08a', gain:0.8, bars:96}},       /* delicate rapid trill */
+  {id:'fantail', label:'pīwakawaka', en:'fantail', sci:'Rhipidura fuliginosa',
+   file:'sounds/fantail-chatter.mp3', rec:'Ken George',
+   loc:'Whakatāne, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1089267', x:.720, y:.300, r:.08,
+   wave:{style:'bars', col:'#e87a9b', gain:1.3, bars:48}},       /* erratic flitting bars */
+  {id:'kokako', label:'kōkako', en:'kōkako', sci:'Callaeas wilsoni',
+   file:'sounds/kokako-tiritiri.m4a', rec:'Meena Haribal',
+   loc:'Tiritiri Matangi Island, Aotearoa New Zealand', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/956968', x:.563, y:.642, r:.09,
+   wave:{style:'fill', col:'#a58cff', gain:1.1, bars:56}},       /* slow deep organ fill */
+];
+/* Hawaiʻi -- native forest voices (all real xeno-canto, credited) */
+const HAWAII_CAST = [
+  {id:'iiwi', label:'ʻiʻiwi', en:'ʻiʻiwi', sci:'Drepanis coccinea',
+   file:'sounds/hawaii-iiwi.mp3', rec:'Viral Joshi',
+   loc:'Hilo, Hawaiʻi', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/794970', x:.685, y:.710, r:.09,
+   wave:{style:'bars', col:'#ff4d63', gain:1.2, bars:40}},        /* scarlet, liquid */
+  {id:'apapane', label:'ʻapapane', en:'ʻapapane', sci:'Himatione sanguinea',
+   file:'sounds/hawaii-apapane.mp3', rec:'Bobby Wilcox',
+   loc:'Alakaʻi Swamp, Kauaʻi', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/864171', x:.500, y:.149, r:.08,
+   wave:{style:'line', col:'#dc4f88', gain:1.0, bars:64}},        /* rose-crimson -- set apart from the ʻiʻiwi scarlet */
+  {id:'amakihi', label:'ʻamakihi', en:'Hawaiʻi ʻamakihi', sci:'Chlorodrepanis virens',
+   file:'sounds/hawaii-amakihi.mp3', rec:'Daniel Lane',
+   loc:'Mauna Kea, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
+   xc:'https://xeno-canto.org/27323', x:.316, y:.410, r:.08,
+   wave:{style:'line', col:'#b4d85e', gain:0.95, bars:72}},       /* green, bright trill */
+  {id:'omao', label:'ʻōmaʻo', en:'Hawaiian thrush', sci:'Myadestes obscurus',
+   file:'sounds/hawaii-omao.mp3', rec:'Daniel Lane',
+   loc:'Volcano, Hawaiʻi', lic:'CC BY-NC-SA 3.0',
+   xc:'https://xeno-canto.org/27341', x:.760, y:.460, r:.09,
+   wave:{style:'fill', col:'#ffb060', gain:1.1, bars:56}},        /* flute-like thrush */
+];
+/* Vancouver Island -- Pacific wren + varied thrush are real Vancouver Island / BC
+   xeno-canto recordings; orca + cougar are mammals (not on xeno-canto) so they show
+   a name + chip now and Ivy sources the audio (soon:true = "voice coming soon"). */
+const VANCOUVER_CAST = [
+  {id:'orca', label:'orca', en:'orca / killer whale', sci:'Orcinus orca',
+   file:'sounds/vancouver-orca.mp3', rec:'Orcasound', srcName:'orcasound', start:0.1,
+   loc:'Salish Sea', lic:'CC0',
+   xc:'https://live.orcasound.net', x:.480, y:.670, r:.11,
+   wave:{style:'fill', col:'#7fb8d6', gain:1.1, bars:56}},
+  {id:'cougar', label:'mountain lion', en:'mountain lion (the bird-like chirp)', sci:'Puma concolor',
+   file:'sounds/vancouver-cougar.mp3', rec:'Paul Fenwick', srcName:'iNaturalist',
+   loc:'Carmel Valley, California', lic:'CC BY-NC',
+   xc:'https://www.inaturalist.org/observations/62084711', x:.680, y:.570, r:.09,
+   wave:{style:'bars', col:'#e0b060', gain:1.2, bars:44}},
+  {id:'pacificwren', label:'pacific wren', en:'Pacific wren', sci:'Troglodytes pacificus',
+   file:'sounds/vancouver-pacific-wren.mp3', rec:'Aziza Cooper',
+   loc:'Saanich, Vancouver Island, BC', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/706924', x:.452, y:.155, r:.07,
+   wave:{style:'line', col:'#b8e08a', gain:0.9, bars:88}},      /* tiny, rapid trill */
+  {id:'variedthrush', label:'varied thrush', en:'varied thrush', sci:'Ixoreus naevius',
+   file:'sounds/vancouver-varied-thrush.mp3', rec:'Kevin Krebs',
+   loc:'Vancouver, British Columbia', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/770780', x:.225, y:.551, r:.08,
+   wave:{style:'fill', col:'#c8a2ff', gain:1.0, bars:60}},      /* eerie single-note flute */
+];
+/* Congo Basin -- all real xeno-canto recordings. NOTE: clean DR-Congo recordings are
+   scarce, so these are Congo Basin species recorded across the equatorial forest belt
+   (Uganda/Gabon/Cameroon). Locations are shown honestly in the credits. */
+const CONGO_CAST = [
+  {id:'greyparrot', label:'grey parrot', en:'grey parrot', sci:'Psittacus erithacus',
+   file:'sounds/congo-grey-parrot.mp3', rec:'Bernard Bousquet',
+   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1053186', x:.170, y:.140, r:.09,
+   wave:{style:'bars', col:'#ff8a5c', gain:1.2, bars:40}},
+  {id:'turaco', label:'great blue turaco', en:'great blue turaco', sci:'Corythaeola cristata',
+   file:'sounds/congo-great-blue-turaco.mp3', rec:'Bernard Bousquet',
+   loc:'Congo Basin (rec. Uganda)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1052480', x:.500, y:.180, r:.09,
+   wave:{style:'line', col:'#ffb07a', gain:1.0, bars:56}},
+  {id:'hornbill', label:'hornbill', en:'black-casqued hornbill', sci:'Ceratogymna atrata',
+   file:'sounds/congo-black-casqued-hornbill.mp3', rec:'BurBenj',
+   loc:'Congo Basin (rec. Gabon)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/1133116', x:.780, y:.700, r:.09,
+   wave:{style:'fill', col:'#e0705a', gain:1.15, bars:48}},   /* deep booming honk */
+  {id:'reedfrog', label:'reed frog', en:'reed frog', sci:'Hyperolius platyceps',
+   file:'sounds/congo-forest-frog.mp3', rec:'Ben (Tremarctos Photography)',
+   loc:'Congo Basin (rec. Cameroon)', lic:'CC BY-NC-SA 4.0',
+   xc:'https://xeno-canto.org/986099', x:.410, y:.510, r:.08,
+   wave:{style:'line', col:'#d8e08a', gain:0.9, bars:64}},
+];
+
+/* each wall: a place, its image, its voices, and a place-name gradient pulled
+   from that ecosystem's own colors (no green -- green is everywhere, goes rainbow) */
+/* order matters: keep the two GREEN walls (Aotearoa + Vancouver) apart so the
+   travel feels like real distance, not two forests in a row. Congo breaks them up. */
+const WALLS = [
+  { id:'hawaii',    place:'Hawaiʻi',         img:'images/hawaii.jpg',    cast:HAWAII_CAST,   /* opens here -- most impact */
+    grad:'linear-gradient(100deg,#ff5a7e,#ff8a5c,#f2a24a,#e070b8)' },
+  { id:'nz',        place:'Aotearoa',        img:'images/nz.jpg',        cast:NZ_CAST,       /* green */
+    grad:'linear-gradient(100deg,#f2ecb0,#d7e18e,#aecb7a,#e8dfa8)' },
+  { id:'congo',     place:'Congo Basin',     img:'images/congo.jpg',     cast:CONGO_CAST,     /* red/tropical -- separates the greens */
+    grad:'linear-gradient(100deg,#ff6a5a,#ff9a4a,#e07a5a,#ffb07a)' },
+  { id:'vancouver', place:'Vancouver Island',img:'images/vancouver.jpg', cast:VANCOUVER_CAST, /* green */
+    grad:'linear-gradient(100deg,#c9a8e0,#8fb36a,#e0c06a,#b98ad0)' },
+];
+let cur = 0;
+let CAST = WALLS[cur].cast;                 /* the active wall's voices (reassigned on travel) */
+const wall = () => WALLS[cur];
+
+/* her ?place placements are saved per wall */
+function applySavedZones(w){
+  try{
+    const saved = JSON.parse(localStorage.getItem('pb-zones-v2-' + w.id) || 'null');
+    if (saved) w.cast.forEach(z => { const s = saved[z.id]; if (s) Object.assign(z, s); });
+  }catch(e){}
+}
+WALLS.forEach(applySavedZones);
+
+const frame  = document.getElementById('frame');
+const img    = document.getElementById('wall');
+const glc    = document.getElementById('glCanvas');
+const armBtn = document.getElementById('arm');
+const chip   = document.getElementById('chip');
+const chipBody = document.getElementById('chipBody');
+const waveC  = document.getElementById('chipWave');
+const wctx   = waveC.getContext('2d');
+const fxc    = document.getElementById('fxCanvas');
+const tctx   = fxc.getContext('2d');   /* 2D overlay: placer rings (+ future transition fx) */
+const voicesLayer = document.getElementById('voices');
+const placing = location.search.includes('place');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DPR = Math.min(devicePixelRatio || 1, 1.5);
+const lerp = (a,b,t) => a+(b-a)*t;
+const JITTER = 0;   /* per-letter hand-scrawl: 0 for the mono placeholder, flip to 1 once a real handwritten font is chosen */
+
+let W=0, H=0, imgW=16, imgH=9;
+function sizeAll(){
+  W = frame.clientWidth; H = frame.clientHeight;
+  [glc, fxc].forEach(c => { c.width = W*DPR; c.height = H*DPR; });
+  positionVoices();
+  if (active) showChip(active);
+}
+
+/* cover math: canvas uv <-> image uv */
+function coverScale(){
+  const ca = W/H, ia = imgW/imgH;
+  return ca > ia ? {x:1, y:ia/ca} : {x:ca/ia, y:1};
+}
+const imgToCanvas = (u,v) => { const s = coverScale(); return {x:(u-.5)/s.x+.5, y:(v-.5)/s.y+.5}; };
+const canvasToImg = (u,v) => { const s = coverScale(); return {x:(u-.5)*s.x+.5, y:(v-.5)*s.y+.5}; };
+const zonePx = z => { const p = imgToCanvas(z.x, z.y); return {x:p.x*W, y:p.y*H, r:z.r*H/coverScale().y}; };
+
+/* ═══════════ the voices as living type ═══════════
+   each name is DOM, per-letter, so it can come alive on hover:
+   the letters scatter on spring physics and sway to the real audio. */
+function buildVoices(){
+  voicesLayer.innerHTML = '';               /* clear the previous wall's names */
+  CAST.forEach(z => {
+    const el = document.createElement('div');
+    el.className = 'voice'; el.dataset.id = z.id;
+    el.style.setProperty('--vcol', z.wave.col);
+    z.letters = [...z.label].map(ch => {
+      const s = document.createElement('span');
+      s.className = 'voice__l';
+      s.textContent = ch === ' ' ? ' ' : ch;
+      // physics state
+      s._x=0; s._y=0; s._vx=0; s._vy=0; s._ph=Math.random()*6.283;
+      // BAKED imperfection (only for a real handwritten font -- JITTER=0 for the mono placeholder)
+      s._rot = (Math.random()-.5)*9 * JITTER;
+      s._scl = 1 + (Math.random()*0.2-0.1) * JITTER;
+      s._bx  = (Math.random()-.5)*2.5 * JITTER;
+      s._by  = (Math.random()-.5)*5 * JITTER;
+      s.style.transform = `translate(${s._bx}px,${s._by}px) rotate(${s._rot}deg) scale(${s._scl})`;
+      el.appendChild(s);
+      return s;
+    });
+    z.el = el;
+    if (!placing){
+      el.addEventListener('pointerenter', () => { cancelClose(); activate(z); });
+      el.addEventListener('pointerleave', () => { if (active===z) scheduleClose(); });  /* delay so you can reach the card */
+      el.addEventListener('pointerdown', () => { cancelClose(); activate(z); });   /* touch */
+    } else {
+      el.style.cursor = 'grab';
+      el.addEventListener('pointerdown', e => { placerHeld = z; el.setPointerCapture(e.pointerId); });
+    }
+    voicesLayer.appendChild(el);
+  });
+}
+let placerHeld = null;
+function positionVoices(){
+  CAST.forEach(z => {
+    if (!z.el) return;
+    const p = zonePx(z);
+    z.el.style.left = p.x + 'px';
+    z.el.style.top  = p.y + 'px';
+  });
+}
+buildVoices();   /* create the DOM before placer/hover wiring runs */
+
+/* the wordmark, hand-set: split into letters, each slightly off -- like a person wrote it */
+(function jitterWordmark(){
+  const h1 = document.querySelector('.brand h1'); if (!h1) return;
+  const txt = h1.textContent; h1.textContent = '';
+  [...txt].forEach(ch => {
+    const s = document.createElement('span');
+    s.textContent = ch === ' ' ? ' ' : ch;
+    s.style.display = 'inline-block';
+    /* ⚠️ the dot in .io is NOT jittered. Every other glyph has enough body
+       to carry a few degrees of rotation and still read as a letter set by
+       hand; a rotated, rescaled full stop just reads as a speck of dust on
+       the screen, or as a rendering fault. It stays square. */
+    if (ch !== '.') {
+      const rot=(Math.random()-.5)*7*JITTER, scl=1+(Math.random()*0.16-0.08)*JITTER, by=(Math.random()-.5)*4*JITTER;
+      s.style.transform = `translateY(${by}px) rotate(${rot}deg) scale(${scl})`;
+    }
+    h1.appendChild(s);
+  });
+})();
+
+/* ═══════════ tremble shader: the song ripples through the leaves ═══════════
+   Amplitude history renders as displacement wavefronts expanding from the
+   singer's hiding spot -- the "animation data the shader reads" pattern
+   from the wave-propagation study (Creative Tech week 29). */
+const NHIST = 48;
+const VERT = `attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;vUv.y=1.-vUv.y;gl_Position=vec4(p,0.,1.);}`;
+const FRAG = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uTex;      /* current wall */
+uniform sampler2D uTexNext;  /* incoming wall during a travel wipe */
+uniform vec2 uCanvas, uImg, uZone;   /* uZone in canvas uv */
+uniform float uActive, uTime, uBurst;  /* uActive = level; uBurst = t when the current ring was born */
+uniform float uWipe, uWipeDir;         /* travel: 0..1 sweep progress; +1 next (reveal from right), -1 prev (from left) */
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),
+             mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
+}
+void main(){
+  float ca = uCanvas.x/uCanvas.y, ia = uImg.x/uImg.y;
+  vec2 s = ca > ia ? vec2(1., ia/ca) : vec2(ca/ia, 1.);
+  vec2 uvImg = (vUv-.5)*s+.5;
+
+  /* ONE clean ring per burst: born at uBurst, swells from center, expands out
+     and fades. No periodic re-emission, so nothing ever gets caught half-born at
+     the center (that was the leftover "indent" at the end of a burst). */
+  vec2 rel = (vUv-uZone)*vec2(ca,1.);
+  float d = length(rel);
+  float age = uTime - uBurst;
+  float w = 0.0;
+  if (age > 0.0){
+    float sp = 0.26;                                          /* expansion speed */
+    float r = age * sp;
+    float amp = exp(-age*0.9) * smoothstep(0.0, 0.14, age);   /* swell in, fade as it spreads */
+    w = exp(-pow((d - r)/0.055, 2.0)) * amp;
+  }
+  w *= uActive;
+
+  float n = noise(vUv*70. + uTime*1.2);
+  vec2 dir = rel/max(d,1e-4);
+  vec2 off = dir * w * (0.020 + 0.006*n);          /* ripple: push outward along the wave */
+  vec2 sampUv = uvImg + off*s;
+  vec3 c = texture2D(uTex, sampUv).rgb;
+
+  /* travel: a rippled wavefront sweeps horizontally toward the arrow, revealing the
+     next wall behind it -- like water washing one place into the next. No black, no slide. */
+  if (uWipe > 0.0001){
+    float edge = (uWipeDir > 0.0) ? (1.0 - uWipe) : uWipe;      /* boundary x, sweeps toward the arrow */
+    edge += sin(vUv.y*8.0 + uTime*2.2)*0.045 + sin(vUv.y*21.0 - uTime*1.4)*0.015;  /* watery undulation */
+    float band = 0.08;
+    float m = (uWipeDir > 0.0) ? smoothstep(edge-band, edge+band, vUv.x)
+                               : 1.0 - smoothstep(edge-band, edge+band, vUv.x);
+    vec3 cN = texture2D(uTexNext, sampUv).rgb;
+    float crest = exp(-pow((vUv.x - edge)/band, 2.0));         /* a bright watery crest at the wavefront */
+    c = mix(c, cN, m);
+    c *= 1.0 + crest*0.14;
+  }
+  c *= 1.0 + w*0.18;                               /* light lifts on the crest */
+
+  /* settle the wall onto the darker oatmeal */
+  c *= .955;
+  float lum = dot(c, vec3(.299,.587,.114));
+  c = mix(vec3(lum), c, 1.02);
+  gl_FragColor = vec4(c,1.);
+}`;
+
+let gl=null, uni={}, glOK=false, wallTex=null, wallTexNext=null, pendingTex=null, pendingNextTex=null;
+const ampHist = new Float32Array(NHIST);
+function initGL(){
+  gl = glc.getContext('webgl', {antialias:false});
+  if (!gl) return;
+  const sh = (t,src) => { const s=gl.createShader(t); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null;} return s; };
+  const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) return;
+  const pr = gl.createProgram();
+  gl.attachShader(pr,vs); gl.attachShader(pr,fs); gl.linkProgram(pr); gl.useProgram(pr);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr,'p');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  ['uTex','uTexNext','uCanvas','uImg','uZone','uActive','uTime','uBurst','uWipe','uWipeDir'].forEach(n => uni[n]=gl.getUniformLocation(pr,n));
+  const mkTex = () => {
+    const t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    return t;
+  };
+  wallTex = mkTex();
+  wallTexNext = mkTex();
+  gl.uniform1i(uni.uTex, 0);
+  gl.uniform1i(uni.uTexNext, 1);
+  uploadTex();     /* upload the current wall */
+}
+/* (re)upload a wall image as the texture -- called on load + every travel.
+   pass the freshly-loaded Image so we never sample the old <img> mid-swap. */
+function uploadTex(source, target){    /* target: 0/undefined = current wall, 1 = incoming (next) wall */
+  source = source || img;
+  if (!gl || !wallTex) return;
+  try{
+    const cap = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 3200);
+    let src = source;
+    if (source.naturalWidth > cap){
+      const c = document.createElement('canvas');
+      c.width = cap; c.height = Math.round(source.naturalHeight * cap / source.naturalWidth);
+      c.getContext('2d').drawImage(source, 0, 0, c.width, c.height);
+      src = c;
+    }
+    gl.activeTexture(target === 1 ? gl.TEXTURE1 : gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, target === 1 ? wallTexNext : wallTex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+    if (target !== 1){ glOK = true; glc.classList.add('on'); }   /* shader takes over from the <img> */
+  }catch(e){
+    console.warn('texture upload failed (file:// ?) -- run ./serve.sh', e);
+  }
+}
+
+/* ═══════════ audio: real recordings, armed by a real gesture ═══════════
+   each bird runs through an HRTF panner so on headphones it whirls around you --
+   a bird darting through dense foliage, its voice sweeping ear to ear. */
+let actx=null, armed=false;
+const chains = {};   /* zone.id -> {el, gain, analyser, panner} */
+function chain(z){
+  if (!z.file) return null;                 /* "coming soon" voices have no audio yet */
+  if (chains[z.id]) return chains[z.id];
+  const el = new Audio(z.file + '?v=2');   /* cache-bust: bump on any sound re-render (browsers cache mp3s hard) */
+  el.preload = 'auto';
+  el.loop = true;    /* keep the voice (and its live waveform) alive as long as you hover */
+  const src = actx.createMediaElementSource(el);
+  const hp = actx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 90;
+  const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 12000;  /* tame click energy */
+  const gain = actx.createGain(); gain.gain.value = 0;                 /* fade envelope */
+  const an = actx.createAnalyser(); an.fftSize = 1024;
+  const pan = actx.createStereoPanner();                               /* smooth, no HRTF clicks */
+  const depth = actx.createGain(); depth.gain.value = 1;               /* near/far swell */
+  src.connect(hp); hp.connect(lp); lp.connect(gain); gain.connect(an);
+  an.connect(pan); pan.connect(depth); depth.connect(actx.destination);
+  return chains[z.id] = {el, gain, analyser:an, pan, depth, td:new Uint8Array(an.fftSize), orbit:Math.random()*6.283};
+}
+/* Spatial motion, thought through per animal -- NO repeating ear-to-ear swing.
+   flyby = ONE pass from a side, settling to rest (darty little birds).
+   drift = a single slow arc, then rest (larger/roaming birds).
+   still = stays put, just a hair to its side (perched birds, and the sedentary
+   animals -- frog, mountain lion, orca -- that would never swoop past your face). */
+const MOTION = {
+  iiwi:['flyby',-1], apapane:['flyby',1], amakihi:['drift'], omao:['still'],
+  tui:['drift'], bellbird:['drift'], riroriro:['flyby',1], fantail:['flyby',-1], kokako:['still'],
+  greyparrot:['drift'], turaco:['still'], hornbill:['still'], reedfrog:['still'],
+  orca:['drift'], cougar:['still'], pacificwren:['flyby',-1], variedthrush:['drift'],
+};
+/* per-voice volume trim on TOP of the -20 LUFS baseline -- keeps the loud/startling ones
+   a hair back (mountain lion), the tiny ones present. 1 = full. */
+const VOL = {   /* per-voice mix by ear -- 1.0 = the -20 LUFS baseline. Ivy's levels. */
+  iiwi:1.0, apapane:0.62, amakihi:0.55, omao:0.72,
+  tui:0.6, bellbird:0.5, riroriro:0.75, fantail:0.6, kokako:0.5,
+  greyparrot:0.42, turaco:0.42, hornbill:0.42, reedfrog:0.68,
+  pacificwren:0.35, variedthrush:0.45, orca:0.65, cougar:0.7,
+};
+function stepFlight(){
+  if (!active || !actx) return;
+  const c = chains[active.id]; if (!c || !c.pan) return;
+  const z = active;
+  const m = MOTION[z.id] || ['drift'];
+  const el = t - (c.startT || t);                      /* seconds since this hover began */
+  const bias = (z.x - 0.5) * 0.85;                      /* clear L/R placement from the name's position */
+  let pan = bias, depth = 1;
+  if (m[0] === 'flyby'){
+    const dir = m[1] || -1;
+    const k = Math.min(1, el/2.6); const e = k*k*(3-2*k);
+    pan = dir*(1-e)*0.95 + bias*e;                      /* one clear pass: a side -> rest, then holds */
+    depth = 0.5 + 0.5*Math.sin(Math.min(el,2.6)/2.6*Math.PI);     /* a real approach: far -> near -> settle */
+  } else if (m[0] === 'drift'){
+    const k = Math.min(1, el/6);
+    pan = bias + Math.sin(k*Math.PI)*0.32;              /* a wide single arc you can feel, then rests */
+    depth = 0.85 + 0.15*Math.sin(k*Math.PI);
+  } else { /* still -- no motion, but clearly placed to its side so you feel where it is */
+    pan = bias;
+  }
+  c.pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,pan)), actx.currentTime, 0.2);
+  c.depth.gain.setTargetAtTime(depth, actx.currentTime, 0.25);
+}
+/* ═══════════ the intro: a living preloader ═══════════
+   the pond ripples continuously from center while you wait (drawing you in),
+   swells as you click, then settles. click anywhere → the place → the names wake. */
+let rippleLevel = 0, rippleEnd = 0, rippleStart = -999;   /* rippleStart = t the ring was born */
+function rippleBurst(dur = 2.6){ rippleStart = t; rippleEnd = t + dur; }   /* one ring, then still */
+/* arrow-travel: a rippled wavefront wipes the next wall in, toward the arrow pressed */
+let wipe = 0, wipeDir = 1, travelPhase = null, travelT = 0;
+const WIPE_DUR = 0.95;
+let onWipeDone = null;   /* reveal callback fired the instant the wipe completes */
+const center = document.getElementById('center');
+const armSub = document.getElementById('armSub');
+let introPhase = 'ripple';        /* ripple → wait → entering → place → done */
+
+/* on load: a beat to SEE the wall, one clean ring, THEN the invitation dissolves in */
+function beginIntro(){
+  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 650);
+  setTimeout(() => {
+    if (introPhase !== 'ripple') return;
+    introPhase = 'wait';
+    center.classList.add('show');    /* the invitation fades in, over the settling ripple */
+  }, 1700);
+}
+
+async function arm(){
+  if (introPhase !== 'wait') return;
+  actx = new (window.AudioContext||window.webkitAudioContext)();
+  await actx.resume();
+  armed = true; introPhase = 'entering';
+  CAST.forEach(z => chain(z));                    /* start buffering */
+  center.classList.remove('show');                /* the invitation dissolves out */
+  rippleBurst(2.4);                               /* one ring carries you in */
+  setTimeout(() => {
+    /* no place name in the center -- the bottom "Hawaiʻi · 1/4" label does that work.
+       just the hint, nudged up a touch, gone the moment you move. */
+    armBtn.style.display = 'none';
+    armSub.textContent = wall().cast.length ? 'hover a name to listen' : 'voices coming soon';
+    center.classList.add('hint');
+    center.classList.add('show');
+    introPhase = 'place';
+    revealTravel();                               /* arrows + place label appear */
+    if (wall().cast.length){
+      setTimeout(() => voicesLayer.classList.add('show'), 800);
+    } else {                                       /* no names -> finish so arrows work */
+      setTimeout(() => { center.classList.remove('show'); introPhase = 'done'; }, 2600);
+    }
+  }, 1900);
+}
+frame.addEventListener('pointerdown', () => { if (!placing) arm(); });
+/* the hint clears the moment you move -- then it's just you and the wall */
+frame.addEventListener('pointermove', () => {
+  if (introPhase === 'place'){ center.classList.remove('show'); introPhase = 'done'; }
+});
+
+/* ═══════════ travel between walls ═══════════ */
+const arrowPrev = document.getElementById('arrowPrev');
+const arrowNext = document.getElementById('arrowNext');
+const wallPlaceEl = document.getElementById('wallPlace');
+let traveling = false;
+function updatePlaceLabel(){ wallPlaceEl.textContent = wall().place + '  ·  ' + (cur+1) + ' / ' + WALLS.length; }
+let arrowsIntroed = false;
+function revealTravel(){
+  if (placing) return;
+  updatePlaceLabel();
+  arrowPrev.classList.add('on'); arrowNext.classList.add('on'); wallPlaceEl.classList.add('on');
+  /* the red fill plays ONCE, the very first time the arrows appear -- once you know
+     they're there, they just stay as the blended glass UI. It fills as they fade in. */
+  if (!reduced && !arrowsIntroed){
+    arrowsIntroed = true;
+    /* a beat AFTER the arrows have appeared, so you notice them fill red -- not lost in the fade-in */
+    setTimeout(() => { arrowPrev.classList.add('glow'); arrowNext.classList.add('glow'); }, 250);
+  }
+}
+/* load a wall's image + cast, re-upload the GPU texture, rebuild its names */
+function loadWall(idx, done){
+  const nextIdx = (idx + WALLS.length) % WALLS.length;
+  /* ROOT FIX: do NOT swap CAST/cur until the new wall's names are built. If CAST
+     points at a wall whose voices have no letters yet (during the image load gap),
+     the render loop throws in stepLetters and DIES -- freezing the texture on Hawaii
+     and killing every animation. Commit everything atomically inside finish.
+     Also reuse the same DOM <img> the initial (working) upload samples. */
+  const finish = () => {
+    cur = nextIdx; CAST = WALLS[cur].cast;      /* commit the wall + its voices together */
+    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
+    pendingTex = img;                            /* consumed inside the render loop */
+    buildVoices(); positionVoices(); buildCredits();
+    updatePlaceLabel();
+    if (done) done();
+  };
+  img.onload  = () => { img.decode ? img.decode().then(finish).catch(finish) : finish(); };
+  img.onerror = finish;
+  img.src = WALLS[nextIdx].img;                  /* load the next wall directly, not via cur */
+}
+/* travel = a rippled wavefront wipes the next wall in, toward the arrow. The old
+   names fade out fast first; the new names + pill fade in the instant the wipe lands. */
+function goToWall(dir){
+  if (traveling || (introPhase !== 'done' && introPhase !== 'place')) return;
+  traveling = true;
+  deactivate();
+  voicesLayer.classList.remove('show'); voicesLayer.classList.add('leaving');
+  wallPlaceEl.classList.remove('on');
+  center.classList.remove('show');
+  const nextIdx = (dir + cur + WALLS.length) % WALLS.length;
+  const commit = () => {
+    imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
+    pendingNextTex = img;                        /* incoming wall -> uTexNext (unit 1) */
+    cur = nextIdx; CAST = WALLS[cur].cast;        /* commit wall + build its names now (hidden) */
+    buildVoices(); positionVoices(); buildCredits(); updatePlaceLabel();
+    if (armed) CAST.forEach(z => chain(z));       /* pre-buffer so the wave is live on first hover */
+    onWipeDone = () => {
+      voicesLayer.classList.remove('leaving');
+      introPhase = 'done';                          /* the "hover a name" hint shows on Hawaii only */
+      revealTravel();                               /* place pill + arrows back */
+      if (wall().cast.length) setTimeout(() => voicesLayer.classList.add('show'), 150);
+      traveling = false;
+    };
+    if (reduced){ pendingTex = img; wipe = 0; onWipeDone(); return; }   /* no animation */
+    wipeDir = dir; travelPhase = 'wipe'; travelT = 0;   /* the cross-screen wipe IS the transition -- no center ripple */
+  };
+  img.onload  = () => { img.decode ? img.decode().then(commit).catch(commit) : commit(); };
+  img.onerror = commit;
+  img.src = WALLS[nextIdx].img;
+}
+arrowPrev.addEventListener('click', () => goToWall(-1));
+arrowNext.addEventListener('click', () => goToWall(1));
+
+let active=null, activeAmt=0, fadeTimer=null;
+function activate(z){
+  if (!armed || introPhase === 'entering' || introPhase === 'ripple' || introPhase === 'wait') return;
+  if (introPhase === 'place'){ center.classList.remove('show'); introPhase = 'done'; }  /* first hover starts it */
+  if (active === z) return;
+  if (active) quiet(active);
+  active = z;
+  z.el.classList.add('on');
+  // a gentle kick so the name visibly wakes on entry, then settles
+  z.letters.forEach(s => { s._vx += (Math.random()-.5)*5; s._vy += (Math.random()-.5)*5; });
+  const c = chain(z);
+  clearTimeout(fadeTimer);
+  if (c){                                 /* real recording -- play it (soon voices skip audio) */
+    if (actx.state === 'suspended') actx.resume();   /* in case it lapsed after travel */
+    c.startT = t;                         /* the motion pass runs once, from this hover */
+    c.el.currentTime = z.start || 0;      /* start where the bird actually sings */
+    c.el.play().catch(()=>{});
+    c.gain.gain.setTargetAtTime(VOL[z.id] ?? 1, actx.currentTime, 0.15);
+  }
+  showChip(z);
+}
+function quiet(z){
+  const c = chains[z.id]; if (!c) return;
+  c.gain.gain.setTargetAtTime(0, actx.currentTime, 0.25);
+  fadeTimer = setTimeout(() => c.el.pause(), 900);
+}
+function deactivate(){
+  if (!active) return;
+  active.el.classList.remove('on');
+  quiet(active); active = null;
+  chip.classList.remove('on');
+}
+/* a short grace period on leave so you can travel from the name onto the card
+   (to click the xeno-canto link) without it vanishing under your cursor */
+let closeTimer = null;
+function scheduleClose(){ clearTimeout(closeTimer); closeTimer = setTimeout(deactivate, 280); }
+function cancelClose(){ clearTimeout(closeTimer); }
+chip.addEventListener('pointerenter', cancelClose);
+chip.addEventListener('pointerleave', scheduleClose);
+
+function showChip(z){
+  const p = zonePx(z);
+  /* the word on the wall is the name -- the card just adds the proof */
+  chipBody.innerHTML = z.soon
+    ? `<span class="sci">${z.en}${z.sci ? ' ✺ '+z.sci : ''}</span><br>` +
+      `<span class="soon">voice coming soon</span><br>` +
+      `<span class="sci">${z.loc || ''}</span>`
+    : `<span class="sci">${z.en} ✺ ${z.sci}</span><br>` +
+      `rec. ${z.rec} ✺ ${z.loc}<br>` +
+      `<a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="sci">${z.lic}</span>`;
+  waveC.width = 300*DPR; waveC.height = 34*DPR;
+  /* dock the card right under the name -- tight to it */
+  const cw = 300, gap = 4, cardH = chip.offsetHeight || 96;
+  const below = p.y + 20 + gap;
+  const top = (below + cardH < H - 10) ? below : (p.y - 20 - gap - cardH);
+  chip.style.left = Math.min(Math.max(p.x - cw/2, 10), W - cw - 10) + 'px';
+  chip.style.top  = Math.max(10, top) + 'px';
+  chip.classList.add('on');
+}
+
+/* ═══════════ per-letter physics: the name moves to its own voice ═══════════
+   each letter samples the live waveform at its own position, so the word
+   dances to the actual recording -- not a generic sway. */
+function stepLetters(){
+  const c = active && chains[active.id] ? chains[active.id] : null;
+  if (c) c.analyser.getByteTimeDomainData(c.td);
+  for (const z of CAST){
+    if (!z.letters) continue;   /* names still building mid-travel -- skip until ready */
+    const on = (z === active);
+    const n = z.letters.length;
+    z.letters.forEach((s, i) => {
+      let ax = -s._x*0.20, ay = -s._y*0.20;   // spring home
+      if (on && c && !reduced){
+        // this letter's slice of the actual audio waveform
+        const idx = Math.floor((i+0.5)/n * c.td.length);
+        const samp = (c.td[idx] - 128) / 128;         // -1..1, live
+        ay += samp * 9.5;                              // bounce to the sound
+        ax += Math.sin(t*2.6 + s._ph) * 1.1;           // gentle life
+      }
+      s._vx = (s._vx + ax)*0.82; s._vy = (s._vy + ay)*0.82;
+      s._x += s._vx; s._y += s._vy;
+      // physics offset ON TOP of the baked per-letter imperfection
+      s.style.transform =
+        `translate(${(s._bx+s._x).toFixed(2)}px,${(s._by+s._y).toFixed(2)}px) rotate(${s._rot}deg) scale(${s._scl})`;
+    });
+  }
+}
+
+/* amplitude of the active song drives the wavefronts */
+function currentAmp(){
+  if (!active || !actx) return 0;
+  const c = chains[active.id];
+  c.analyser.getByteTimeDomainData(c.td);
+  let sum=0;
+  for (let i=0;i<c.td.length;i+=4){ const v=(c.td[i]-128)/128; sum+=v*v; }
+  return Math.min(1, Math.sqrt(sum/(c.td.length/4))*3.2);
+}
+
+/* ═══════════ the sound-wave: the bird's real voice, drawn live ═══════════
+   horizontal waveform inside the card. it IS the recording's time-domain
+   data, so every bird's wave is genuinely its own -- plus a signature
+   style + color per voice. */
+const wpts = new Float32Array(128);      /* smoothed display samples (must be >= max bars; riroriro uses 96) */
+function drawWave(){
+  if (!chip.classList.contains('on')) return;
+  const w = waveC.width, h = waveC.height, mid = h/2;
+  wctx.clearRect(0,0,w,h);
+  if (!active) return;
+  const sig = active.wave;
+  const c = chains[active.id];
+  if (!c){   /* "coming soon" voice -- a gentle breathing pulse in its color so the card lives */
+    wctx.save();
+    wctx.strokeStyle = sig.col; wctx.globalAlpha = .5; wctx.lineWidth = 2*DPR; wctx.lineJoin = 'round';
+    wctx.beginPath();
+    for (let x=0;x<=w;x+=2){
+      const y = mid + Math.sin(x/w*12.56 + t*2) * mid*0.26 * (0.5+0.5*Math.sin(t*1.2));
+      x ? wctx.lineTo(x,y) : wctx.moveTo(x,y);
+    }
+    wctx.stroke(); wctx.restore();
+    return;
+  }
+  c.analyser.getByteTimeDomainData(c.td);
+
+  const N = sig.bars;
+  const step = Math.floor(c.td.length / N);
+  const BOOST = 1.5;                                     /* more punch across the board */
+  for (let i=0;i<N;i++){
+    const raw = (c.td[i*step] - 128) / 128;            /* -1..1 */
+    const target = raw * sig.gain * BOOST;
+    wpts[i] = reduced ? target*0.3 : lerp(wpts[i]||0, target, 0.62);
+  }
+
+  wctx.save();
+  // faint baseline
+  wctx.strokeStyle = 'rgba(239,233,221,.16)'; wctx.lineWidth = DPR;
+  wctx.beginPath(); wctx.moveTo(0,mid); wctx.lineTo(w,mid); wctx.stroke();
+
+  const cap = mid * 0.96;
+  const xAt = i => (N>1 ? i/(N-1) : 0) * w;             /* span exactly edge to edge */
+  const clamp = v => Math.max(-cap, Math.min(cap, v*mid));
+  if (sig.style === 'bars'){
+    const colW = w / N;
+    wctx.fillStyle = sig.col;
+    for (let i=0;i<N;i++){
+      const a = Math.min(Math.abs(wpts[i])*mid, cap) + 1.5*DPR;   /* min height = always alive */
+      wctx.fillRect(xAt(i) - colW*0.32, mid - a, colW*0.64, a*2);
+    }
+  } else if (sig.style === 'fill'){
+    wctx.fillStyle = sig.col; wctx.globalAlpha = 0.9;   /* kōkako: thick, wide, bold */
+    wctx.beginPath(); wctx.moveTo(0, mid);
+    for (let i=0;i<N;i++) wctx.lineTo(xAt(i), mid - clamp(wpts[i]));
+    for (let i=N-1;i>=0;i--) wctx.lineTo(xAt(i), mid + clamp(wpts[i]));
+    wctx.closePath(); wctx.fill(); wctx.globalAlpha = 1;
+    wctx.strokeStyle = sig.col; wctx.lineWidth = 1.6*DPR;   /* bright top edge for body */
+    wctx.beginPath();
+    for (let i=0;i<N;i++){ const x=xAt(i), y=mid-clamp(wpts[i]); i?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    wctx.stroke();
+  } else {  /* line */
+    wctx.strokeStyle = sig.col; wctx.lineWidth = 2.2*DPR; wctx.lineJoin = 'round'; wctx.lineCap = 'round';
+    wctx.beginPath();
+    for (let i=0;i<N;i++){
+      const x = xAt(i), y = mid - clamp(wpts[i]);
+      i ? wctx.lineTo(x,y) : wctx.moveTo(x,y);
+    }
+    wctx.stroke();
+  }
+  wctx.restore();
+}
+
+/* hover is handled on the voice elements themselves (see buildVoices) */
+document.addEventListener('visibilitychange', () => { if (document.hidden) deactivate(); });
+
+/* ═══════════ placer mode (?place): drag the names to cast the current wall ═══════════ */
+function placerSave(){
+  const out = {};
+  CAST.forEach(z => out[z.id] = {x:+z.x.toFixed(3), y:+z.y.toFixed(3), r:+z.r.toFixed(3)});
+  localStorage.setItem('pb-zones-v2-' + wall().id, JSON.stringify(out));
+  return out;
+}
+if (placing){
+  document.getElementById('placerHelp').style.display = 'block';
+  center.style.display = 'none';
+  frame.addEventListener('pointermove', e => {
+    if (!placerHeld) return;
+    const r = frame.getBoundingClientRect();
+    const p = canvasToImg((e.clientX-r.left)/W, (e.clientY-r.top)/H);
+    placerHeld.x = p.x; placerHeld.y = p.y; positionVoices(); placerSave();
+  });
+  window.addEventListener('pointerup', () => { placerHeld = null; });
+  window.addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'c'){
+      const json = JSON.stringify(placerSave(), null, 2);
+      console.log(wall().id + ':', json);
+      navigator.clipboard?.writeText(json);
+    }
+  });
+}
+function drawPlacer(){
+  if (!placing) return;
+  tctx.clearRect(0,0,fxc.width,fxc.height);
+  tctx.save(); tctx.scale(DPR,DPR);
+  for (const z of CAST){          /* a small anchor dot under each name */
+    const p = zonePx(z);
+    tctx.fillStyle = 'rgba(239,233,221,.7)';
+    tctx.beginPath(); tctx.arc(p.x, p.y, 3, 0, 7); tctx.fill();
+  }
+  tctx.restore();
+}
+
+/* ═══════════ main loop ═══════════ */
+let t=0;
+function loop(){
+  /* the whole body is guarded: a single bad frame must NEVER kill the loop, or
+     the wall freezes + waveforms + letter physics all die at once (the travel bug). */
+  try{
+    t += 1/60;
+    activeAmt = lerp(activeAmt, active ? 1 : 0, 0.08);
+
+    /* one clean ring per burst, then it settles */
+    const rTarget = (t < rippleEnd && !reduced) ? 0.9 : 0;
+    rippleLevel = lerp(rippleLevel, rTarget, 0.14);
+
+    /* directional travel pull -- out (scene leaves toward the arrow), then in (next slides from the other side) */
+    if (travelPhase === 'wipe'){
+      travelT += 1/60;
+      const k = Math.min(1, travelT/WIPE_DUR);
+      wipe = k*k*(3-2*k);
+      if (k >= 1){
+        pendingTex = img;            /* commit: the incoming wall becomes the current texture */
+        wipe = 0; travelPhase = null;
+        if (onWipeDone){ const cb = onWipeDone; onWipeDone = null; cb(); }
+      }
+    }
+
+    if (pendingNextTex && gl){ uploadTex(pendingNextTex, 1); pendingNextTex = null; }
+    if (pendingTex && gl){ uploadTex(pendingTex, 0); pendingTex = null; }
+    if (glOK){
+      gl.viewport(0,0,glc.width,glc.height);
+      gl.uniform2f(uni.uCanvas, W, H);
+      gl.uniform2f(uni.uImg, imgW, imgH);
+      gl.uniform2f(uni.uZone, 0.5, 0.5);
+      gl.uniform1f(uni.uActive, reduced ? 0 : rippleLevel);
+      gl.uniform1f(uni.uTime, t);
+      gl.uniform1f(uni.uBurst, rippleStart);
+      gl.uniform1f(uni.uWipe, reduced ? 0 : wipe);
+      gl.uniform1f(uni.uWipeDir, wipeDir);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    drawWave();
+    stepLetters();
+    stepFlight();
+    drawPlacer();
+  }catch(e){
+    if (!window.__pbErr){ window.__pbErr = String((e && e.stack) || e); console.error('[PB] loop threw:', e); }
+  }
+  requestAnimationFrame(loop);   /* always reschedule, no matter what */
+}
+
+function start(){
+  imgW = img.naturalWidth || 16; imgH = img.naturalHeight || 9;
+  sizeAll();
+  initGL();
+  loop();
+  beginIntro();     /* a few rings settle, then the invitation dissolves in */
+}
+/* MOBILE: never boot the WebGL wall + audio on phones (crash risk on mobile Safari,
+   and the hover UX doesn't translate to touch). Show the static coming-soon screen instead. */
+const isMobile = matchMedia('(max-width: 700px)').matches;
+if (isMobile){
+  document.body.classList.add('is-mobile');
+} else {
+  /* decode fully before the GPU upload -- progressive JPEGs can upload half-baked */
+  img.decode ? img.decode().then(start).catch(start) : img.addEventListener('load', start);
+}
+window.addEventListener('resize', sizeAll);
+
+/* credits panel: the contract, rendered per wall */
+const panel = document.getElementById('creditsPanel');
+function buildCredits(){
+  const head = '<div class="credits__head"><h2>SOUND CREDITS</h2><button class="credits__x" aria-label="Close">✕</button></div>';
+  if (!CAST.length){
+    panel.innerHTML = head +
+      '<p class="credits__intro">Voices for ' + wall().place + ' are being sourced now.</p>';
+    return;
+  }
+  /* trimmed: the chip already gives species + scientific name on hover, so the
+     list just carries the essential credit -- who, where, source, license. */
+  panel.innerHTML = head +
+    CAST.map(z => z.soon
+      ? `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc||''}</span><br>` +
+        `<span class="lic">voice coming soon${z.src ? ' ✺ '+z.src : ''}</span></p>`
+      : `<p class="credits__row"><span class="name">${z.label}</span> <span class="lic">${z.loc}</span><br>` +
+        `rec. ${z.rec} ✺ <a href="${z.xc}" target="_blank" rel="noopener">${z.srcName || 'xeno-canto'} ↗</a> <span class="lic">${z.lic}</span></p>`
+    ).join('');
+}
+buildCredits();
+const creditsToggle = document.getElementById('creditsToggle');
+const scrim = document.getElementById('scrim');
+const buildToggle = document.getElementById('buildToggle');
+const buildPanel = document.getElementById('buildPanel');
+function openCredits(){ buildPanel.classList.remove('on'); panel.classList.add('on'); scrim.classList.add('on'); }
+function closeCredits(){ panel.classList.remove('on'); scrim.classList.remove('on'); }
+function openBuild(){ panel.classList.remove('on'); buildPanel.classList.add('on'); scrim.classList.add('on'); }
+function closeBuild(){ buildPanel.classList.remove('on'); scrim.classList.remove('on'); }
+creditsToggle.addEventListener('click', () => panel.classList.contains('on') ? closeCredits() : openCredits());
+buildToggle.addEventListener('click', () => buildPanel.classList.contains('on') ? closeBuild() : openBuild());
+scrim.addEventListener('click', () => { closeCredits(); closeBuild(); });
+panel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeCredits(); });
+buildPanel.addEventListener('click', e => { if (e.target.closest('.credits__x')) closeBuild(); });
+
+/* contact = copy the email, same move as the portfolio */
+const contactCopy = document.getElementById('contactCopy');
+contactCopy.addEventListener('click', () => {
+  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
+    contactCopy.textContent = 'hi@planetbased.io ✺ copied';
+    setTimeout(() => contactCopy.textContent = 'contact', 1800);
+  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
+});
+/* mobile screen's contact -- tap to copy the same email */
+const contactCopyM = document.getElementById('contactCopyM');
+if (contactCopyM) contactCopyM.addEventListener('click', () => {
+  navigator.clipboard.writeText('hi@planetbased.io').then(() => {
+    contactCopyM.textContent = 'copied ✺ hi@planetbased.io';
+    setTimeout(() => contactCopyM.textContent = 'hi@planetbased.io', 1800);
+  }).catch(() => { location.href = 'mailto:hi@planetbased.io'; });
+});
+})();
+</script>
+<!-- GoatCounter analytics (same account as grzy.goatcounter.com; create the "planetbased" site there) -->
+<script data-goatcounter="https://planetbased.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
