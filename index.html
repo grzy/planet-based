@@ -22,6 +22,11 @@
   // the intro will run: hold everything back until it does, so nothing can show before its beat
   try { history.scrollRestoration = 'manual'; } catch (e) {}
   if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) document.documentElement.classList.add('boot');
+  // phones and ?static get the orange-tree loader: mark it now and fetch its poster first, so the first paint already has it
+  if (/[?&]static(&|$)/.test(location.search) || window.innerWidth < 760 || window.innerHeight < 520) {
+    document.documentElement.classList.add('boot-static');
+    document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
+  }
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
   // settling can never resize the mark. It only changes when the width does (rotation)
   document.documentElement.style.setProperty('--hero-h', Math.max(560, window.innerHeight) + 'px');
@@ -258,6 +263,10 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* before the script takes over: only paper and the loader word, from the very first paint */
 html.boot .hero,html.boot .objs,html.boot .work,html.boot .blk.exit,html.boot .closing,html.boot .foot-wrap{visibility:hidden}
 html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:center;pointer-events:none;background:var(--paper)}
+.loader-in{display:grid;justify-items:center;gap:16px}
+.loader-tree{display:none;width:clamp(120px,37vw,260px);height:auto;background:transparent}
+html.boot-static .loader-tree{display:block}
+html.boot-static .loader-in{margin-bottom:9vh}          /* the tree and its word sit a little above centre */
 /* phones and the static layout: the loader word fades off the paper while the hero's arrival begins underneath */
 html.boot.boot-out .hero,html.boot.boot-out .objs,html.boot.boot-out .work,html.boot.boot-out .closing,html.boot.boot-out .foot-wrap{visibility:visible}
 html.boot.boot-out .loader{opacity:0;transition:opacity .7s ease}
@@ -354,8 +363,8 @@ html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
 .quiet{margin-top:clamp(12px,1.6vh,22px);font-size:clamp(17px,1.25vw,26px);font-weight:360;color:var(--ink-2);letter-spacing:-.005em}
 .stranger{position:relative;display:inline-block}
 /* the garden: a big flower and a small one, each a stop-motion flipbook of the paper dahlias and peonies, and their bees */
-.garden{position:absolute;inset:0;pointer-events:none;z-index:1}
-.flip{position:absolute;aspect-ratio:1;filter:drop-shadow(0 14px 16px rgba(40,34,20,.2)) drop-shadow(0 2px 3px rgba(40,34,20,.16))}
+.garden{position:absolute;inset:0;pointer-events:none}   /* no stacking context: the bees inside can sit above the house */
+.flip{position:absolute;z-index:1;aspect-ratio:1;filter:drop-shadow(0 14px 16px rgba(40,34,20,.2)) drop-shadow(0 2px 3px rgba(40,34,20,.16))}
 .flip img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
 .flip img.on{opacity:1}
 /* anchored from the bottom: the closing is taller than the screen, and the bottom of it is what people see */
@@ -367,7 +376,7 @@ html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
 .flip .perch{position:absolute;left:50%;top:50%;width:clamp(38px,2.9vw,64px);aspect-ratio:1;margin:calc(clamp(38px,2.9vw,64px) * -.5) 0 0 calc(clamp(38px,2.9vw,64px) * -.5);will-change:transform}
 .flip .perch img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 3px 3px rgba(40,34,20,.25))}
 .flip .perch img.on{opacity:1}
-.cbee{position:absolute;left:0;top:0;width:clamp(34px,2.6vw,58px);aspect-ratio:1;will-change:transform;visibility:hidden}
+.cbee{position:absolute;z-index:8;left:0;top:0;width:clamp(34px,2.6vw,58px);aspect-ratio:1;will-change:transform;visibility:hidden}
 .cbee.placed{visibility:visible}
 .cbee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 4px 4px rgba(40,34,20,.22))}
 .cbee img.on{opacity:1}
@@ -422,6 +431,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .home{justify-self:end;margin-top:64px}
   .home{--cw:min(62vw,270px)}
   .flip.big{left:var(--m);bottom:190px;width:30vw}
+  .flip.tiny{width:44vw;rotate:4deg}
+  .closing{padding-top:calc(44vw + 100px)}          /* room above the studio line for the big top flower */
   .flip.small{left:46vw;bottom:36px;width:16vw}
   .contact a.mail{font-size:clamp(28px,9vw,44px)}
   .foot{flex-direction:column;gap:6px}
@@ -435,7 +446,12 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 <main>
   <section class="stage" id="stage" aria-label="planetbased.io">
     <div class="pin" id="pin">
-      <div class="loader" aria-hidden="true"><p>planetbased.io</p></div>
+      <div class="loader" aria-hidden="true"><div class="loader-in"><video class="loader-tree" id="loaderTree" muted playsinline loop preload="none" poster="img/orange-tree-poster.webp" width="342" height="616"><source src="video/orange-tree.mov" type='video/quicktime; codecs="hvc1"'><source src="video/orange-tree.webm" type="video/webm"></video><p>planetbased.io</p></div></div>
+      <script>
+      // phones: the tree starts moving as early as possible (autoplay can be refused in Low Power Mode: then the poster just stays)
+      (function () { var v = document.getElementById('loaderTree'); if (!v || !document.documentElement.classList.contains('boot-static') || !document.documentElement.classList.contains('boot')) return;
+        v.preload = 'auto'; v.autoplay = true; var p = v.play(); if (p && p.catch) p.catch(function () {}); })();
+      </script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -546,6 +562,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       <div class="flip tiny" id="flipTiny" aria-hidden="true"><img src="img/flip-bloom-1.webp" alt="" class="on" decoding="async"><img src="img/flip-bloom-2.webp" alt="" decoding="async"></div>
       <div class="flip big" id="flipBig"><img src="img/flip-dahlia-1.webp" alt="" class="on" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-3.webp" alt="" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><span class="perch" id="perch"><img src="img/bee-2.webp" alt="" class="on"><img src="img/bee-1.webp" alt="" class="flick"></span></div>
       <div class="flip small" id="flipSmall"><img src="img/flip-peony-3.webp" alt="" class="on" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"></div>
+      <div class="cbee" id="cBee2"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
       <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
     <div class="contact">
@@ -1171,6 +1188,13 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       if (!rect) return;
       const cr = closing.getBoundingClientRect();
       tiny.style.setProperty('--tiny-x', (rect.left + rect.width / 2 - cr.left - tiny.offsetWidth / 2) + 'px');
+      if (innerWidth < 760) {
+        // phones: a big bloom in the open paper above the studio line, a little right of centre, in the middle of that space
+        const pr0 = p.getBoundingClientRect(), room = pr0.top - cr.top - 28, h0 = tiny.offsetHeight;
+        tiny.style.setProperty('--tiny-x', (cr.width / 2 - tiny.offsetWidth / 2 + cr.width * .07) + 'px');
+        tiny.style.top = Math.max(24, (24 + room - h0) / 2) + 'px';
+        return;
+      }
       // 11-12 (Ivy): fully on screen when you reach the footer, near the top of what you see, never cut off by the page edge
       const cTop = cr.top + scrollY, maxView = document.documentElement.scrollHeight - innerHeight - cTop;
       const pr = p.getBoundingClientRect(), studioTop = pr.top - cr.top, h = tiny.offsetHeight;
@@ -1205,6 +1229,54 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     }
     draw(0);
     watch(closing, v => { on = v; if (on && !t) t = setTimeout(tick, 400 + r() * 600); if (!on) { clearTimeout(t); t = null; } });
+  })();
+
+  // ---------- phones: another bee now and then comes to the big top flower, lands near its centre, lingers, leaves ----------
+  (() => {
+    const bee = document.getElementById('cBee2'), fl = document.getElementById('flipTiny');
+    if (!bee || !fl) return;
+    const imgs = [...bee.querySelectorAll('img')], restImg = imgs[0], wings = imgs.slice(1);
+    const r = mulberry32(7171);
+    let timer = null, on = false, k = 0, pos = null, face = 1;
+    const show = resting => {
+      restImg.classList.toggle('on', resting);
+      if (resting) wings.forEach(w => w.classList.remove('on')); else { k ^= 1; wings.forEach((w, j) => w.classList.toggle('on', j === k)); }
+      const flip = resting ? (face > 0 ? 1 : -1) : (face > 0 ? -1 : 1);
+      bee.style.transform = `translate(${pos.x.toFixed(1)}px,${pos.y.toFixed(1)}px) scaleX(${flip})`;
+    };
+    // a gentle arc from a to b, always bowing upward (away from the type below the flower)
+    function arc(a, b, then) {
+      const w = bee.offsetWidth, c = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - w * (1.2 + r() * 1.4) };
+      const steps = Math.max(10, Math.round((Math.hypot(b.x - a.x, b.y - a.y) + w * 3) / (w * .34)));
+      let i = 0;
+      const step = () => {
+        i++; const t = i / steps, u = 1 - t;
+        const x = u * u * a.x + 2 * u * t * c.x + t * t * b.x, y = u * u * a.y + 2 * u * t * c.y + t * t * b.y;
+        face = x >= pos.x ? 1 : -1; pos = { x, y: y + (r() - .5) * w * .06 };
+        if (i >= steps) { pos = b; then(); return; }
+        show(false); timer = setTimeout(step, r() < .06 ? 280 + r() * 420 : 70 + r() * 60);
+      };
+      step();
+    }
+    function visit() {
+      timer = null;
+      if (!on || reduceQ.matches || innerWidth >= 760) { timer = setTimeout(visit, 8000); return; }
+      const q = relTo(fl, closing), w = bee.offsetWidth, W = closing.clientWidth;
+      const centre = { x: (q.l + q.r) / 2 - w / 2 + (r() - .5) * w * .3, y: (q.t + q.b) / 2 - w * .62 + (r() - .5) * w * .2 };
+      const fromLeft = r() < .5, start = { x: fromLeft ? -w * 1.5 : W + w * .5, y: q.t + (r() - .2) * w * 2 }, end = { x: fromLeft ? W + w * .5 : -w * 1.5, y: q.t - w * (1 + r()) };
+      pos = start; bee.classList.add('placed');
+      arc(start, centre, () => {
+        show(true);
+        let n = 3 + Math.floor(r() * 4);
+        const linger = () => {                                   // a few small shuffles on the flower, then off it goes
+          if (n-- <= 0) { arc(pos, end, () => { bee.classList.remove('placed'); timer = setTimeout(visit, 9000 + r() * 9000); }); return; }
+          if (r() < .5) { face = -face; } else { pos = { x: centre.x + (r() - .5) * w * .3, y: centre.y + (r() - .5) * w * .2 }; }
+          show(true); timer = setTimeout(linger, 600 + r() * 700);
+        };
+        timer = setTimeout(linger, 700);
+      });
+    }
+    watch(closing, v => { on = v; if (on && !timer) timer = setTimeout(visit, 2500 + r() * 2500); });
   })();
 
   // ---------- the visiting bee: rests on the small flower, now and then flies to "stranger" and rests on the word ----------
@@ -1593,13 +1665,15 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       document.fonts ? document.fonts.ready : Promise.resolve(),
       ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
     ]);
-    const beat = new Promise(r => setTimeout(r, Math.max(0, 1600 - performance.now())));
-    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 2600))])]).then(() => {
+    const beat = new Promise(r => setTimeout(r, Math.max(0, 2200 - performance.now())));   // long enough to watch the tree move
+    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 3000))])]).then(() => {
       pin.classList.add('reveal');
       introDone = true; window.__heroSettled = performance.now();
       playLogo(); startSun();
       doc.classList.add('boot-out');
-      setTimeout(() => doc.classList.remove('boot', 'boot-out'), 750);
+      // decode what lies further down while the hero arrives, so the first scroll on a phone never stalls on an image
+      setTimeout(() => document.querySelectorAll('.work img, .closing img').forEach(im => { im.loading = 'eager'; if (im.decode) im.decode().catch(() => {}); }), 2600);
+      setTimeout(() => { doc.classList.remove('boot', 'boot-out'); const lt = document.getElementById('loaderTree'); if (lt) { lt.pause(); lt.removeAttribute('src'); } }, 750);
     });
   }
   function startIntroWhenReady() {
@@ -1630,7 +1704,6 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   setMode(true);
 })();
 </script>
-<!-- GoatCounter analytics (same account as grzy.goatcounter.com; create the "planetbased" site there) -->
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>
