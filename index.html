@@ -43,6 +43,125 @@
   if (f !== 'source') document.write('<link id="trialFonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0,0&family=Gloock&family=Young+Serif&family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap">');
 })();
 </script>
+<script>
+// ---------- the page colour (11-13, Ivy): one number t, 0 green, 1 oatmeal, 2 black. The slider only ever sets t ----------
+// The hero painting blends the three paintings; at t = 0 it is the green exactly as it was (no calm, no veil, oat type).
+// The hero type turns ink where ink needs the smaller veil; the veil (VEIL) was measured for the oat and ink type on these
+// paintings, and capped at what the green already reaches.
+// The cards: on the green they are the hero's own colour; as the hero turns khaki toward oatmeal they go to the black
+// painting; at the dark end they turn oatmeal and the whole page below the hero goes dark.
+(function () {
+  'use strict';
+  var d = document.documentElement, st = d.style;
+  var clamp = function (v, a, b) { a = a == null ? 0 : a; b = b == null ? 1 : b; return Math.min(b, Math.max(a, v)); };
+  var lerp = function (a, b, k) { return a + (b - a) * k; };
+  var smooth = function (a, b, v) { var k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+  var mix = function (a, b, k) { return a.map(function (v, i) { return lerp(v, b[i], k); }); };
+  var VEIL = [[0.0, 0.0, 0.28], [0.05, 0.055, 0.255], [0.1, 0.1, 0.23], [0.15, 0.14, 0.205], [0.2, 0.18, 0.175], [0.25, 0.215, 0.145], [0.3, 0.25, 0.11], [0.35, 0.28, 0.07], [0.4, 0.31, 0.03], [0.45, 0.335, 0.0], [0.5, 0.36, 0.0], [0.55, 0.38, 0.0], [0.6, 0.405, 0.0], [0.65, 0.425, 0.0], [0.7, 0.44, 0.0], [0.75, 0.46, 0.0], [0.8, 0.475, 0.0], [0.85, 0.49, 0.0], [0.9, 0.505, 0.0], [0.95, 0.52, 0.0], [1.0, 0.535, 0.0], [1.05, 0.51, 0.0], [1.1, 0.485, 0.0], [1.15, 0.455, 0.0], [1.2, 0.425, 0.0], [1.25, 0.39, 0.0], [1.3, 0.35, 0.0], [1.35, 0.3, 0.0], [1.4, 0.25, 0.045], [1.45, 0.185, 0.1], [1.5, 0.115, 0.155], [1.55, 0.025, 0.2], [1.6, 0.0, 0.24], [1.65, 0.0, 0.275], [1.7, 0.0, 0.31], [1.75, 0.0, 0.34], [1.8, 0.0, 0.37], [1.85, 0.0, 0.395], [1.9, 0.0, 0.42], [1.95, 0.0, 0.44], [2.0, 0.0, 0.46]];
+  var MEANS = [[53.0, 107.3, 71.3], [195.7, 183.7, 161.7], [23.6, 26.6, 24.6]];                                   // green, oatmeal, black (each with its edge falloff)
+  var OAT = [217, 205, 183], INK = [14, 17, 18];
+  var NAMES = ['Outside', 'Studio', 'Night'];            // for screen readers only; nothing on the page says them
+  var calmAt = function (t) { return t <= 0 ? 0 : .45 * (t < 1 ? t * t * (3 - 2 * t) : 1); };
+  var vAt = function (t, i) { var s = t / .05, a = Math.floor(s), b = Math.min(VEIL.length - 1, a + 1); return lerp(VEIL[a][i + 1], VEIL[b][i + 1], s - a); };
+  var lum = function (c) { var l = c.map(function (v) { v /= 255; return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * l[0] + .7152 * l[1] + .0722 * l[2]; };
+  var ratio = function (a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  var stack = function (o, k) { return MEANS[0].map(function (g, i) { return g * (1 - o) * (1 - k) + MEANS[1][i] * o * (1 - k) + MEANS[2][i] * k; }); };
+  var rgb = function (c) { return c.map(function (v) { return Math.round(v); }).join(','); };
+
+  var lastLight = null;
+  function lightAt(t) {                                   // a hair of hysteresis so a slow drag never flickers
+    var l = vAt(t, 0), dk = vAt(t, 1), m = .015;
+    if (lastLight === true && l <= dk + m) return true;
+    if (lastLight === false && dk <= l + m) return false;
+    return (lastLight = l <= dk);
+  }
+  // the card's place, cu: 0..1 follows the hero's own colour with the black painting coming over it (all black by the
+  // oatmeal), 1..2 the black lifts off an oatmeal card
+  var w1 = function (cu) { return smooth(0, .4, cu); };
+  var cardAt = function (cu) { return cu <= 1 ? { o: clamp(cu), k: w1(cu) } : { o: 1, k: 2 - cu }; };
+  var cardMean = function (cu) { var c = cardAt(cu); return stack(c.o, c.k); };
+  var lightType = function (cu) { var m = cardMean(cu); return ratio(OAT, m) >= ratio(INK, m); };
+  // between black and oatmeal there is a stretch where neither type colour reaches 4.5:1 on the card: the card glides
+  // over it in one quick eased beat while its type turns over (and the page turns dark with it)
+  var bad = function (cu) { var m = cardMean(cu); return ratio(OAT, m) < 4.5 && ratio(INK, m) < 4.5; };
+  var cLo = 1.5, cHi = 1.5;
+  (function () { var i; for (i = 0; i < 400; i++) { var x = 1 + i / 400; if (bad(x)) { cLo = x; break; } } for (i = 400; i > 0; i--) { var y = 1 + i / 400; if (bad(y)) { cHi = y; break; } } })();
+  var cardGoalAt = function (t) { return t <= 1 ? t : 1 + smooth(1.3, 1.62, t); };
+
+  var KEY = 'pb-mode-t', q = location.search.match(/[?&]t=([\d.]+)/), goal = null;
+  try { var sv = parseFloat(localStorage.getItem(KEY)); if (isFinite(sv)) goal = clamp(sv, 0, 2); } catch (e) {}
+  if (goal === null) goal = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 2 : 0;
+  if (q) goal = clamp(+q[1] || 0, 0, 2);
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cur = goal, typeK = lightAt(cur) ? 1 : 0, cardCur = cardGoalAt(cur), cardLight = lightType(cardCur), tau = 140, raf = 0, last = 0;
+  var listeners = [];
+
+  function cardGoal(t) {
+    var g = cardGoalAt(t);
+    if (g > cLo && g < cHi) g = cardLight ? cLo : cHi;     // hold on the side the type is on until the stretch is crossed
+    return g;
+  }
+  cardCur = cardGoal(cur);
+  var pageGoal = function () { return cardCur > 1 && !cardLight ? 1 : 0; };
+  var page = pageGoal();
+
+  // the painting's size on the hero (cover), so the cards' paint shows the brushwork at the same scale
+  function paintSize() {
+    var W = window.innerWidth, H = Math.max(560, window.innerHeight);
+    st.setProperty('--pw', Math.round(1456 * Math.max(W / 1456, H / 816)) + 'px auto');
+  }
+  function paint(t) {
+    var ho = clamp(t), hk = clamp(t - 1);
+    st.setProperty('--h-o', ho.toFixed(4));
+    st.setProperty('--h-k', hk.toFixed(4));
+    st.setProperty('--pb-calm', 'rgba(' + rgb(stack(ho, hk)) + ',' + calmAt(t).toFixed(3) + ')');
+    st.setProperty('--pb-vi', 'rgba(14,17,18,' + (typeK * vAt(t, 0)).toFixed(3) + ')');
+    st.setProperty('--pb-vp', 'rgba(241,242,227,' + ((1 - typeK) * vAt(t, 1)).toFixed(3) + ')');
+    var fg = rgb(mix(INK, OAT, typeK));
+    st.setProperty('--oat', 'rgb(' + fg + ')'); st.setProperty('--oat-rgb', fg);
+    st.setProperty('--pb-guide', lerp(.05, .085, typeK).toFixed(3));   // the guides stay faint when they turn ink
+    var c = cardAt(cardCur);
+    st.setProperty('--c-o', c.o.toFixed(4)); st.setProperty('--c-k', c.k.toFixed(4));
+    var light = lightType(cardCur);
+    if (light !== cardLight || !d.dataset.card) { cardLight = light; d.dataset.card = light ? 'light' : 'dark'; }
+    st.setProperty('--pg-d', page.toFixed(4));
+    var pd = page > .5 ? 'dark' : 'light'; if (d.dataset.page !== pd) d.dataset.page = pd;
+    d.classList.toggle('pb-on', t > .0005);               // on the green, nothing extra is drawn at all
+    d.classList.toggle('pb-pg', page > .001);
+    d.dataset.type = typeK > .5 ? 'light' : 'dark';
+    if (/[?&]debug(&|$)/.test(location.search)) window.__pb = { t: t, type: d.dataset.type, card: { at: +cardCur.toFixed(3), text: cardLight ? 'light' : 'dark', ratio: +Math.max(ratio(OAT, cardMean(cardCur)), ratio(INK, cardMean(cardCur))).toFixed(2), skip: [+cLo.toFixed(3), +cHi.toFixed(3)] }, page: +page.toFixed(3) };
+    listeners.forEach(function (f) { f(t); });
+  }
+  function frame(now) {
+    var dt = Math.min(64, now - (last || now)); last = now;
+    cur = Math.abs(goal - cur) < .0006 ? goal : lerp(cur, goal, 1 - Math.exp(-dt / tau));
+    var light = lightAt(cur);
+    typeK = lerp(typeK, light ? 1 : 0, 1 - Math.exp(-dt / 70));
+    if (Math.abs(typeK - (light ? 1 : 0)) < .003) typeK = light ? 1 : 0;
+    var cg = cardGoal(cur);
+    cardCur = Math.abs(cg - cardCur) < .0006 || reduce ? cg : lerp(cardCur, cg, 1 - Math.exp(-dt / 110));
+    var pg = pageGoal();
+    page = Math.abs(pg - page) < .002 || reduce ? pg : lerp(page, pg, 1 - Math.exp(-dt / 160));
+    paint(cur);
+    raf = (cur !== goal || typeK !== (light ? 1 : 0) || cardCur !== cg || page !== pg) ? requestAnimationFrame(frame) : 0;
+    if (!raf) last = 0;
+  }
+  var kick = function () { if (!raf) raf = requestAnimationFrame(frame); };
+  var saveT = 0;
+  function set(t, opts) {
+    goal = clamp(t, 0, 2); tau = (opts && opts.tau) || 140; kick();
+    clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem(KEY, String(goal)); } catch (e) {} }, 250);
+  }
+  window.PBM = {
+    NAMES: NAMES, set: set, reduce: reduce, paintSize: paintSize,
+    get t() { return goal; }, get shown() { return cur; },
+    on: function (f) { listeners.push(f); f(cur); },
+    valueText: function (t) { var n = Math.round(t); return Math.abs(t - n) < .03 ? NAMES[n] : 'Between ' + NAMES[Math.floor(Math.min(t, 1.999))] + ' and ' + NAMES[Math.floor(Math.min(t, 1.999)) + 1]; }
+  };
+  paintSize();
+  paint(cur);
+})();
+</script>
 <link rel="icon" href="img/favicon.svg?v=3" type="image/svg+xml">
 <link rel="icon" href="img/favicon-32.png?v=3" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=3">
@@ -128,14 +247,13 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* register line language: column guides, corner marks, punched holes, a ticked ruler */
 .guides{position:absolute;top:0;bottom:0;left:var(--m);right:var(--m);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);pointer-events:none}
 .guides span{border-left:1px solid rgba(var(--oat-rgb),.085);border-right:1px solid rgba(var(--oat-rgb),.085)}
-.reg{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(var(--oat-rgb),.75);transform:scale(.6)}
-.reg::before,.reg::after{content:"";position:absolute;background:rgba(var(--oat-rgb),.75)}
-.reg::before{left:50%;top:-6px;bottom:-6px;width:1px}
-.reg::after{top:50%;left:-6px;right:-6px;height:1px}
+/* 11-13 (Ivy): the corner marks are tiny paper suns, cut small from the big one */
+.reg{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;background:url(img/sun-mini.webp) center/contain no-repeat;filter:drop-shadow(0 1px 1.2px rgba(20,44,28,.32))}
 .reg.tl{left:calc(var(--m) * .5);top:calc(var(--m) * .5)}
 .reg.tr{left:calc(100% - var(--m) * .5);top:calc(var(--m) * .5)}
 .reg.bl{left:calc(var(--m) * .5);top:calc(100% - var(--m) * .5)}
 .reg.br{left:calc(100% - var(--m) * .5);top:calc(100% - var(--m) * .5)}
+.reg{display:none}   /* 11-13 (Ivy): the corner suns weren't doing anything; dropped */
 .punch{position:absolute;left:calc(var(--m) * .5);width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border-radius:50%;background:var(--paper);
   box-shadow:inset 0 2px 3px rgba(20,48,30,.45), 0 1px 0 rgba(241,242,227,.18)}
 .punch.p1{top:27cqh}.punch.p2{top:79cqh}
@@ -150,6 +268,8 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* three faces, each outlined with the p descender and b ascender drawn long; the viewBox is the ink, so the p's serif sits on the margin.
    v1 Source Serif 4 (opsz 60), v2 Gloock, v3 Young Serif. All share one ink height */
 .mark .mono-pb{display:none;height:min(58cqh,38cqw);width:auto;fill:currentColor;overflow:visible}
+/* 11-13 (Ivy): the pb is gone; her two-line logo stands in, quieter, until the animated logo ships */
+.mark .mono-pb.pb-logo{height:min(30cqh,20cqw)}
 .mark .mono-pb.v1{display:block}
 .mark-pb2 .mark .mono-pb.v1,.mark-pb3 .mark .mono-pb.v1{display:none}
 .mark-pb2 .mark .mono-pb.v2,.mark-pb3 .mark .mono-pb.v3{display:block}
@@ -166,7 +286,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   font-size:min(2.6cqh,1.55cqw);font-weight:380;letter-spacing:-.005em;line-height:1;
   font-variation-settings:"opsz" 24;
 }
-.dateline .rule{flex:1;height:1px;background:var(--oat);margin:0 1.1em;transform-origin:left center;opacity:.8}
+.dateline .rule{flex:1;height:1px;margin:0 1.1em;visibility:hidden}   /* 11-13 (Ivy): the slider carries the line now; the rule only keeps the spacing */
 .dateline b{font-weight:600}
 .dateline > span:first-child,.dateline b{text-box:trim-both cap alphabetic}
 .dl-sub{
@@ -227,28 +347,27 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .media .go-cover{position:absolute;inset:0;z-index:2}
 .media video.hover-vid{position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .35s ease}
 .media video.hover-vid.on{opacity:1}
-.media.face{display:grid;place-items:center;background:rgba(241,242,227,.035);box-shadow:inset 0 0 0 1px rgba(177,217,220,.32)}
-.media.face span{font-size:clamp(34px,4.4vw,96px);font-weight:400;letter-spacing:-.025em;color:var(--sea);font-variation-settings:"opsz" 60}
-.band{position:relative;display:flex;align-items:center;gap:clamp(14px,1.4vw,28px);color:var(--sea);
+.media.face{display:grid;place-items:center;background:rgba(var(--card-fg-rgb),.035);box-shadow:inset 0 0 0 1px rgba(var(--card-fg-rgb),.3)}
+.media.face span{font-size:clamp(34px,4.4vw,96px);font-weight:400;letter-spacing:-.025em;color:var(--card-fg);font-variation-settings:"opsz" 60;transition:color .35s ease}
+.band{position:relative;display:flex;align-items:center;gap:clamp(14px,1.4vw,28px);color:var(--card-fg);
   font-family:var(--mono);font-size:clamp(10px,.74vw,16px);letter-spacing:.08em;text-transform:uppercase;line-height:1.35}
-.band::before{content:"";position:absolute;left:0;right:0;top:calc(var(--b) * -.001);height:6px;border-top:1px solid rgba(177,217,220,.42);
-  background-image:linear-gradient(rgba(177,217,220,.42),rgba(177,217,220,.42)),repeating-linear-gradient(to right, rgba(177,217,220,.42) 0 1px, transparent 1px 100%);
-  background-size:1px 5px,calc(100% / 8) 5px;background-position:100% 0,0 0;background-repeat:no-repeat,repeat-x}   /* 11-13 (Ivy): closed with a tick at the right end */
 .band dl{display:flex;flex:1;min-width:0}
-.band dl div{flex:1 1 0;min-width:0;padding:0 clamp(10px,1vw,20px);border-left:1px solid rgba(177,217,220,.28)}
+.band dl div{flex:1 1 0;min-width:0;padding:0 clamp(10px,1vw,20px)}   /* 11-13 (Ivy): the hard divider line goes; a light pencil one is drawn below */
 .band dl div:first-child{border-left:0;padding-left:0}
+.band dl div{position:relative}
+.band dl div + div::before{content:"";position:absolute;left:-3px;top:-.2em;bottom:-.15em;width:6px;background:var(--card-fg);opacity:.26;
+  -webkit-mask:url(img/pencil-vert.webp) center/100% 100% no-repeat;mask:url(img/pencil-vert.webp) center/100% 100% no-repeat}   /* 11-13 (Ivy): light pencil dividers */
 /* tools get the room they need and stay on one line */
 .band dl div.tools{flex:2.55 1 0}
 .band dl div:nth-child(3){flex:1.3 1 0}
 .band dl div:last-child{flex:.75 1 0}
 .band dd{white-space:nowrap;overflow:hidden;text-overflow:clip}
-.band dt{color:var(--sea-d);opacity:.9;margin-bottom:.25em}
-.band dd{color:var(--sea)}
-.hole{flex:none;width:13px;height:13px;border-radius:50%;background:var(--paper);
-  box-shadow:inset 0 1.5px 2px rgba(20,48,30,.5)}
+.band dt{color:var(--card-fg);opacity:.74;margin-bottom:.25em;transition:color .35s ease}
+.band dd{color:var(--card-fg);transition:color .35s ease}
+.hole{flex:none;width:13px;height:13px;visibility:hidden}   /* 11-13 (Ivy): no punch; its room is kept so the fields stay put */
 /* pencil underline, in sea-glass on the green */
 .penned{position:relative;display:inline-block}
-.penned::after{content:"";position:absolute;left:-.25em;right:-.5em;top:95%;height:.75em;background:var(--sea);opacity:.85;
+.penned::after{content:"";position:absolute;left:-.25em;right:-.5em;top:95%;height:.75em;background:var(--card-fg);opacity:.85;
   -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat}
 
 .cap{position:relative;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,6fr);column-gap:var(--gut);align-items:baseline;padding-top:clamp(18px,2.4vh,30px);opacity:var(--c)}
@@ -279,12 +398,18 @@ html.boot-static .loader-in,.motion .loader-in{margin-bottom:9vh}          /* th
    its word lift away the same way they do on the phone */
 .motion .loader-tree{width:clamp(110px,15vh,190px)}
 .motion .pin.sliding .loader-in{animation:treeOut .6s cubic-bezier(.33,0,.4,1) both}
+/* 11-13 (Ivy): the tree comes apart along the blocks' edges: one clipped copy per block, each pushed ahead of its block and
+   faded as it arrives (the whole tree hides meanwhile, and the loader holds until the pieces have gone) */
+.lcut{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;will-change:transform,opacity}
+.motion .pin.cut .loader > .loader-in{visibility:hidden;animation:none}
+.motion .pin.cut.intro .loader{opacity:1}
 /* phones and the static layout, 11-13 (Ivy): one gesture from the loader into the hero. The tree and its word lift away
    while the green rises from below as one plain block over the paper (the phone's echo of the desktop blocks), and only
    once it has locked does the arrival begin on it: the logo, the sun, the flowers, the type */
 html.boot.boot-out .hero,html.boot.boot-out .work,html.boot.boot-out .closing,html.boot.boot-out .foot-wrap{visibility:visible}
 html.boot.boot-out .loader{z-index:0}                    /* the paper stays put, now under the rising green */
-html.boot.boot-out .loader-in{animation:treeOut .55s cubic-bezier(.33,0,.4,1) both}
+html.boot.boot-out .loader-in{animation:treeUp .8s .14s cubic-bezier(.65,0,.35,1) both}   /* 11-13 (Ivy): pushed up by the green, in step with it */
+@keyframes treeUp{to{transform:translateY(calc(-1 * var(--hero-h,100vh)))}}
 html.boot.boot-out .hero{animation:greenUp .8s .14s cubic-bezier(.65,0,.35,1) both;box-shadow:0 -22px 44px -26px rgba(24,52,34,.42)}
 html.boot.boot-out .hero .art{opacity:0}
 @keyframes treeOut{to{opacity:0;transform:translateY(-3vh) scale(.97)}}
@@ -383,12 +508,14 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .studio{font-size:clamp(20px,1.6vw,34px);line-height:1.32;font-weight:380;letter-spacing:-.008em;max-width:var(--studiow,37.5ch);text-wrap:pretty;color:#26292a;
   font-variation-settings:"opsz" 32;margin-bottom:clamp(72px,11vh,140px)}
 .studio .pen{position:relative;white-space:nowrap}
+.ph-only{display:none}
+@media (max-width:759px){.ph-only{display:inline}}   /* 11-13 (Ivy): phones read "An independent creative studio" */
 /* the ampersand in the display serif (Gloock, subset to one glyph) */
 .studio .pen img{position:absolute;left:-4%;width:110%;max-width:none;top:84%;height:.46em;object-fit:fill;mix-blend-mode:multiply;opacity:.95;pointer-events:none;transform:scaleX(-1) rotate(-1.5deg)}
 /* 11-13 (Ivy): two lines now, one under each word, set apart: "hear" a touch higher, "feel" lower and tilted the other way */
 .studio .pen .pw{position:relative;display:inline-block}
-.studio .pen img.u-hear{left:-5%;width:118%;top:92%;height:.48em;transform:scaleX(-1) rotate(-2deg)}
-.studio .pen img.u-feel{left:-6%;width:120%;top:116%;height:.38em;transform:scaleX(-1) rotate(3deg)}
+.studio .pen img.u-a{left:-3%;width:106%;top:86%;height:.44em;transform:scaleX(-1) rotate(-.9deg)}
+.studio .pen img.u-b{left:5%;width:88%;top:103%;height:.36em;transform:scaleX(-1) rotate(.7deg)}
 /* one quieter line under the address */
 .quiet{margin-top:clamp(12px,1.6vh,22px);font-size:clamp(17px,1.25vw,26px);font-weight:360;color:var(--ink-2);letter-spacing:-.005em}
 .stranger{position:relative;display:inline-block}
@@ -400,7 +527,6 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 /* anchored from the bottom: the closing is taller than the screen, and the bottom of it is what people see */
 .flip.big{left:47%;bottom:calc(46vh - 40px);width:min(36vh,25vw)}
 /* 11-12 (Ivy): a third, smaller flower above the studio line, flipping through flowers the garden doesn't use */
-.flip.tiny{top:clamp(48px,9vh,140px);left:var(--tiny-x,30%);width:min(10vh,7vw);rotate:6deg}   /* 11-12 (Ivy): up at the top of the footer, directly above "Ivy"; JS sets --tiny-x */
 .flip.small{left:38%;bottom:calc(30vh - 40px);width:min(15vh,10.5vw);rotate:-10deg}
 /* 11-13 (Ivy): phones only, the café au lait dahlia crowns the closing above the studio line */
 .dahlia-top{display:none;position:absolute;z-index:1;height:auto;pointer-events:none;
@@ -413,8 +539,18 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .cbee.placed{visibility:visible}
 .cbee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 4px 4px rgba(40,34,20,.22))}
 .cbee img.on{opacity:1}
+/* 11-13 (Ivy): the sky over the closing. Handmade cotton clouds drift slowly through the open space, never over type.
+   No z-index on .sky itself (no stacking context): each cloud sits in the closing's layers, so the house paints over the
+   back clouds, the chimney cloud (.front) passes in front of the house, and the flowers and bees stay above every cloud */
+.sky{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.cloud{position:absolute;left:0;top:0;z-index:0;will-change:transform;opacity:0;transition:opacity 1.6s cubic-bezier(.33,0,.2,1)}
+.cloud.front{z-index:1}
+.cloud.in{opacity:1}
+.cloud img{display:block;width:100%;height:auto;filter:brightness(1.1) saturate(.72) drop-shadow(0 18px 16px rgba(40,34,20,.11)) drop-shadow(0 2px 3px rgba(40,34,20,.07))}
+.cloud.far img{opacity:.8;filter:brightness(1.11) saturate(.68) blur(.55px) drop-shadow(0 12px 12px rgba(40,34,20,.07))}
+.cloud.mid img{opacity:.92;filter:brightness(1.1) saturate(.7) blur(.2px) drop-shadow(0 14px 14px rgba(40,34,20,.09)) drop-shadow(0 2px 3px rgba(40,34,20,.05))}
 .contact a.mail{display:inline-block;font-size:clamp(40px,6vw,140px);font-weight:400;letter-spacing:-.03em;line-height:1;text-decoration:none;font-variation-settings:"opsz" 60;white-space:nowrap;margin-left:-.04em}
-.contact a.mail{position:relative}
+.contact a.mail{position:relative;cursor:pointer}
 /* 11-13 (Ivy): the address stays ink on hover; a pencil line draws in under it, calmly, and draws back out */
 .contact a.mail::after{content:"";position:absolute;left:.01em;right:.02em;top:99%;height:.15em;background:currentColor;opacity:.82;transform:scaleX(-1);
   -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;
@@ -427,8 +563,11 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .copied.on{opacity:1;visibility:visible}
 .copied.on path{stroke-dashoffset:0}
 .copied.on .c-chk{transition:stroke-dashoffset .34s cubic-bezier(.5,0,.4,1)}
-.copied.on .c-word{transition:stroke-dashoffset 1.2s cubic-bezier(.35,.05,.55,.95) .4s}
-.copied.on .c-dot{transition:stroke-dashoffset .1s linear 1.68s}
+.copied.on .c-word{transition:stroke-dashoffset .42s cubic-bezier(.4,.05,.6,.95) .4s}
+.copied .c-w1{stroke-width:2.2}.copied .c-w2{stroke-width:2.9}.copied .c-w3{stroke-width:2.4}
+.copied.on .c-w2{transition-duration:.38s;transition-delay:.84s}
+.copied.on .c-w3{transition-duration:.6s;transition-delay:1.24s}
+.copied.on .c-dot{transition:stroke-dashoffset .1s linear 1.9s}
 .copied.on.out{opacity:0;transition:opacity .7s ease,visibility 0s linear .7s}
 .home{--cw:clamp(250px,21.5vw,500px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * 1.4);position:relative}
 /* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
@@ -437,9 +576,10 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .cottage{width:var(--cw);height:auto;transform:scaleX(-1);
   filter:drop-shadow(0 18px 22px rgba(40,34,20,.24)) drop-shadow(0 3px 4px rgba(40,34,20,.2))}
 .floor{grid-column:1 / -1;position:relative}
-.floor .rule{height:9px;border-top:1px solid var(--ink);
-  background-image:linear-gradient(var(--ink),var(--ink)),repeating-linear-gradient(to right, var(--ink) 0 1px, transparent 1px 100%);
-  background-size:1px 6px,calc(100% / 12) 6px;background-position:100% 0,0 0;background-repeat:no-repeat,repeat-x}   /* 11-13 (Ivy): thirteen ticks, evenly spaced, closed at the right end (no guides down here to align to) */
+.floor .rule{height:9px;position:relative}
+/* 11-13 (Ivy): one long hand-drawn pencil line, chained from the site's own pencil underlines */
+.floor .rule::before{content:"";position:absolute;left:-.4%;right:-.4%;top:calc(50% - clamp(9px,1.1vw,24px) / 2 - 4px);height:clamp(9px,1.1vw,24px);
+  background:url(img/pencil-floor.webp) center/100% 100% no-repeat;opacity:.92}
 .newt{position:absolute;left:0;top:0;z-index:5;width:var(--nw);height:auto;will-change:transform;visibility:hidden;pointer-events:none;
   filter:drop-shadow(0 6px 5px rgba(40,34,20,.22))}
 .newt{opacity:0;transition:opacity .45s ease,visibility 0s linear .45s}
@@ -463,6 +603,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 @media (max-width:759px){
   .mark{top:13cqh}
   .mark .mono-pb{height:min(40cqh,48cqw)}
+  .mark .mono-pb.pb-logo{height:min(24cqh,30cqw)}
   .mark .word{font-size:12cqw}
   .dateline{font-size:12px}
   .dl-sub{font-size:12px;top:calc(7cqh + 20px)}
@@ -490,7 +631,6 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
      flower sits up by the roofline (anchored to the house's top: floor 9 + the home's bottom margin + the cottage's height);
      the small one a touch right */
   .work{padding-bottom:64px}
-  .flip.tiny{display:none}
   .dahlia-top{display:block;top:16px;left:calc(50% - 32vw + 4vw);width:64vw;rotate:-4deg}
   .closing{padding-top:calc(16px + 64vw * 1.047 + 44px)}
   .studio{margin-bottom:40px}
@@ -514,6 +654,114 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
+<style>
+/* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
+   The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
+   --c-o / --c-k (the same for the cards), --pb-calm / --pb-vi / --pb-vp (the hero's calm and legibility veil, all zero on
+   the green), --oat / --oat-rgb (hero type: oat, or ink on the light grounds), --pg-d (the page below the hero going dark),
+   --pw (the hero painting's size, so the cards show the brushwork at the same scale), data-card, data-page */
+
+/* the paintings, stacked over each green and faded by the engine */
+.pl{position:absolute;inset:0;pointer-events:none}
+.pl > i{position:absolute;inset:0;background-size:240px 240px,100% 100%,cover;background-position:0 0,0 0,50% 50%;background-repeat:repeat,no-repeat,no-repeat}
+.pl .g{display:none;background-color:#356B47;background-image:var(--noise),none,url("img/green-backdrop-4.webp")}
+.pl .o{opacity:var(--lo,0);background-color:#C4B8A2;
+  background-image:var(--noise),radial-gradient(ellipse 125% 115% at 48% 42%, rgba(60,46,26,0) 52%, rgba(60,46,26,.13) 100%),url("img/oat-backdrop.webp")}
+.pl .k{opacity:var(--lk,0);background-color:#181B19;
+  background-image:var(--noise),radial-gradient(ellipse 125% 115% at 48% 42%, rgba(0,0,0,0) 52%, rgba(0,0,0,.3) 100%),url("img/ink-backdrop.webp")}
+/* the calm (the ground's own mean colour) and the veil (ink under light type, paper under dark type) */
+.pl .w{background:linear-gradient(var(--pb-vi,transparent),var(--pb-vi,transparent)),linear-gradient(var(--pb-vp,transparent),var(--pb-vp,transparent)),linear-gradient(var(--pb-calm,transparent),var(--pb-calm,transparent))}
+.hero .pl,.slice .pl{--lo:var(--h-o);--lk:var(--h-k)}
+.frame > .pl,.pc > .pl{--lo:var(--c-o);--lk:var(--c-k)}
+.frame > .pl .w,.pc > .pl .w{display:none}
+html:not(.pb-on) .pl{display:none}
+/* the cards' paint at the hero's scale (phones: the frame; desktop: the card content layer, below) */
+.ptex{background-size:240px 240px,100% 100%,var(--pw,cover)}
+.frame > .pl > i,.pc > .pl > i{background-size:240px 240px,100% 100%,var(--pw,cover)}
+/* desktop: the frame has no paint of its own (the slice is the window onto the hero); the slices hidden under the whole
+   hero skip their paintings, so a drag of the slider only repaints the hero */
+.motion .frame > .pl{display:none}
+.motion .pin:not(.split):not(.intro) .slice .pl{visibility:hidden}
+/* desktop cards: their own painting rides on the card content, so it fades in as each block arrives (the slice under it
+   keeps the hero's colour). Oversized right and below, so it covers the card while the block is still changing shape */
+.pc > .pl{display:none}
+.motion.pb-on .pc > .pl{display:block;inset:auto;left:0;top:0;width:170%;height:230%;z-index:-1}
+.motion.pb-on .pc > .pl > i{background-position:0 0}
+.pc > .pl .g{display:block}
+
+/* card type: the hero's logic, oat on the green and the black, ink on the oatmeal. No sea glass */
+html{--card-fg:#D9CDB7;--card-fg-rgb:217,205,183}
+html[data-card="dark"]{--card-fg:#0E1112;--card-fg-rgb:14,17,18}
+
+/* the guides stay faint when they turn ink (.085 on the green, as before) */
+.guides span{border-left-color:rgba(var(--oat-rgb),var(--pb-guide,.085));border-right-color:rgba(var(--oat-rgb),var(--pb-guide,.085))}
+
+/* ---------- the dark page: below the hero, the black painting comes up behind everything ---------- */
+.pg{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--pg-d,0);background:#181B19;
+  background-image:var(--noise),url("img/ink-backdrop.webp");background-size:240px 240px,cover;background-position:0 0,50% 50%;background-repeat:repeat,no-repeat}
+html.pb-pg .pg{display:block}
+body{background:transparent}
+.motion .pin{background:transparent}
+html{transition:background-color .4s ease}
+html[data-page="dark"]{background:#181B19;color:#ECEBDF;--ink-2:#a8a79c}
+html[data-page="dark"] .loader{background:#181B19}
+html[data-page="dark"] .loader p{color:#D9CDB7}
+:is(.cap h2,.cap p,.studio,.quiet,.foot,.foot .promise,.contact a.mail){transition:color .4s ease}
+html[data-page="dark"] :is(.cap p,.studio){color:#d6d5c9}
+html[data-page="dark"] .cap a.go:hover{color:#D9CDB7}
+html[data-page="dark"] a:focus-visible{outline-color:#D9CDB7}
+/* the pencil lines are graphite on paper: on the dark page they turn to chalk */
+html[data-page="dark"] :is(.t-under,.studio .pen img){mix-blend-mode:screen;filter:invert(1) brightness(.92)}
+html[data-page="dark"] .floor .rule::before{filter:invert(.9)}
+html[data-page="dark"] .copied path{stroke:#ECEBDF}
+/* shadows fall darker on the dark page */
+html[data-page="dark"] .cottage{filter:drop-shadow(0 18px 22px rgba(0,0,0,.5)) drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+html[data-page="dark"] .pot-tree{filter:drop-shadow(0 12px 14px rgba(0,0,0,.45)) drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+html[data-page="dark"] :is(.flip,.dahlia-top){filter:drop-shadow(0 14px 16px rgba(0,0,0,.42)) drop-shadow(0 2px 3px rgba(0,0,0,.36))}
+html[data-page="dark"] .newt{filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
+html[data-page="dark"] :is(.card-rest,.shade){box-shadow:0 14px 30px -14px rgba(0,0,0,.6),0 2px 6px -2px rgba(0,0,0,.45)}
+html[data-page="dark"]:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(0,0,0,.6),0 2px 6px -2px rgba(0,0,0,.45)}
+
+/* ---------- the slider: a quiet painted strip of the three colours, the cheeky paper sun rolls along it ---------- */
+.dateline .slot{flex:none;width:176px;height:0;margin-right:1.2em}
+.pbs{position:absolute;left:0;top:0;width:176px;height:36px;z-index:5;touch-action:none;cursor:pointer;display:block;outline:none;border-radius:999px}
+html.boot .pbs{visibility:hidden}
+.reveal .hero .pbs{animation:fade .7s 2.55s ease-out both}
+.pbs .strip{position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;border-radius:999px;overflow:hidden}
+.pbs .strip i{position:absolute;inset:0;background-size:520px auto;background-position:30% 40%}
+.pbs .strip .g{background-image:url("img/green-backdrop-4.webp");background-color:#356B47}
+.pbs .strip .o{background-image:url("img/oat-backdrop.webp");background-color:#C4B8A2;-webkit-mask:linear-gradient(to right,transparent 22%,#000 42%);mask:linear-gradient(to right,transparent 22%,#000 42%)}
+.pbs .strip .k{background-image:url("img/ink-backdrop.webp");background-color:#181B19;-webkit-mask:linear-gradient(to right,transparent 58%,#000 78%);mask:linear-gradient(to right,transparent 58%,#000 78%)}
+.pbs .psun{position:absolute;left:var(--x,0px);top:50%;width:32px;height:32px;margin:-16px 0 0 -16px;rotate:var(--roll,0deg);pointer-events:none;
+  filter:drop-shadow(0 2px 2px rgba(20,24,20,.34));transition:scale .35s cubic-bezier(.2,.8,.2,1)}
+.pbs .psun img{display:block;width:100%;height:100%}
+/* 11-13 (Ivy): grabbing the sun selected it (a blue frame); nothing in the slider can be selected, dragged as an image, or tap-highlighted */
+.pbs,.pbs *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
+.pbs ::selection{background:transparent}
+.pbs:hover .psun,.pbs.drag .psun{scale:1.1}
+.pbs:focus-visible{outline:1.5px solid var(--oat);outline-offset:4px}
+/* ?dial: the same three colours round a small ring, the sun walking round it */
+.dateline .slot.dial{width:46px}
+.pbs.dial{width:46px;height:46px;border-radius:50%}
+.pbs.dial .strip{inset:0;margin:0;height:auto;border-radius:50%;overflow:visible}
+.pbs.dial .strip i{border-radius:50%;background-size:260px auto;
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 7px),#000 calc(100% - 6px),#000 calc(100% - 1px),transparent 100%),conic-gradient(var(--cm));-webkit-mask-composite:source-in;
+  mask:radial-gradient(closest-side,transparent calc(100% - 7px),#000 calc(100% - 6px),#000 calc(100% - 1px),transparent 100%),conic-gradient(var(--cm));mask-composite:intersect}
+.pbs.dial .strip .g{--cm:#000 0 300deg,transparent 300deg}
+.pbs.dial .strip .o{--cm:transparent 0 85deg,#000 135deg 300deg,transparent 300deg}
+.pbs.dial .strip .k{--cm:transparent 0 195deg,#000 250deg 300deg,transparent 300deg}
+.pbs.dial .psun{width:22px;height:22px;margin:-11px 0 0 -11px;left:var(--x);top:var(--y)}
+
+/* phones: the slider sits under the studio line, on the right */
+@media (max-width:759px){
+  .dateline .slot{position:absolute;right:0;top:calc(100% + 44px);width:140px;margin:0}
+  .dateline .slot.dial{width:46px;top:calc(100% + 36px)}
+  .pbs{width:140px}
+  .pbs.dial{width:46px}
+}
+@media (pointer:coarse){.pbs:not(.dial){height:44px}}
+@media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
+</style>
 </head>
 <body>
 <main>
@@ -531,12 +779,10 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
         <div class="art" id="art">
           <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <span class="reg tl" aria-hidden="true"></span><span class="reg tr" aria-hidden="true"></span><span class="reg bl" aria-hidden="true"></span><span class="reg br" aria-hidden="true"></span>
-          <span class="punch p1" aria-hidden="true"></span><span class="punch p2" aria-hidden="true"></span>
-          <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1" viewBox="0 0 978 1330" aria-hidden="true" focusable="false"><rect class="pb-bar pb-bar-p" x="77" y="445" width="70" height="885"/><rect class="pb-bar pb-bar-b" x="587" y="4" width="71" height="908"/><g class="pb-morph" aria-hidden="true"></g><path class="pb-glyph" d="M4 1330L4 1314L99 1302L119 1302L225 1314L225 1330ZM73 1330Q75 1307 76 1269Q76 1232 77 1107Q77 981 77 949L77 645Q77 617 77 595Q76 573 76 553Q75 534 74 514L0 497L0 482L139 438L147 446L147 530L147 534L147 826L147 830L147 949Q147 981 148 1107Q148 1232 149 1269Q150 1307 151 1330ZM278 915Q251 915 225 906Q199 896 176 876Q153 855 134 822L120 822L127 797Q164 841 194 858Q225 875 265 875Q301 875 330 852Q359 830 376 784Q393 738 393 670Q393 570 356 523Q318 477 262 477Q235 477 212 488Q189 499 169 520Q149 540 131 568L125 539L138 539Q153 510 174 488Q196 465 224 452Q252 438 286 438Q336 438 377 464Q418 489 443 540Q467 590 467 666Q467 745 442 801Q416 856 373 886Q330 915 278 915ZM515 902L515 886L584 877Q585 847 586 814Q586 781 587 748Q587 716 587 691L587 68L511 51L511 37L653 0L661 8L657 364L657 533L657 536L657 827L657 829L657 913ZM788 915Q761 915 735 906Q709 896 686 876Q663 855 644 822L630 822L637 797Q674 841 704 858Q735 875 776 875Q813 875 841 852Q870 830 887 784Q903 738 903 670Q903 570 866 523Q829 477 772 477Q746 477 723 488Q699 499 679 520Q659 540 641 568L635 539L648 539Q663 510 685 488Q707 465 735 452Q763 438 797 438Q846 438 887 464Q928 489 953 540Q978 590 978 666Q978 745 952 801Q927 856 884 886Q841 915 788 915Z"/></svg><svg class="mono-pb v2" viewBox="0 0 1150 1422" aria-hidden="true" focusable="false"><path d="M0 1422L0 1412L1 1412Q37 1412 59 1390Q81 1368 81 1332L81 547Q80 503 62 485Q44 467 0 467L0 457L99 457Q158 457 180 446Q202 435 212 419L222 419L223 547Q246 502 293 472Q340 442 392 442Q448 442 491 476Q534 510 558 569Q583 627 583 703Q583 787 553 849Q523 911 468 945Q414 979 339 979Q298 979 272 967Q246 954 225 925L225 1332Q225 1368 247 1390Q269 1412 305 1412L306 1412L306 1422ZM318 962Q372 962 400 895Q427 827 427 700Q427 482 339 482Q305 482 272 509Q239 536 225 575L225 808Q225 880 250 921Q275 962 318 962ZM646 979L646 128Q646 92 624 70Q601 48 565 48L565 38L667 38Q726 38 748 27Q770 16 780 0L790 0L790 541Q813 496 855 469Q896 442 946 442Q1005 442 1051 477Q1097 512 1124 572Q1150 632 1150 709Q1150 789 1121 850Q1091 911 1038 945Q985 979 914 979Q795 979 754 880L656 979ZM885 962Q938 962 965 896Q992 830 992 702Q992 590 971 536Q950 482 905 482Q865 482 835 511Q804 540 790 576L790 827Q794 889 819 926Q844 962 885 962Z"/></svg><svg class="mono-pb v3" viewBox="0 0 1179 1400" aria-hidden="true" focusable="false"><path d="M217 528Q223 514 239 492Q255 471 287 454Q319 437 370 437Q404 437 442 451Q480 465 514 496Q548 527 570 577Q591 627 591 700Q591 792 558 850Q525 909 472 936Q419 963 358 963Q282 963 228 915L228 1245Q228 1285 246 1312Q264 1340 301 1340Q316 1340 316 1355L316 1385Q316 1400 301 1400L15 1400Q0 1400 0 1385L0 1355Q0 1340 16 1340Q53 1340 70 1312Q88 1285 88 1245L88 651Q88 624 85 599Q82 574 70 556Q57 539 29 536Q22 535 20 532Q18 528 18 523L18 489Q18 476 32 476Q82 476 114 472Q146 467 170 458Q193 449 216 438Q219 436 222 436Q224 436 225 436L226 436Q228 436 228 439Q228 440 228 444Q227 448 225 466Q223 485 217 528ZM228 772Q232 803 246 832Q259 861 283 879Q307 897 340 897Q388 897 415 873Q442 849 452 811Q463 773 463 732Q463 636 424 580Q386 524 324 524Q284 524 260 546Q235 569 228 590ZM676 270Q676 243 672 218Q669 193 657 176Q645 158 617 155Q605 154 605 142L605 108Q605 102 608 100Q612 97 619 95Q699 69 743 43Q787 17 807 2Q810 0 812 0L813 0Q815 0 815 2L815 486Q829 466 861 452Q894 437 936 437Q977 437 1019 451Q1062 465 1098 496Q1134 527 1156 578Q1179 628 1179 701Q1179 777 1147 836Q1116 896 1057 930Q998 963 917 963Q851 963 796 940Q741 918 708 868Q676 817 676 735ZM815 756Q815 805 831 836Q847 867 873 882Q899 897 927 897Q976 897 1002 874Q1029 850 1039 812Q1050 774 1050 733Q1050 637 1009 581Q969 525 892 525Q850 525 815 551Z"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
-          <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><b>Based in Mill Valley, California</b></p>
+          <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1 pb-logo" viewBox="0 0 3 5.95" aria-hidden="true" focusable="false"><rect x="0" y="1" width="1" height="4.95"/><rect x="2" y="0" width="1" height="4.95"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
+          <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><span class="slot" aria-hidden="true"></span><b>Based in Mill Valley, California</b></p>
           <p class="dl-sub">A design + creative technology studio</p>
           <p class="thesis"><span class="t1">Technology that</span><span class="t2">gives energy back.</span></p>
-          <span class="ruler" aria-hidden="true"></span>
         </div>
       </div>
 
@@ -632,17 +878,17 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   </section>
 
   <section class="closing" aria-label="Contact">
+    <div class="sky" id="sky" aria-hidden="true"></div>
     <div class="garden" aria-hidden="true">
       <img class="dahlia-top" id="dahliaTop" src="img/dahlia-cafe.webp" alt="" width="955" height="1000" decoding="async" loading="lazy">
-      <div class="flip tiny" id="flipTiny" aria-hidden="true"><img src="img/flip-bloom-1.webp" alt="" class="on" decoding="async"><img src="img/flip-bloom-2.webp" alt="" decoding="async"></div>
       <div class="flip big" id="flipBig"><img src="img/flip-dahlia-1.webp" alt="" class="on" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-3.webp" alt="" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><span class="perch" id="perch"><img src="img/bee-2.webp" alt="" class="on"><img src="img/bee-1.webp" alt="" class="flick"></span></div>
       <div class="flip small" id="flipSmall"><img src="img/flip-peony-3.webp" alt="" class="on" decoding="async"><img src="img/flip-dahlia-4.webp" alt="" decoding="async"><img src="img/flip-peony-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-2.webp" alt="" decoding="async"><img src="img/flip-peony-2.webp" alt="" decoding="async"><img src="img/flip-dahlia-1.webp" alt="" decoding="async"><img src="img/flip-dahlia-3.webp" alt="" decoding="async"></div>
       <div class="cbee" id="cBee2"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
       <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
     <div class="contact">
-      <p class="studio">An independent studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes software and experiences you can <span class="pen"><span class="pw">hear<img class="u-hear" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"></span> &amp;&nbsp;<span class="pw">feel<img class="u-feel" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span></span>.</p>
-      <a class="mail" href="mailto:hi@planetbased.io" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"><svg viewBox="-32 -4 182 70" focusable="false"><defs><filter id="pbPencil" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.4 0 0 0 -.62" result="g"/><feComposite in="d" in2="g" operator="in"/></filter></defs><g filter="url(#pbPencil)"><path class="c-chk" pathLength="1" d="M-28 28 C-25 31 -22 36 -20 40 C-16 29 -10 17 -1 6"/><path class="c-word" pathLength="1" d="M17 22 C14 17 6 18 6 30 C6 41 14 44 21 38 C24 34 26 18 34 18 C41 18 43 29 39 37 C36 44 28 43 28 36 C28 27 35 20 42 21 C46 22 49 21 53 19 C53 31 52 46 50 60 C51 48 52 36 55 27 C58 20 68 16 70 26 C72 37 63 45 55 40 C61 44 69 42 74 35 C77 30 79 24 80 19 C79 28 78 38 81 42 C84 46 89 41 92 37 C96 33 102 29 101 23 C100 16 92 18 91 27 C90 38 97 45 105 42 C112 43 127 37 127 22 C121 15 111 21 111 32 C111 43 122 45 128 35 C131 27 133 11 134 1 C133 13 131 32 132 40 C133 46 139 45 143 40"/><path class="c-dot" pathLength="1" d="M79.5 9.5 C80.5 9 81.5 9.1 82 10"/></g></svg></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
+      <p class="studio">An independent <span class="ph-only">creative </span>studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes experiences you can <span class="pen">hear &amp;&nbsp;feel<img class="u-a" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"><img class="u-b" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span>.</p>
+      <a class="mail" role="button" tabindex="0" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"><svg viewBox="-32 -4 182 70" focusable="false"><defs><filter id="pbPencil" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.4 0 0 0 -.62" result="g"/><feComposite in="d" in2="g" operator="in"/></filter></defs><g filter="url(#pbPencil)"><path class="c-chk" pathLength="1" d="M-28 28 C-25 31 -22 36 -20 40 C-16 29 -10 17 -1 6"/><path class="c-word c-w1" pathLength="1" d="M17.3 22.9 C15.0 16.3 5.7 19.4 6.2 31.1 C5.9 43.1 13.5 45.4 21.7 39.2 C23.3 33.7 24.1 16.9 35.2 16.0 C40.6 15.3 42.8 27.4 39.4 36.1 C36.3 43.1 27.3 44.5 26.9 37.0 C26.6 27.2 36.1 18.8 41.1 18.3"/><path class="c-word c-w2" pathLength="1" d="M41.1 18.3 C46.5 18.6 50.2 18.9 53.6 16.2 C53.3 27.0 52.4 41.4 50.2 54.2 C50.7 43.3 52.5 31.3 55.5 23.4 C58.5 17.2 67.9 12.0 71.4 22.0 C73.4 30.9 62.7 40.2 55.8 35.5 C60.8 38.1 69.8 36.4 74.0 29.7"/><path class="c-word c-w3" pathLength="1" d="M74.0 29.7 C76.1 24.7 77.4 19.2 79.4 14.0 C78.7 23.7 77.2 34.7 80.4 38.1 C84.1 43.5 88.4 38.2 91.5 32.9 C95.8 30.1 102.5 26.1 101.2 20.6 C100.6 13.6 92.0 15.8 91.2 23.2 C89.5 34.1 96.2 39.2 105.4 37.1 C110.3 41.0 127.1 31.3 126.5 16.3 C123.0 10.3 109.7 16.5 110.6 28.9 C110.9 40.3 123.6 41.7 127.1 29.8 C131.2 20.0 133.8 2.9 134.6 -7.9 C132.7 6.2 129.5 26.6 131.1 34.7 C132.7 40.4 138.8 37.8 147.0 29.9"/><path class="c-dot" pathLength="1" d="M79.5 9.5 C80.5 9 81.5 9.1 82 10"/></g></svg></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
       <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
     </div>
     <div class="home" id="home">
@@ -654,7 +900,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     </div>
   </section>
 </main>
-<footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back</span></div></footer>
+<footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
 <script>
@@ -840,6 +1086,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     // the sun, the flowers, and the bees belong to the hero: 11-13 (Ivy) they leave with the type, on its exact curve and in
     // place, so nothing lifts while the words stay still
     put(objs, 'opacity', a.toFixed(3));
+    if (window.__pbSlider) window.__pbSlider(a);   // the colour slider leaves with the hero type
   }
 
   // ---------- preloader: blocks slide in from their edges and lock into one green ----------
@@ -850,6 +1097,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     stopSun();
     pin.classList.remove('reveal', 'sealed', 'split', 'logo-run', 'logo-morph', 'logo-fade');
     pin.classList.add('intro', 'sliding');
+    const loader = pin.querySelector('.loader'), tree = loader && loader.querySelector('.loader-in');
+    if (loader) loader.querySelectorAll('.lcut').forEach(n => n.remove());
+    if (tree) pin.classList.add('cut');
     const order = ['wall', 'uni', 'top', 'bee', 'bio', 'low'];
     const delays = [0, 110, 230, 320, 470, 580].map(d => d + (replay ? 80 : 120));
     const durs = [700, 740, 660, 720, 760, 680];
@@ -873,6 +1123,15 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       if (b.spec.from === 'bottom') oy = H - hr.y + 60;
       const at = (dx, dy) => `translate3d(${hr.x + dx}px,${hr.y + dy}px,0)`;
       put(b.el, 'transform', at(ox, oy));
+      if (tree) {                                  // this block's piece of the tree, pushed the way the block travels
+        const pc = document.createElement('div'); pc.className = 'lcut'; pc.setAttribute('aria-hidden', 'true');
+        pc.appendChild(tree.cloneNode(true)); pc.firstChild.removeAttribute('id'); pc.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+        pc.style.clipPath = `inset(${hr.y}px ${W - hr.x - hr.w}px ${H - hr.y - hr.h}px ${hr.x}px)`;
+        loader.appendChild(pc);
+        const px = -Math.sign(ox) * W * .035, py = -Math.sign(oy) * H * .05;
+        introAnims.push(pc.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`, opacity: 0 }],
+          { duration: durs[i] * .9, delay: delays[i], fill: 'forwards', easing: 'cubic-bezier(.65,0,.35,1)' }));
+      }
       // the same in-out curve the scroll uses, no overshoot: each block glides in and settles
       const a = b.el.animate([{ transform: at(ox, oy) }, { transform: at(0, 0) }],
         { duration: durs[i], delay: delays[i], fill: 'forwards', easing: 'cubic-bezier(.65,0,.35,1)' });
@@ -891,6 +1150,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     if (!introRunning) return;
     introTimers.forEach(clearTimeout); introTimers = [];
     introAnims.forEach(a => { a.cancel(); }); introAnims = [];
+    pin.querySelectorAll('.lcut').forEach(n => n.remove()); pin.classList.remove('cut');
     blocks.forEach(b => b.el.classList.remove('moving'));
     introRunning = false; introDone = true; window.__heroSettled = performance.now();
     pin.classList.remove('intro', 'sealed');
@@ -1080,12 +1340,17 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     copyTimers.push(setTimeout(() => copiedMark.classList.add('out'), 3800));
     copyTimers.push(setTimeout(() => { copiedMark.classList.remove('on', 'out'); mailStatus.textContent = ''; }, 4600));
   }
+  // 11-13 (Ivy): it is a button now (no href, so no "mailto:" in the status bar); Enter and Space copy too
+  const openMail = () => { location.href = 'mailto:' + ADDRESS; };
+  const copyAddress = () => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { openMail(); return; }
+    navigator.clipboard.writeText(ADDRESS).then(showCopied, openMail);
+  };
   mail.addEventListener('click', e => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
-    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
-    e.preventDefault();
-    navigator.clipboard.writeText(ADDRESS).then(showCopied, () => { location.href = mail.href; });
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) { openMail(); return; }
+    copyAddress();
   });
+  mail.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyAddress(); } });
 
   // ---------- a paper bee drifts through now and then: in from the right, a visit to the peony, out over the top. Seeded ----------
   const beeFly = document.getElementById('beeFly');
@@ -1261,7 +1526,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   // 11-13 (Ivy): the garden flowers were changing too often and pulling focus. Each now rests a long while, they never
   // change in the same moment, and no two ever show the same flower at once. The big one is the calmest.
   const garden = { last: 0, showing: new Map() };
-  const PACE = { big: [11000, 9000], small: [6000, 6000], tiny: [8000, 9000] };   // [min ms, extra random ms]
+  const PACE = { big: [11000, 9000], small: [6000, 6000] };   // [min ms, extra random ms]
   function flipbook(el, seed, pace) {
     const frames = [...el.querySelectorAll(':scope > img')], r = mulberry32(seed), [base, extra] = PACE[pace];
     const name = img => (img.getAttribute('src') || '').replace(/^.*\/|\.webp$/g, '').replace(/^flip-/, '');
@@ -1286,26 +1551,6 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   flipbook(document.getElementById('flipBig'), 4242, 'big');
   flipbook(document.getElementById('flipSmall'), 9191, 'small');
-  flipbook(document.getElementById('flipTiny'), 5151, 'tiny');
-  // the top flower sits directly above the word "Ivy" in the studio line
-  (function placeTiny() {
-    const tiny = document.getElementById('flipTiny'), p = document.querySelector('.studio'); if (!tiny || !p) return;
-    const put = () => {
-      const w = document.createTreeWalker(p, NodeFilter.SHOW_TEXT); let n, rect = null;
-      while ((n = w.nextNode())) { const i = n.data.indexOf('Ivy'); if (i >= 0) { const rg = document.createRange(); rg.setStart(n, i); rg.setEnd(n, i + 3); rect = rg.getBoundingClientRect(); break; } }
-      if (!rect) return;
-      const cr = closing.getBoundingClientRect();
-      tiny.style.setProperty('--tiny-x', (rect.left + rect.width / 2 - cr.left - tiny.offsetWidth / 2) + 'px');
-      if (innerWidth < 760) return;     // phones: the dahlia takes this place (CSS)
-      // 11-12 (Ivy): fully on screen when you reach the footer, near the top of what you see, never cut off by the page edge
-      const cTop = cr.top + scrollY, maxView = document.documentElement.scrollHeight - innerHeight - cTop;
-      const pr = p.getBoundingClientRect(), studioTop = pr.top - cr.top, h = tiny.offsetHeight;
-      let y = maxView + Math.min(140, Math.max(48, innerHeight * .09));
-      y = Math.max(24, Math.min(y, studioTop - h - 48));
-      tiny.style.top = y + 'px';
-    };
-    put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
-  })();
   // phones: the garden flowers hang off the house, wherever the house lands now the address sits below it
   (function anchorGarden() {
     const home = document.getElementById('home');
@@ -1316,6 +1561,122 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     };
     put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
     cottage.addEventListener('load', put);
+  })();
+
+  // ---------- the sky: handmade cotton clouds drift through the closing's open space ----------
+  // 11-13 (Ivy): calm and slow, layered: far clouds are small, slow, a touch soft and faint; near ones bigger, quicker,
+  // sharper. Each has its own speed and bob so they never fall into step, and wraps round off the page edge. They live
+  // in lanes measured from the layout: above the studio line (never over type), behind the house, and one passes in
+  // front of the chimney top. Transform only, one rAF loop, paused off screen; reduced motion gets a still sky.
+  (() => {
+    const sky = document.getElementById('sky'), studio = document.querySelector('.studio');
+    if (!sky || !studio) return;
+    const SIZE = { 1: [734, 444], 5: [708, 410], 6: [573, 346], 7: [439, 222], 10: [346, 220] };
+    // w: width as a share of the closing; lane: where the cloud's top sits (L = measured layout); v: px per second.
+    // The near cloud and the chimney cloud share a speed, half a lap apart, so the big one never slides behind the small one
+    // 11-13 (Ivy): the dahlia is the biggest thing here. The two bigger clouds keep to the sky above it (big: true), a pair
+    // half a lap apart so one of them is always up there. The small ones live either side of it, and the dahlia is their
+    // door: the left one drifts in from the page edge and slips away behind the flower; the right ones come out from behind
+    // it and drift off the edge (zone: 'L' / 'R'). Nothing lingers behind the flower, and two or three are always in view
+    const DESK = [
+      { n: 6,  depth: 'far', w: .085, v: 5.6, x: .3, bob: [3, 17], lane: (L, h) => L.fMid - h * .5, zone: 'L' },
+      { n: 5,  depth: 'far', w: .095, v: 5.2, x: .65, bob: [4, 14], lane: (L, h) => L.fMid - h * .62, zone: 'R' },
+      { n: 7,  depth: 'mid', w: .135, v: 9.4, x: .86, bob: [4, 15.5], lane: L => L.top, big: true, pair: 'b' },
+      { n: 10, depth: 'near', front: true, w: .1, v: 7.4, x: .1, bob: [3, 12.5], lane: (L, h) => L.chim - h * .97, zone: 'R' },   // its round belly dips to the middle of the chimney, the top half hidden in cotton
+      { n: 1,  depth: 'near', w: .2, v: 9.4, x: .36, bob: [5, 13.5], lane: L => L.top, big: true, pair: 'b' }
+    ];
+    // phones: the café dahlia fills the middle, so the two back clouds keep to its open corners, top and bottom
+    const PHONE = [
+      { n: 6,  depth: 'far', w: .28, v: 4.6, x: .15, bob: [3, 15], lane: L => L.dTop },
+      { n: 7,  depth: 'mid', w: .36, v: 6.2, x: .7, bob: [4, 13], lane: (L, h) => L.dTop + L.dH - h * .95 },
+      { n: 10, depth: 'near', front: true, w: .3, v: 7.8, x: .45, bob: [3, 11.5], lane: (L, h) => L.chim - h * .7,
+        box: L => [L.studioB + 16 + BOB, L.mailT - 30 - BOB] }   // between the studio line and the address, at the chimney
+    ];
+    const BOB = 6;                                           // the most any cloud bobs, kept clear of the type
+    let clouds = [], L = null, built = null, on = false, raf = 0, last = 0, t = 0;
+    const phone = () => innerWidth < 760;
+    function measure() {
+      const W = sky.clientWidth, cr = closing.getBoundingClientRect(), st = relTo(studio, closing), house = relTo(cottage, closing);
+      // the part of the closing on screen when the page is scrolled to the end: clouds live there, not above the fold of it
+      const hidden = Math.max(0, document.documentElement.scrollHeight - innerHeight - (cr.top + scrollY));
+      const top = (phone() ? 10 : hidden + 18) + BOB, bottom = st.t - (phone() ? 22 : 44) - BOB;
+      const d = relTo(document.getElementById('dahliaTop'), closing);
+      // the chimney: the house picture is flipped, so the stack stands near its right edge; it runs from the top to 7% down
+      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, studioB: st.b,
+        dTop: d.t, dH: d.b - d.t, mailT: relTo(document.querySelector('.contact a.mail'), closing).t, ...(f => ({ fTop: f.t, fMid: (f.t + f.b) / 2, fL: f.l, fW: f.r - f.l }))(relTo(document.getElementById('flipBig'), closing)) };
+    }
+    function build() {
+      const set = phone() ? PHONE : DESK;
+      sky.textContent = ''; built = phone();
+      clouds = set.map((c, i) => {
+        const el = document.createElement('div'), im = new Image();
+        el.className = 'cloud ' + c.depth + (c.front ? ' front' : '');
+        im.alt = ''; im.decoding = 'async'; im.loading = 'lazy'; im.width = SIZE[c.n][0]; im.height = SIZE[c.n][1];
+        im.src = 'img/cloud-' + c.n + '.webp';
+        im.addEventListener('load', () => el.classList.add('in'), { once: true });
+        el.appendChild(im); sky.appendChild(el);
+        return { ...c, el, ph: (i * 2.399) % (Math.PI * 2) };
+      });
+      layout();
+    }
+    function layout() {
+      if (!clouds.length) return;
+      L = measure();
+      clouds.forEach(c => {
+        const ar = SIZE[c.n][1] / SIZE[c.n][0];
+        // never taller than the open band allows, so a cloud never reaches the type
+        // (a big cloud also stays above the big dahlia's top)
+        const room = c.big ? Math.min(L.band, L.fTop - 14 - BOB - L.top) : L.band;
+        let w = c.w * L.W; if (w * ar > room * .9) w = room * .9 / ar;
+        w = Math.max(phone() ? 70 : 90, w);
+        c.wpx = w; c.hpx = w * ar; c.el.style.width = w.toFixed(1) + 'px';
+        const [lo, hi] = c.box ? c.box(L) : [L.top, c.big ? Math.min(L.bottom, L.fTop - 14 - BOB) : L.bottom];
+        c.y = clamp(c.lane(L, c.hpx), lo, Math.max(lo, hi - c.hpx));
+      });
+      // the lap. A pair shares one, half a lap apart, so one of the two is always in view. A zone cloud runs between the
+      // page edge and the middle of the dahlia, wrapping round while it is hidden behind the flower. On phones each cloud
+      // comes straight back round as it leaves, so all three are always in view
+      clouds.forEach(c => {
+        const mates = c.pair ? clouds.filter(o => o.pair === c.pair) : [c], hide = L.fL + (L.fW - c.wpx) / 2;
+        c.x0 = -c.wpx - 20;
+        if (phone()) c.span = L.W + c.wpx + 40;
+        else if (c.zone === 'L') c.span = hide - c.x0;
+        else if (c.zone === 'R') { c.x0 = hide; c.span = L.W + 20 - hide; }
+        else c.span = L.W * 1.45 + Math.max(...mates.map(o => o.wpx)) + 40;
+      });
+      draw();
+    }
+    function draw() {
+      for (const c of clouds) {
+        const x = c.x0 + ((c.x * c.span + c.v * t) % c.span);
+        const b = Math.sin(t * Math.PI * 2 / c.bob[1] + c.ph);
+        const y = c.y + b * c.bob[0];
+        c.el.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) rotate(${(b * .5).toFixed(2)}deg)`;
+      }
+    }
+    function frame(now) {
+      raf = 0;
+      if (!on || reduceQ.matches) return;
+      t += Math.min(.1, (now - last) / 1000); last = now;
+      draw();
+      raf = requestAnimationFrame(frame);
+    }
+    function run() {
+      if (raf || !on || reduceQ.matches || !clouds.length) return;
+      last = performance.now(); raf = requestAnimationFrame(frame);
+    }
+    // build only as the closing comes near, so the cloud pictures load late
+    const near = 'IntersectionObserver' in window ? new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) { near.disconnect(); build(); run(); }
+    }, { rootMargin: '0px 0px 900px 0px' }) : null;
+    if (near) near.observe(closing); else build();
+    watch(closing, v => { on = v; if (on) { if (L) layout(); run(); } });
+    addEventListener('resize', () => { if (!clouds.length) return; if (built !== phone()) build(); else layout(); }, { passive: true });
+    document.fonts && document.fonts.ready.then(() => layout());
+    cottage.addEventListener('load', () => layout());
+    reduceQ.addEventListener && reduceQ.addEventListener('change', () => { draw(); run(); });
+    if (/[?&]debug(&|$)/.test(location.search)) window.__sky = { get clouds() { return clouds; }, get L() { return L; }, get t() { return t; }, layout, draw,
+      at(i, X) { const c = clouds[i]; c.x = (((X - c.x0 - c.v * t) % c.span) + c.span) % c.span / c.span; draw(); } };
   })();
 
   // the bee on the big flower: crawls and hops in small steps around the centre (the nectar), turns, flickers its wings
@@ -1377,7 +1738,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       const q = relTo(fl, closing), w = bee.offsetWidth, W = closing.clientWidth;
       // the dahlia's red heart sits a little left of and above the middle of its picture
       const centre = { x: lerp(q.l, q.r, .48) - w / 2 + (r() - .5) * w * .3, y: lerp(q.t, q.b, .44) - w * .62 + (r() - .5) * w * .2 };
-      const fromLeft = r() < .5, start = { x: fromLeft ? -w * 1.5 : W + w * .5, y: q.t + (r() - .2) * w * 2 }, end = { x: fromLeft ? W + w * .5 : -w * 1.5, y: q.t - w * (1 + r()) };
+      const fromLeft = r() < .5, end = { x: fromLeft ? W + w * .5 : -w * 1.5, y: q.t - w * (1 + r()) };
+      const start = first ? { x: q.r - w * .2, y: q.t - w * .4 } : { x: fromLeft ? -w * 1.5 : W + w * .5, y: q.t + (r() - .2) * w * 2 };
+      first = false;
       pos = start; bee.classList.add('placed');
       arc(start, centre, () => {
         show(true);
@@ -1390,7 +1753,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
         timer = setTimeout(linger, 700);
       });
     }
-    watch(closing, v => { on = v; if (on && !timer) timer = setTimeout(visit, 2500 + r() * 2500); });
+    // 11-13 (Ivy): the first visit starts the moment the flower is in view, from just beside it; then the usual rhythm
+    let first = true;
+    watch(fl, v => { on = v; if (on && !timer) { timer = setTimeout(visit, first ? 150 : 2500 + r() * 2500); } });
   })();
 
   // ---------- the visiting bee: rests on the small flower, now and then flies to "stranger" and rests on the word ----------
@@ -1483,7 +1848,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   function surfClose() {
     const w = newt.offsetWidth, h = newt.offsetHeight, pad = Math.max(12, w * .12);
     const els = [cottage, document.getElementById('potTree'), document.getElementById('flipBig'), document.getElementById('flipSmall'),
-      ...(innerWidth < 760 ? [document.getElementById('dahliaTop')] : [document.getElementById('flipTiny')]),
+      ...(innerWidth < 760 ? [document.getElementById('dahliaTop')] : []),
       ...closing.querySelectorAll('.studio, .mail, .quiet')];
     const avoid = els.map(e => grow(relTo(e, closing), pad));
     const f = relTo(floor, closing), m = f.l;
@@ -1875,6 +2240,97 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   reduceQ.addEventListener('change', () => { setMode(false); startSun(); });
   cottage.addEventListener('load', () => { const cb = document.getElementById('cBee'); if (cb.__place) cb.__place(); });
   setMode(true);
+})();
+</script>
+<script>
+// ---------- the page colour: the paintings' layers and the slider (the engine is in the head) ----------
+(() => {
+  'use strict';
+  const M = window.PBM, doc = document.documentElement;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const hero = document.getElementById('hero');
+
+  // the painting layers: over the hero green, every block slice (they carry the hero's colour), every card frame
+  // (phones) and every card's content (desktop, with its own green underneath)
+  document.querySelectorAll('.hero.tex, .slice.tex, .frame.ptex, .pc').forEach(el => {
+    const pl = document.createElement('span'); pl.className = 'pl'; pl.setAttribute('aria-hidden', 'true');
+    pl.innerHTML = '<i class="g"></i><i class="o"></i><i class="k"></i><i class="w"></i>';
+    el.prepend(pl);
+  });
+  // the dark page's ground
+  const pg = document.createElement('div'); pg.className = 'pg'; pg.setAttribute('aria-hidden', 'true'); document.body.prepend(pg);
+
+  // ---- the slider: in the hero's top line, over a slot the dateline keeps open for it. ?dial puts it on a small ring
+  const dial = /[?&]dial(&|$)/.test(location.search);
+  const slot = hero.querySelector('.dateline .slot');
+  if (dial) slot.classList.add('dial');
+  const s = document.createElement('div');
+  s.className = 'pbs' + (dial ? ' dial' : ''); s.tabIndex = 0;
+  s.setAttribute('role', 'slider'); s.setAttribute('aria-label', 'Page colour'); s.setAttribute('aria-valuemin', '0'); s.setAttribute('aria-valuemax', '2');
+  s.innerHTML = '<span class="strip"><i class="g"></i><i class="o"></i><i class="k"></i></span><span class="psun"><img src="img/sun-thumb.webp" alt="" width="112" height="112" draggable="false"></span>';
+  hero.appendChild(s);
+  const ARC = 300;                                         // the ring's colours run round 300 degrees from the top
+  const geom = () => { const w = s.clientWidth, r = 16; return { w, x0: r * .55, x1: w - r * .55 }; };
+  function draw(t) {
+    if (dial) {
+      const a = t / 2 * ARC * Math.PI / 180, R = s.clientWidth / 2 - 3.5, c = s.clientWidth / 2;
+      s.style.setProperty('--x', (c + R * Math.sin(a)).toFixed(1) + 'px'); s.style.setProperty('--y', (c - R * Math.cos(a)).toFixed(1) + 'px');
+      s.style.setProperty('--roll', (t / 2 * ARC).toFixed(1) + 'deg');
+    } else {
+      const g = geom(); s.style.setProperty('--x', (g.x0 + (g.x1 - g.x0) * t / 2).toFixed(1) + 'px');
+      s.style.setProperty('--roll', (t / 2 * 180).toFixed(1) + 'deg');   // it rolls as it goes: upside down at the far end
+    }
+    s.setAttribute('aria-valuenow', M.shown.toFixed(2)); s.setAttribute('aria-valuetext', M.valueText(M.shown));
+  }
+  function place() {
+    let x = 0, y = 0, e = slot;
+    while (e && e !== hero) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+    s.style.left = x + 'px'; s.style.top = (y + slot.offsetHeight / 2 - s.offsetHeight / 2) + 'px';
+    draw(M.shown);
+  }
+  M.on(draw);
+  let lastA = null;
+  const at = e => {
+    const r = s.getBoundingClientRect();
+    if (dial) {                                            // the angle round the ring, continuous (no jump across the gap)
+      let a = Math.atan2(e.clientX - r.left - r.width / 2, -(e.clientY - r.top - r.height / 2)) * 180 / Math.PI;
+      if (a < 0) a += 360;
+      if (a > ARC) a = lastA != null && lastA > ARC / 2 ? ARC : (a > ARC + (360 - ARC) / 2 ? 0 : ARC);
+      lastA = a; return a / ARC * 2;
+    }
+    const g = geom(); return clamp((e.clientX - r.left - g.x0) / (g.x1 - g.x0)) * 2;
+  };
+  let dragging = false;
+  s.addEventListener('pointerdown', e => { e.preventDefault(); dragging = true; lastA = M.t / 2 * ARC; s.setPointerCapture(e.pointerId); s.classList.add('drag'); M.set(at(e), { tau: 90 }); });
+  s.addEventListener('pointermove', e => { if (dragging) M.set(at(e), { tau: 40 }); });
+  const end = () => {
+    if (!dragging) return; dragging = false; s.classList.remove('drag');
+    const n = Math.round(M.t); if (Math.abs(M.t - n) < .08) M.set(n, { tau: 160 });   // a soft pull onto a mode
+  };
+  s.addEventListener('pointerup', end); s.addEventListener('pointercancel', end);
+  s.addEventListener('keydown', e => {
+    const t = M.t; let v = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') v = t + .05;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') v = t - .05;
+    if (e.key === 'PageUp') v = Math.floor(t + .001) + 1;
+    if (e.key === 'PageDown') v = Math.ceil(t - .001) - 1;
+    if (e.key === 'Home') v = 0; if (e.key === 'End') v = 2;
+    if (v === null) return; e.preventDefault(); e.stopPropagation(); M.set(v, { tau: 120 });
+  });
+  // it leaves with the hero type as the page scrolls (render() calls this with the type's opacity)
+  window.__pbSlider = a => { const v = a >= .999 ? '' : a.toFixed(3); if (s.__o !== v) { s.__o = v; s.style.opacity = v; s.style.visibility = a < .002 ? 'hidden' : ''; } };
+  place();
+  if (document.fonts) document.fonts.ready.then(place);
+  let rt = 0; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { M.paintSize(); place(); }, 120); });
+  // decode the other two paintings once the arrival is done, so the first slide never waits on them
+  setTimeout(() => ['img/oat-backdrop.webp', 'img/ink-backdrop.webp', 'img/green-backdrop-4.webp'].forEach(u => { const im = new Image(); im.src = u; if (im.decode) im.decode().catch(() => {}); }), 5200);
+  if (/[?&]debug(&|$)/.test(location.search)) window.__frames = async (ms = 1600) => {
+    const ts = []; let stop = false;
+    const loop = now => { ts.push(now); if (!stop) requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+    const steps = 40; for (let i = 0; i <= steps; i++) { M.set(2 * Math.abs(Math.sin(i / steps * Math.PI)), { tau: 40 }); await new Promise(r => setTimeout(r, ms / steps)); }
+    stop = true; const dts = ts.slice(1).map((v, i) => v - ts[i]).sort((a, b) => a - b);
+    return { frames: dts.length, median: +dts[dts.length >> 1].toFixed(1), p95: +dts[Math.floor(dts.length * .95)].toFixed(1), max: +dts[dts.length - 1].toFixed(1) };
+  };
 })();
 </script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
