@@ -63,6 +63,19 @@
     syncFooter();
   }
   const wake = () => { if (answer === 'yes') start(); };
+  // 11-14 (Ivy's iPhone): on iOS a touch's pointerdown is not a user activation; the audio may only start inside
+  // touchend, pointerup or click. So on each of those (capture, anywhere) the context is created or resumed and a silent
+  // buffer is played right there, synchronously: a drag that turned sound on (song.js, on pointerdown) is heard from the
+  // finger lifting on (the settle chord on release plays), and every later touch is live from its first note
+  function gestureUnlock() {
+    if (!allowed()) return;
+    try {
+      if (!ctx) { start(); return; }
+      if (ctx.state !== 'running') ctx.resume();
+      const b = ctx.createBufferSource(); b.buffer = ctx.createBuffer(1, 1, ctx.sampleRate); b.connect(ctx.destination); b.start(0);
+    } catch (e) {}
+  }
+  ['touchend', 'pointerup', 'click'].forEach(t => addEventListener(t, gestureUnlock, { capture: true, passive: true }));
   addEventListener('pointerdown', wake, { capture: true, passive: true });
   addEventListener('keydown', wake, { capture: true });
   const live = () => allowed() && ctx && ctx.state === 'running';

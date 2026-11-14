@@ -663,8 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=15">
-<link rel="stylesheet" href="logo/b-variant.css?v=15">
+<link rel="stylesheet" href="logo/story.css?v=16">
+<link rel="stylesheet" href="logo/b-variant.css?v=16">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -916,17 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=15"></script>
-<script src="logo/pose.js?v=15"></script>
-<script src="logo/sound.js?v=15"></script>
-<script src="logo/bees.js?v=15"></script>
-<script src="logo/hero-logo.js?v=15"></script>
-<script src="logo/story.js?v=15"></script>
-<script src="logo/common.js?v=15"></script>
-<script src="logo/song.js?v=15"></script>
-<script src="logo/strings.js?v=15"></script>
-<script src="logo/preload.js?v=15"></script>
-<script src="logo/b-variant.js?v=15"></script>
+<script src="logo/hero-logo-data.js?v=16"></script>
+<script src="logo/pose.js?v=16"></script>
+<script src="logo/sound.js?v=16"></script>
+<script src="logo/bees.js?v=16"></script>
+<script src="logo/hero-logo.js?v=16"></script>
+<script src="logo/story.js?v=16"></script>
+<script src="logo/common.js?v=16"></script>
+<script src="logo/song.js?v=16"></script>
+<script src="logo/strings.js?v=16"></script>
+<script src="logo/preload.js?v=16"></script>
+<script src="logo/b-variant.js?v=16"></script>
 <script>
 (() => {
   'use strict';
@@ -1581,7 +1581,7 @@ html.boot .pbs{visibility:hidden}
       const top = (phone() ? 10 : hidden + 18) + BOB, bottom = st.t - (phone() ? 22 : 44) - BOB;
       const d = relTo(document.getElementById('dahliaTop'), closing);
       // the chimney: the house picture is flipped, so the stack stands near its right edge; it runs from the top to 7% down
-      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, roof: house.t + (house.b - house.t) * .07, houseL: house.l, houseH: house.b - house.t, studioB: st.b,
+      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, roof: house.t + (house.b - house.t) * .07, houseL: house.l, houseH: house.b - house.t, treeT: relTo(document.getElementById('potTree'), closing).t, studioB: st.b,
         dTop: d.t, dH: d.b - d.t, mailT: relTo(document.querySelector('.contact a.mail'), closing).t, ...(f => ({ fTop: f.t, fMid: (f.t + f.b) / 2, fL: f.l, fW: f.r - f.l }))(relTo(document.getElementById('flipBig'), closing)) };
     }
     function build() {
@@ -1611,6 +1611,12 @@ html.boot .pbs{visibility:hidden}
         c.wpx = w; c.hpx = w * ar; c.el.style.width = w.toFixed(1) + 'px';
         const [lo, hi] = c.box ? c.box(L) : [L.top, c.big ? Math.min(L.bottom, L.fTop - 14 - BOB) : L.bottom];
         c.y = clamp(c.lane(L, c.hpx), lo, Math.max(lo, hi - c.hpx));
+        // 11-14 (Ivy): no cloud ever drifts at or below the potted orange tree: its bottom, at the low point of its float,
+        // stays above the top of the tree's canopy. The cloud under the studio line moves up above the line when its
+        // band would sit lower than that
+        const sink = c.bob[0] * 2.5, ceil = L.treeT - 8 - sink - c.hpx;
+        if (c.zone === 'U' && c.y > ceil) c.y = Math.max(L.top, Math.min(ceil, L.bottom - c.hpx));
+        c.y = Math.min(c.y, ceil);
         // 11-13 (Ivy): a cloud behind the house never shows half of itself at the house's edge. One that drifts past the
         // house keeps above its roof; if there is no room up there, it passes in front of the house instead
         if (!phone() && !c.front && c.zone !== 'L' && c.zone !== 'U') {
