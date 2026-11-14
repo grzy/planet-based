@@ -81,6 +81,7 @@
       S.revealed = true; gardenDelays();
       S.ctx.finish();                      // the page's own reveal: the hero shows, its CSS arrival starts
       clearLoader();
+      if (window.__hsSunDraw) requestAnimationFrame(() => window.__hsSunDraw());
       if (window.HeroUnder) HeroUnder.layout();
       if (S.V.afterReveal) S.V.afterReveal(K);
     }
@@ -111,6 +112,7 @@
       // ever made for it (the page's face swapper keeps its references, so nothing else changes)
       const parent = sun.parentNode, next = sun.nextSibling;
       parent.removeChild(sun); parent.insertBefore(sun, next);
+      if (window.__hsSunDraw) requestAnimationFrame(() => window.__hsSunDraw());
       // (a) phones and the static layout: the green blocks' copies of the hero art are never shown there; take them out
       // of the page entirely so no stale copy can paint
       if (!document.documentElement.classList.contains('motion')) document.querySelectorAll('.slice').forEach(sl => { while (sl.firstChild) sl.removeChild(sl.firstChild); });
@@ -198,7 +200,7 @@
       const cv = document.createElement('canvas'); cv.className = 'hs-suncv'; cv.setAttribute('aria-hidden', 'true');
       jit.appendChild(cv); document.documentElement.classList.add('hs-cv');
       const PAD = .22, ctx = cv.getContext('2d');
-      let W = 0, cur = null;
+      let W = 0, cur = null, drawnOnce = false;
       function size() {
         const w = sun.clientWidth; if (!w) return false;
         const dpr = Math.min(3, window.devicePixelRatio || 1), full = w * (1 + PAD * 2);
@@ -218,11 +220,17 @@
         const cx = off + box / 2 + dx, cy = off + box / 2 + dy;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.drawImage(on, cx - fw * k / 2, cy - fh * k / 2, fw * k, fh * k);
+        drawnOnce = true;
       }
       new MutationObserver(draw).observe(jit, { subtree: true, attributes: true, attributeFilter: ['class'] });
       addEventListener('resize', () => requestAnimationFrame(draw));
-      imgs.forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (i.classList.contains('on')) draw(); }); });
-      draw();
+      // 11-14 (Ivy's iPhone: the sun was missing until the tongue came): the first face is drawn as soon as the sun has a
+      // size and the face has decoded, and again whenever either changes: a size that was 0 at first (the container not
+      // laid out yet), a face that decodes late, the reveal, the WebKit re-insert
+      if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(sun);
+      imgs.forEach(i => { const redraw = () => { if (i.classList.contains('on')) draw(); }; i.addEventListener('load', redraw); if (i.decode) i.decode().then(redraw).catch(() => {}); });
+      let tries = 0; const until = () => { draw(); if ((!drawnOnce || !W) && tries++ < 120) requestAnimationFrame(until); }; until();
+      window.__hsSunDraw = draw;
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   })();

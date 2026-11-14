@@ -115,6 +115,7 @@
       s.style.setProperty('bottom', 'auto', 'important');
       s.style.setProperty('width', (k.r - k.l).toFixed(1) + 'px', 'important');
     }
+    hint(hero, s, hr);
     const row = hero.querySelector('.hs-chips');
     if (row && row.classList.contains('hs-ctl')) {
       // the forms: 2 under the logo, 3 at the slider's end, 1 phones just under the studio line (desktop: in the line, CSS)
@@ -147,6 +148,26 @@
     }
     return true;
   }
+  // ---------- the hint under the slider (11-14, Ivy): "It's all an instrument. Try the logo." It arrives with the slider
+  // and goes for good (remembered) once the visitor has played a few notes or opened the logo ----------
+  const HINT_KEY = 'pb-hint-done';
+  let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
+  function hint(hero, s, hr) {
+    if (hintDone || !s) return;
+    let h = hero.querySelector('.hs-hint');
+    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); }
+    const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;
+    h.style.left = (st.left - hr.left).toFixed(1) + 'px'; h.style.top = (sr.bottom - hr.top + 4).toFixed(1) + 'px';
+  }
+  function dismissHint() {
+    if (hintDone) return; hintDone = true; try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
+    const h = document.querySelector('.hero .hs-hint'); if (!h) return;
+    h.classList.add('gone'); setTimeout(() => h.remove(), 900);
+  }
+  let played = 0;
+  const watchHint = () => { if (!window.HeroSound) return setTimeout(watchHint, 300); HeroSound.onPlay((v, st, o) => { if (o && o.closing) return; if (++played >= 4) dismissHint(); }); };
+  watchHint();
+  addEventListener('hs:logo-touched', () => setTimeout(dismissHint, 1200));
   window.HeroUnder = { layout, place: s => layout() };
   if (document.fonts) document.fonts.ready.then(layout);
   addEventListener('resize', () => setTimeout(layout, 160));

@@ -663,8 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=18">
-<link rel="stylesheet" href="logo/b-variant.css?v=18">
+<link rel="stylesheet" href="logo/story.css?v=19">
+<link rel="stylesheet" href="logo/b-variant.css?v=19">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -916,17 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=18"></script>
-<script src="logo/pose.js?v=18"></script>
-<script src="logo/sound.js?v=18"></script>
-<script src="logo/bees.js?v=18"></script>
-<script src="logo/hero-logo.js?v=18"></script>
-<script src="logo/story.js?v=18"></script>
-<script src="logo/common.js?v=18"></script>
-<script src="logo/song.js?v=18"></script>
-<script src="logo/strings.js?v=18"></script>
-<script src="logo/preload.js?v=18"></script>
-<script src="logo/b-variant.js?v=18"></script>
+<script src="logo/hero-logo-data.js?v=19"></script>
+<script src="logo/pose.js?v=19"></script>
+<script src="logo/sound.js?v=19"></script>
+<script src="logo/bees.js?v=19"></script>
+<script src="logo/hero-logo.js?v=19"></script>
+<script src="logo/story.js?v=19"></script>
+<script src="logo/common.js?v=19"></script>
+<script src="logo/song.js?v=19"></script>
+<script src="logo/strings.js?v=19"></script>
+<script src="logo/preload.js?v=19"></script>
+<script src="logo/b-variant.js?v=19"></script>
 <script>
 (() => {
   'use strict';
@@ -1221,7 +1221,7 @@ html.boot .pbs{visibility:hidden}
     // 11-14 (Ivy): phones never saw the tongue. There it comes first, early (the first swap after the settle hold, ~7 s
     // in), and then every 8 to 13 swaps; still one face at a time
     const phoneSun = true /* logo-r5: the tongue's early wink on every screen */, settled = introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000 && (!window.HeroStory || !HeroStory.S.ctx || HeroStory.S.done);
-    if (phoneSun && !phoneWink && settled && tIdx >= 0 && sunReady.has(tIdx)) { n = tIdx; phoneWink = true; winkIn = 4 + Math.floor(wrand() * 4); calmSeen.clear(); }
+    if (phoneSun && !phoneWink && settled && calmSeen.size >= 2 && tIdx >= 0 && sunReady.has(tIdx)) { n = tIdx; phoneWink = true; winkIn = 4 + Math.floor(wrand() * 4); calmSeen.clear(); }
     else if (tIdx >= 0 && --winkIn <= 0 && (phoneSun ? settled : calmSeen.size >= sunImgs.length - 1 && settled)) { n = tIdx; winkIn = phoneSun ? 4 + Math.floor(wrand() * 4) : untilWink(); calmSeen.clear(); }
     else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);
     if (!sunReady.has(n)) { sunTimer = setTimeout(sunFrame, 900); return; }   // not decoded yet: keep the face we have

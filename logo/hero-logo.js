@@ -75,7 +75,7 @@
   function beats(a, b) {
     if (!live || a === b || !window.HeroSound) return;
     const up = b > a, list = up ? BEATS : BEATS.slice().reverse();
-    list.forEach(([th, v, k]) => { if (up ? (a < th && b >= th) : (a >= th && b < th)) HeroSound.play(v, k, v === 'f' ? { single: k, pan: (k - 2) * .18 } : { amp: .8 }); });
+    list.forEach(([th, v, k]) => { if (up ? (a < th && b >= th) : (a >= th && b < th)) HeroSound.play(v, k, v === 'f' ? { single: k, pan: (k - 2) * .18, amp: nudging ? .5 : 1 } : { amp: nudging ? .45 : .8 }); });
   }
   function render(v) {
     if (!mount()) return;
@@ -133,11 +133,12 @@
       if (e.pointerType === 'touch') return;
       if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0)) return;   // a scroll's moves never play the word
       const open = target > 0, z = zone(open ? 28 : 10);
-      if (inside(e, z)) { if (!open) go(2); sound(e); } else if (open) go(0);
+      if (inside(e, z)) { touch(); if (!open) go(2); sound(e); } else if (open) go(0);
     });
     hero.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') go(0); });
     // touch: tap toggles, a sideways drag scrubs (vertical drags still scroll the page: touch-action pan-y on the mark)
     mark.addEventListener('pointerdown', e => {
+      touch();
       if (e.pointerType === 'mouse') return;
       drag = { x: e.clientX, s0: s, moved: false, id: e.pointerId };
     });
@@ -155,8 +156,32 @@
     addEventListener('pointercancel', e => { if (drag && e.pointerId === drag.id) { go(Math.round(s)); drag = null; } });
     // a tap anywhere else folds a tapped-open mark
     addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' && target > 0 && !mark.contains(e.target) && !(e.target.closest && e.target.closest('.hs-ask'))) go(0); }, { capture: true });
-    mark.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(s > .5 ? 0 : 2); } });
+    mark.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); touch(); go(s > .5 ? 0 : 2); } });
     mark.tabIndex = 0; mark.setAttribute('aria-label', 'planetbased.io: open the logo into its barcode and name');
+    scheduleNudge();
+  }
+  // ---------- the nudge (11-14, Ivy): once per visit, a moment after the hero has settled, and only if nobody has touched
+  // the logo yet, it opens on its own just a little (the bars part, the letters begin to show), holds, and folds back.
+  // Silent unless sound is already on (then its beats play softly). Never during interaction; reduced motion skips it ----------
+  let touched = false, nudging = false, nudgeT = 0;
+  function touch() {
+    if (nudging) { nudging = false; clearTimeout(nudgeT); }
+    if (!touched) { touched = true; dispatchEvent(new CustomEvent('hs:logo-touched')); }
+  }
+  function scheduleNudge() {
+    let seen = false; try { seen = sessionStorage.getItem('pb-logo-nudged') === '1'; } catch (e) {}
+    if (seen || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let quietSince = performance.now();
+    ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => addEventListener(t, () => { quietSince = performance.now(); }, { passive: true, capture: true }));
+    const tryNudge = () => {
+      if (touched || nudging) return;
+      const atTop = (window.scrollY || 0) < 8, quiet = performance.now() - quietSince > 1200;
+      if (!atTop || !quiet || document.hidden) { nudgeT = setTimeout(tryNudge, 1500); return; }
+      try { sessionStorage.setItem('pb-logo-nudged', '1'); } catch (e) {}
+      nudging = true; go(1.22);                                   // the bars part, the letters just begin
+      nudgeT = setTimeout(() => { if (nudging) go(0); nudgeT = setTimeout(() => { nudging = false; }, 1400); }, 680 + 600);   // reach it (~0.68 s), hold ~0.6 s, fold
+    };
+    nudgeT = setTimeout(tryNudge, 2600);
   }
   window.HeroLogo = { word, mount, render, enable, go, flourish, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();
