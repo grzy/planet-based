@@ -69,7 +69,10 @@
       }
       // 2. the bars rise as lines through the tree; 3. the slices part like an opening accordion
       const er = MOVE(seg(t, ...T.rise)), ep = MOVE(seg(t, ...T.part));
-      const spread = i => (((strips[i] ? (strips[i][0] + strips[i][2]) / 2 : cx) - cx) * .45) * ep;
+      // 11-14 (Ivy): every gap the same: each slice moves the same step from its neighbour, whatever the bars' spacing
+      // (the cut lines come from the word's bars, which are unevenly spaced; a spread by distance made one gap 2-3x wider)
+      const gapPx = Math.max(4, Math.min(9, (bounds[bounds.length - 1] - bounds[0]) * .035)), mid = (strips.length - 1) / 2;
+      const spread = i => (Math.max(0, Math.min(strips.length - 1, i)) - mid) * gapPx * ep;
       const ink = X.smooth(seg(t, phone ? 1500 : T.grow0 + 200, phone ? 2400 : T.reveal - 100));
       const lineAt = [];
       from.forEach((f, i) => {
