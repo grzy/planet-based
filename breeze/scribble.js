@@ -55,20 +55,25 @@
   const host = document.createElement('div');
   host.className = 'loader-wind'; host.setAttribute('aria-hidden', 'true');
   (ride ? box : loader).appendChild(host);
-  let started = false;
+  // the tree twists on its own for a moment first; then the swirls come on, briefly, and the page moves on as they finish
+  // (window.pbSwirlsDone: the loader's exits wait for it, with their own caps)
+  let started = false, doneFn;
+  window.pbSwirlsDone = new Promise(r => { doneFn = r; });
   function go() {
     if (started) return; started = true;
-    const tw = tree.offsetWidth, th = tree.offsetHeight; if (!tw) return;
+    const tw = tree.offsetWidth, th = tree.offsetHeight; if (!tw) { doneFn(); return; }
     const hr = host.getBoundingClientRect(), tr = tree.getBoundingClientRect();
     const ox = tr.left - hr.left, oy = tr.top - hr.top;          // the tree's corner inside the host
+    const lead = Math.max(.55, (950 - performance.now()) / 1000); // a beat of the tree alone
     const put = (key, wTree, cx, cy, extra) => {                  // centre a study at (cx, cy) in tree units, wTree tree-widths wide
       const st = P[key], k = tw * wTree / st.w;
       return window.pbScribble(host, key, Object.assign({ x: ox + tw * cx - st.w * k / 2, y: oy + th * cy - st.h * k / 2, k,
-        fx: false, fy: false, rot: 0, lag: .06, dy: 0, op: .95, mw: 16, alpha: 2.3, ease: 'cubic-bezier(.3,.1,.3,1)' }, extra));
+        fx: false, fy: false, rot: 0, lag: .05, dy: 0, op: .95, mw: 16, alpha: 2.3, ease: 'cubic-bezier(.3,.1,.3,1)' }, extra));
     };
-    put('W09', 2.5, .5, .27, { t0: .05, dur: .95, win: .45, dx: tw * .22, rot: -4 });                // a ribbon through the leaves as it leans
-    put('W02', 1.7, .66, .1, { t0: .32, dur: 1.0, win: .5, dx: tw * .16, rot: -8 });                // a curl rolls off the crown
-    put('W11', 2.2, .55, .4, { t0: .62, dur: 1.15, win: .5, dx: tw * .2, rot: 2, op: .85 });         // hairlines through the canopy, a beat behind
+    put('W09', 2.5, .5, .27, { t0: lead, dur: .8, win: .45, dx: tw * .22, rot: -4 });                // a ribbon through the leaves as it leans
+    put('W02', 1.7, .66, .1, { t0: lead + .2, dur: .85, win: .5, dx: tw * .16, rot: -8 });           // a curl rolls off the crown
+    put('W11', 2.2, .55, .4, { t0: lead + .42, dur: .9, win: .5, dx: tw * .2, rot: 2, op: .85 });    // hairlines through the canopy, a beat behind
+    setTimeout(doneFn, (lead + .42 + .9 - .25) * 1000);           // the exit starts as the last line lifts off
   }
   if (window.__pbTreeAnimAt) go();
   else { addEventListener('pb:treeanim', go, { once: true }); setTimeout(go, 650); }

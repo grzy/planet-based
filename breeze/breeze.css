@@ -34,3 +34,9 @@ html[data-page="dark"] :is(.breeze,.loader-wind) svg{filter:invert(1) brightness
 
 /* 11-14 (Ivy): no house newt on phones; the footer has enough going on */
 @media (max-width:759px){.bnewt{display:none!important}}
+
+/* the hand-drawn "copied" mark (breeze/copied.js): fills its host's width; plain strokes on WebKit, pencil PNG elsewhere */
+.pb-copied{display:block;width:100%;height:auto;overflow:visible}
+.pb-copied .pc{stroke:#2c2c2f}
+html[data-page="dark"] .pb-copied .pc{stroke:#ECEBDF}
+html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}

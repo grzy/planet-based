@@ -408,7 +408,9 @@ html.boot-static .loader-in,.motion .loader-in{margin-bottom:9vh}          /* th
    once it has locked does the arrival begin on it: the logo, the sun, the flowers, the type */
 html.boot.boot-out .hero,html.boot.boot-out .work,html.boot.boot-out .closing,html.boot.boot-out .foot-wrap{visibility:visible}
 html.boot.boot-out .loader{z-index:0}                    /* the paper stays put, now under the rising green */
-html.boot.boot-out .loader-in{animation:treeUp .8s .14s cubic-bezier(.65,0,.35,1) both}   /* 11-13 (Ivy): pushed up by the green, in step with it */
+/* 11-13 (Ivy, r20): the tree and its swirls hold still and the rising green wipes over them, edge to edge, with a slight fade */
+html.boot.boot-out .loader-in{animation:treeWipe .8s .14s cubic-bezier(.65,0,.35,1) both}
+@keyframes treeWipe{to{opacity:.55}}
 @keyframes treeUp{to{transform:translateY(calc(-1 * var(--hero-h,100vh)))}}
 html.boot.boot-out .hero{animation:greenUp .8s .14s cubic-bezier(.65,0,.35,1) both;box-shadow:0 -22px 44px -26px rgba(24,52,34,.42)}
 html.boot.boot-out .hero .art{opacity:0}
@@ -561,17 +563,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .contact a.mail:hover::after,.contact a.mail:focus-visible::after{clip-path:inset(0 0 0 0);transition:clip-path .85s cubic-bezier(.45,.05,.25,1)}
 /* a click copies the address: a pencil check and the word "copied" write themselves in beside it, then fade */
 .copied{position:absolute;left:calc(100% + .1em);bottom:.04em;width:1.8em;pointer-events:none;opacity:0;visibility:hidden;transform:rotate(-4deg);transform-origin:0 100%}
-.copied svg{display:block;width:100%;height:auto;overflow:visible}
-.copied path{fill:none;stroke:#26262a;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:1}
-.copied.on{opacity:1;visibility:visible}
-.copied.on path{stroke-dashoffset:0}
-.copied.on .c-chk{transition:stroke-dashoffset .34s cubic-bezier(.5,0,.4,1)}
-.copied.on .c-word{transition:stroke-dashoffset .42s cubic-bezier(.4,.05,.6,.95) .4s}
-.copied .c-w1{stroke-width:2.2}.copied .c-w2{stroke-width:2.9}.copied .c-w3{stroke-width:2.4}
-.copied.on .c-w2{transition-duration:.38s;transition-delay:.84s}
-.copied.on .c-w3{transition-duration:.6s;transition-delay:1.24s}
-.copied.on .c-dot{transition:stroke-dashoffset .1s linear 1.9s}
-.copied.on.out{opacity:0;transition:opacity .7s ease,visibility 0s linear .7s}
+/* 11-14 (Ivy): the check and the word are hand-drawn pencil now (breeze/copied.js, styles in breeze/breeze.css) */
 .home{--cw:clamp(250px,21.5vw,500px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * 1.4);position:relative}
 /* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
 .pot-tree{position:absolute;width:calc(var(--cw) * .2);height:auto;left:calc(var(--cw) * .045);bottom:calc(var(--cw) * .037);
@@ -718,7 +710,7 @@ html[data-page="dark"] a:focus-visible{outline-color:#D9CDB7}
 /* the pencil lines are graphite on paper: on the dark page they turn to chalk */
 html[data-page="dark"] :is(.t-under,.studio .pen img){mix-blend-mode:screen;filter:invert(1) brightness(.92)}
 html[data-page="dark"] .floor .rule::before{filter:invert(.9)}
-html[data-page="dark"] .copied path{stroke:#ECEBDF}
+
 /* shadows fall darker on the dark page */
 html[data-page="dark"] .cottage{filter:drop-shadow(0 18px 22px rgba(0,0,0,.5)) drop-shadow(0 3px 4px rgba(0,0,0,.45))}
 html[data-page="dark"] .pot-tree{filter:drop-shadow(0 12px 14px rgba(0,0,0,.45)) drop-shadow(0 2px 3px rgba(0,0,0,.4))}
@@ -767,7 +759,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=2">
+<link rel="stylesheet" href="breeze/breeze.css?v=3">
 </head>
 <body>
 <main>
@@ -780,8 +772,8 @@ html.boot .pbs{visibility:hidden}
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
-      <script src="breeze/paths.js"></script>
-      <script src="breeze/scribble.js?v=2"></script>
+      <script src="breeze/paths.js?v=3"></script>
+      <script src="breeze/scribble.js?v=3"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -895,7 +887,7 @@ html.boot .pbs{visibility:hidden}
     </div>
     <div class="contact">
       <p class="studio">An independent <span class="ph-only">creative </span>studio by Ivy&nbsp;Grzybowski,<br class="rag"> a product designer who works in the terminal.<br class="rag"> She makes experiences you can <span class="pen">hear &amp;&nbsp;feel<img class="u-a" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"><img class="u-b" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span>.</p>
-      <a class="mail" role="button" tabindex="0" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"><svg viewBox="-32 -4 182 70" focusable="false"><defs><filter id="pbPencil" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.4 0 0 0 -.62" result="g"/><feComposite in="d" in2="g" operator="in"/></filter></defs><g filter="url(#pbPencil)"><path class="c-chk" pathLength="1" d="M-28 28 C-25 31 -22 36 -20 40 C-16 29 -10 17 -1 6"/><path class="c-word c-w1" pathLength="1" d="M17.3 22.9 C15.0 16.3 5.7 19.4 6.2 31.1 C5.9 43.1 13.5 45.4 21.7 39.2 C23.3 33.7 24.1 16.9 35.2 16.0 C40.6 15.3 42.8 27.4 39.4 36.1 C36.3 43.1 27.3 44.5 26.9 37.0 C26.6 27.2 36.1 18.8 41.1 18.3"/><path class="c-word c-w2" pathLength="1" d="M41.1 18.3 C46.5 18.6 50.2 18.9 53.6 16.2 C53.3 27.0 52.4 41.4 50.2 54.2 C50.7 43.3 52.5 31.3 55.5 23.4 C58.5 17.2 67.9 12.0 71.4 22.0 C73.4 30.9 62.7 40.2 55.8 35.5 C60.8 38.1 69.8 36.4 74.0 29.7"/><path class="c-word c-w3" pathLength="1" d="M74.0 29.7 C76.1 24.7 77.4 19.2 79.4 14.0 C78.7 23.7 77.2 34.7 80.4 38.1 C84.1 43.5 88.4 38.2 91.5 32.9 C95.8 30.1 102.5 26.1 101.2 20.6 C100.6 13.6 92.0 15.8 91.2 23.2 C89.5 34.1 96.2 39.2 105.4 37.1 C110.3 41.0 127.1 31.3 126.5 16.3 C123.0 10.3 109.7 16.5 110.6 28.9 C110.9 40.3 123.6 41.7 127.1 29.8 C131.2 20.0 133.8 2.9 134.6 -7.9 C132.7 6.2 129.5 26.6 131.1 34.7 C132.7 40.4 138.8 37.8 147.0 29.9"/><path class="c-dot" pathLength="1" d="M79.5 9.5 C80.5 9 81.5 9.1 82 10"/></g></svg></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
+      <a class="mail" role="button" tabindex="0" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
       <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
     </div>
     <div class="home" id="home">
@@ -1342,10 +1334,9 @@ html.boot .pbs{visibility:hidden}
   let copyTimers = [];
   function showCopied() {
     copyTimers.forEach(clearTimeout); copyTimers = [];
-    copiedMark.classList.remove('on', 'out'); void copiedMark.offsetWidth; copiedMark.classList.add('on');
+    if (window.pbCopied) window.pbCopied(copiedMark, { hold: 3800 });   // the hand-drawn pencil check + "copied" (breeze/copied.js)
     mailStatus.textContent = ''; copyTimers.push(setTimeout(() => { mailStatus.textContent = 'Email address copied'; }, 40));
-    copyTimers.push(setTimeout(() => copiedMark.classList.add('out'), 3800));
-    copyTimers.push(setTimeout(() => { copiedMark.classList.remove('on', 'out'); mailStatus.textContent = ''; }, 4600));
+    copyTimers.push(setTimeout(() => { mailStatus.textContent = ''; }, 4600));
   }
   // 11-13 (Ivy): it is a button now (no href, so no "mailto:" in the status bar); Enter and Space copy too
   const openMail = () => { location.href = 'mailto:' + ADDRESS; };
@@ -2212,7 +2203,8 @@ html.boot .pbs{visibility:hidden}
       document.fonts ? document.fonts.ready : Promise.resolve(),
       ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
     ]);
-    const beat = new Promise(r => setTimeout(r, Math.max(0, 2200 - performance.now())));   // long enough to watch the tree move
+    // 11-13 (Ivy): the tree twists, its pencil swirls come and go, and the page moves on as they finish (capped)
+    const beat = Promise.race([window.pbSwirlsDone || new Promise(r => setTimeout(r, Math.max(0, 2200 - performance.now()))), new Promise(r => setTimeout(r, Math.max(0, 2700 - performance.now())))]);
     Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 3000))])]).then(() => {
       // the tree lifts away and the green rises (CSS); when the green locks, the loader goes and the arrival starts on it
       doc.classList.add('boot-out');
@@ -2235,7 +2227,7 @@ html.boot .pbs{visibility:hidden}
       ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
     ]);
     // 11-13 (Ivy): the tree and its word hold for at least 1.7 s, and the blocks always begin by about 2.2 s
-    const beat = new Promise(r => setTimeout(r, Math.max(0, 1700 - performance.now())));
+    const beat = Promise.race([window.pbSwirlsDone || new Promise(r => setTimeout(r, Math.max(0, 1700 - performance.now()))), new Promise(r => setTimeout(r, Math.max(0, 2500 - performance.now())))]);   // 11-13: waits for the tree's swirls (capped)
     Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, Math.max(0, 2050 - performance.now())))])]).then(() => {
       if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; window.__heroSettled = performance.now(); render(); startSun(); return; }
       runIntro(false);
@@ -2347,7 +2339,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/breeze.js"></script>
+<script src="breeze/copied.js?v=3"></script>
+<script src="breeze/breeze.js?v=3"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>
