@@ -64,8 +64,7 @@
     };
     put('W09', 2.5, .5, .27, { t0: .05, dur: .95, win: .45, dx: tw * .22, rot: -4 });                // a ribbon through the leaves as it leans
     put('W02', 1.7, .66, .1, { t0: .32, dur: 1.0, win: .5, dx: tw * .16, rot: -8 });                // a curl rolls off the crown
-    put('W05', 1.5, .42, .5, { t0: .55, dur: 1.05, win: .48, dx: tw * .14, rot: 3, fy: true });     // an eddy under the canopy
-    put('W11', 2.2, .55, .66, { t0: .8, dur: 1.15, win: .5, dx: tw * .2, rot: 2, op: .85 });         // hairlines past the trunk
+    put('W11', 2.2, .55, .4, { t0: .62, dur: 1.15, win: .5, dx: tw * .2, rot: 2, op: .85 });         // hairlines through the canopy, a beat behind
   }
   if (window.__pbTreeAnimAt) go();
   else { addEventListener('pb:treeanim', go, { once: true }); setTimeout(go, 650); }
