@@ -164,7 +164,7 @@
     let h = hero.querySelector('.hs-hint');
     if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); }
     const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;
-    h.style.left = (st.left - hr.left).toFixed(1) + 'px'; h.style.top = (sr.bottom - hr.top + 4).toFixed(1) + 'px';
+    h.style.left = (st.left - hr.left).toFixed(1) + 'px'; h.style.top = (sr.bottom - hr.top + (innerWidth >= 760 ? 14 : 4)).toFixed(1) + 'px';   // 11-14 (Ivy): a little lower on desktop
   }
   function dismissHint() {
     if (hintDone) return; hintDone = true; try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
