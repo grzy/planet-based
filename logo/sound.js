@@ -3,14 +3,13 @@
 // a and b); the answer is remembered (localStorage, guarded); a quiet serif link in the footer changes it.
 //
 // THE VOICES (HeroSound.play(voice, step, opts); step = a degree of the shared tuning, so every voice agrees):
-//   g  STRINGS     the guide lines: a recorded nylon-string Spanish guitar (falls back to a plucked-string synth until the
-//                  samples load); a sweep rolls a chord of the Andalusian cadence, a lone pluck may bloom into a tremolo
-//   p  PEONY       a koto (Japan): one delicate pluck per step
-//   d  DAHLIA      a sitar (India): each note slid into (a meend), its sympathetic strings ringing
-//   s  SUN         a kalimba (Africa; its tines are the sun's rays); the tongue face plays a jaw harp's boing
-//   b  WORD        the logo's bars and the letters of planetbased.io: an Andean pan flute, a breathy pipe per bar
-//   f  FLOURISH    the logo opening (rising) or folding (falling): a quick pan-flute run up or down
-//   t  DRUM        one soft, low frame-drum boom, rarely, after a big full sweep
+//   g  STRINGS     the guide lines: natural guitar harmonics; a sweep rolls a chord of the Andalusian cadence
+//   p  PEONY       a Balinese gamelan gender, high, one stroke per step
+//   d  DAHLIA      the same gender, low and slow
+//   s  SUN         a castanet click per tap and per step; the tongue face: soft palmas
+//   b  WORD        the logo's bars and the letters of planetbased.io: the gender in its middle register
+//   f  FLOURISH    the logo opening (rising) or folding (falling): a quick Ghanaian-marimba (balafon) run
+//   t  ACCENT      one low gender stroke, rarely, after a big full sweep
 //   z  BEE         a bee's buzz, harmonized (two quiet, wavering voices a fifth apart)
 // No sustained layer: every note is one strike with its own natural release (the old drone and heartbeat are gone).
 // Everything stops at once on blur, a hidden page, or when the hero leaves the screen.
@@ -50,10 +49,7 @@
         master.connect(lim); lim.connect(ctx.destination);
         // iPhone Safari: a silent buffer started inside the tap unlocks output
         const sil = ctx.createBufferSource(); sil.buffer = ctx.createBuffer(1, 1, sr); sil.connect(ctx.destination); sil.start(0);
-        // warm the string buffers in small idle slices, so the first touch never waits on them
         build.init(); decodeGuitar(); decodeVoices();
-        let k = 0; const warmUp = () => { if (k < TUNING.length) { pluckBuffer(hz(k), .4985); pluckBuffer(hz(k), .4975); k++; if (window.requestIdleCallback) requestIdleCallback(warmUp, { timeout: 200 }); else setTimeout(warmUp, 30); } };
-        warmUp();
       }
       if (ctx.state !== 'running') ctx.resume();
     } catch (e) { return false; }
@@ -114,53 +110,47 @@
     s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + dur + .01);
   }
 
-  // ---------- the real guitar (11-14, Ivy: Carrie & Lowell, not a synth) ----------
-  // Recorded single notes of a steel-string Martin HD-28, one every three semitones (E2 to B5), each note played from
-  // the nearest one, pitch-shifted the last semitone or so. Lazy: fetched after the hero has arrived, decoded once sound is
-  // on. Until a note's sample is ready the string falls back to the plucked-string synth, so nothing ever waits.
-  // GUITAR lists the sample files (shared/guitar/, logo/guitar/ at the root); empty = the synth only.
-  const GUITAR = [40, 42, 44, 47, 49, 52, 54, 57, 59, 61, 64, 66, 68, 71, 73, 76, 79].map(m => [m, 'nylon-' + m + '.m4a']);
-  // the nylon-string guitar: "ClassicalGuitar-multisampled" by quartertone (Freesound pack 11573), a Yamaha Eterna
-  // classical guitar, close-miked; CC BY 4.0 (credited in the footer's sound credits). Trimmed, mono, AAC
-  const GDIR = (() => { try { const src = document.currentScript && document.currentScript.src; return src ? src.replace(/[^/]*$/, '') + 'guitar/' : 'guitar/'; } catch (e) { return 'guitar/'; } })();
-  const gRaw = new Map(), gBuf = new Map();   // midi -> ArrayBuffer, midi -> AudioBuffer
-  let gFetching = false;
-  // the world band (11-14, Ivy): each object its own instrument from somewhere else, all retuned into the strings' key
-  // (shared/voices/, logo/voices/ at the root), loaded with the guitar. Each bank is [midi, file]; midi may be fractional
-  // (the koto is tuned a quarter-tone low)
+  // ---------- the recorded voices: Ivy's picks from the sound lab (protos/sound-lab), played exactly as the lab plays
+  // them: the nearest sample to the note, pitch-shifted, folded by octaves into the instrument's own range ----------
+  //   hrm-*      natural guitar harmonics (the strings)            gender-*  a Balinese gamelan gender (word, peony, dahlia, accent)
+  //   balafon-*  a Ghanaian marimba (the logo's open / fold)       cast-click  castanet click (the sun)    palmas  claps (the tongue)
+  // Lazy: fetched after the hero has arrived (loadGuitar, the old name), decoded once sound is on
   const BANK = {
-    kal: [60, 62, 64, 65, 67, 69, 71, 72, 74, 76].map(m => [m, 'kal-' + m]),            // kalimba (the sun)
-    koto: [[50.5, 'koto-505'], [63.4, 'koto-634'], [67.5, 'koto-675'], [69.4, 'koto-694'], [75.3, 'koto-753'], [79.2, 'koto-792']],   // koto (the peony)
-    pan: [[68.6, 'pan-686']],                                                              // pan flute (the word, the logo)
-    sitar: [[60, 'sitar-60']],                                                             // sitar (the dahlia)
-    jaw: [[66.7, 'jaw']], drum: [[0, 'drum']]                                              // jaw harp (the tongue), frame drum
+    hrm: [52, 57, 62, 64, 67, 69, 74, 78, 79, 83].map(m => [m, 'hrm-' + m * 10]),
+    gender: [[53.8, 'gender-538'], [52.1, 'gender-521']],
+    balafon: [[43.6, 'balafon-436']],
+    click: [[null, 'cast-click']], palmas: [[null, 'palmas']]
   };
-  const VDIR = GDIR.replace(/guitar\/$/, 'voices/');
+  const VDIR = (() => { try { const src = document.currentScript && document.currentScript.src; return src ? src.replace(/[^/]*$/, '') + 'voices/' : 'voices/'; } catch (e) { return 'voices/'; } })();
   const VFILES = Object.values(BANK).flat().map(b => b[1]);
-  const vRaw = new Map(), vBuf = new Map();
+  const vRaw = new Map(), vBuf = new Map(), gBuf = vBuf;   // (gBuf: the old name, for loaded())
+  let vFetching = false;
   function decodeVoices() { if (!ctx) return; vRaw.forEach((ab, k) => { vRaw.delete(k); ctx.decodeAudioData(ab).then(b => vBuf.set(k, b)).catch(() => {}); }); }
-  // the nearest loaded sample of a bank to midi m: { name, rate } (null until one has loaded)
-  const pick = (bank, m, reach = 12) => { let best = null, d = 1e9; BANK[bank].forEach(([k, n]) => { if (!vBuf.has(n)) return; const dd = Math.abs(k - m); if (dd < d) { d = dd; best = [k, n]; } }); return best && d <= reach ? { name: best[1], rate: Math.pow(2, (m - best[0]) / 12) } : null; };
-  // one recorded sample: its own decay, shaped by a ramped envelope so it can always be silenced
-  function sample(name, t, { rate = 1, gain = .3, pan = 0, dur, lp, att = .003, from } = {}) {
-    const b = vBuf.get(name); if (!b) return false;
-    const src = ctx.createBufferSource(), g = ctx.createGain(), out = panner(pan); src.buffer = b;
-    if (from) { src.playbackRate.setValueAtTime(rate * from, t); src.playbackRate.exponentialRampToValueAtTime(rate, t + .2); } else src.playbackRate.value = rate;   // from: a slide into the note
-    const len = Math.min(dur || b.duration / rate, b.duration / rate);
-    env(g, t, gain, att, len);
-    let node = src; if (lp) { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; src.connect(f); node = f; }
-    node.connect(g); g.connect(out); src.start(t); src.stop(t + len + .05); return true;
-  }
+  const decodeGuitar = () => {};
   function loadGuitar() {
-    if (gFetching || !GUITAR.length) return; gFetching = true;
-    if (VFILES.length) VFILES.forEach(n => fetch(VDIR + n + '.m4a').then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { vRaw.set(n, ab); decodeVoices(); } }).catch(() => {}));
-    GUITAR.forEach(([m, file]) => fetch(GDIR + file).then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { gRaw.set(m, ab); decodeGuitar(); } }).catch(() => {}));
+    if (vFetching) return; vFetching = true;
+    VFILES.forEach(n => fetch(VDIR + n + '.m4a').then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { vRaw.set(n, ab); decodeVoices(); } }).catch(() => {}));
   }
-  function decodeGuitar() {
-    if (!ctx) return;
-    gRaw.forEach((ab, m) => { gRaw.delete(m); ctx.decodeAudioData(ab).then(b => gBuf.set(m, b)).catch(() => {}); });
+  // the lab's rule: fold the note by octaves into [lowest - 7, highest + 7] of the bank (or a given range), then the
+  // nearest loaded sample, pitch-shifted to it
+  function pick(bank, m, lo, hi) {
+    const ms = BANK[bank].map(b => b[0]).filter(x => x != null);
+    if (m != null && ms.length) { const a = lo != null ? lo : Math.min(...ms) - 7, z = hi != null ? hi : Math.max(...ms) + 7; while (m < a) m += 12; while (m > z) m -= 12; }
+    let best = null, d = 1e9;
+    BANK[bank].forEach(([k, n]) => { if (!vBuf.has(n)) return; const dd = k == null || m == null ? 0 : Math.abs(k - m); if (dd < d) { d = dd; best = [k, n]; } });
+    return best ? { name: best[1], rate: best[0] == null || m == null ? 1 : Math.pow(2, (m - best[0]) / 12), m } : null;
   }
-  const nearestGuitar = m => { let best = null, d = 1e9; gBuf.forEach((b, k) => { const dd = Math.abs(k - m) + (k > m ? .1 : 0); if (dd < d) { d = dd; best = k; } }); return best != null && d <= 3 ? best : null; };
+  // one recorded sample: its own decay, shaped by a ramped envelope so it can always be silenced (the lab's playBuf)
+  function sample(name, t, { rate = 1, gain = .3, pan = 0, dur, lp, att = .004, key } = {}) {
+    const b = vBuf.get(name); if (!b) return false;
+    const src = ctx.createBufferSource(), g = ctx.createGain(), out = panner(pan); src.buffer = b; src.playbackRate.value = rate;
+    const len = Math.min(dur || 9, b.duration / rate);
+    env(g, t, gain, att, len); if (key) track(key, g, t);
+    let node = src; if (lp) { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; src.connect(f); node = f; }
+    node.connect(g); g.connect(out); src.start(t); src.stop(t + att + len + .05); return true;
+  }
+  // until a sample has loaded: a quiet sine in its place, so nothing ever waits
+  function sine(m, t, a, d, pan = 0) { const out = panner(pan), os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m); env(g, t, a, .006, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); }
 
   // ---------- the voices ----------
   // a string re-plucked damps its last voice (30 ms), as a real string does; and at most 32 voices sound at once
@@ -172,42 +162,37 @@
     voices.push(g); if (voices.length > 32) { const v = voices.shift(); hold(v.gain, t); v.gain.setTargetAtTime(.00001, t, .01); }
   }
   const V = {
-    g(step, o) {                                    // STRINGS: fingerpicked guitar
-      const m = o.midi != null ? o.midi : midi(step, o.down);   // o.midi: a chord tone chosen by the strings
-      const t = when(.016), vel = (.62 + Math.random() * .3) * (o.amp || 1), f = mhz(m), out = panner(o.pan || 0);
-      const src = ctx.createBufferSource(), k = nearestGuitar(m);
-      let rate = 1;
-      if (k != null) { src.buffer = gBuf.get(k); rate = Math.pow(2, (m - k) / 12); src.playbackRate.value = rate; }   // the real guitar
-      else src.buffer = pluckBuffer(f, .4985);                                                                         // the synth, until it loads
-      if (o.from) { src.playbackRate.setValueAtTime(rate * o.from / f, t); src.playbackRate.linearRampToValueAtTime(rate, t + .09); }
-      const body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 190; body.Q.value = 1.1; body.gain.value = k != null ? 1 : 5;   // the recording has its own body
-      const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1700 + 3000 * (o.bright ?? .5) * vel;
-      const g = ctx.createGain(); env(g, t, .3 * vel, .004, 2.6); track('g' + m, g, t);
-      src.connect(body); body.connect(tone); tone.connect(g); g.connect(out); src.start(t); src.stop(t + 2.7);
-      if (k == null) { const sq = Math.random() < .25; noise(t, .05, sq ? 2600 + Math.random() * 900 : 4200, sq ? 7 : 1.2, (sq ? .04 : .02) * vel, out); }   // the synth's finger noise (the recording has real ones)
+    g(step, o) {                                    // STRINGS: natural guitar harmonics (glassy, bell-like)
+      const m = o.midi != null ? o.midi : midi(step, o.down), t = when(.016), vel = (o.amp || 1) * .8, k = pick('hrm', m);
+      if (k) { sample(k.name, t, { rate: k.rate, gain: .3 * vel, pan: o.pan || 0, dur: 3, key: 'g' + Math.round(k.m) }); return; }
+      sine(m + 12, t, .05 * vel, 1.6, o.pan || 0);
     },
-    p(step, o) {                                    // PEONY: a koto (Japan), one delicate pluck per step
-      const m = midi(step + 3), k = pick('koto', m);
-      if (k) { sample(k.name, when(.004), { rate: k.rate, gain: .3, pan: o.pan || 0, dur: 1.6 }); return; }
-      const out = panner(o.pan || 0), t = when(.006); [[1, .08, 1.4]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m) * r; env(g, t, a, .006, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
+    p(step, o) {                                    // PEONY: the gamelan gender, high, one stroke per step
+      const k = pick('gender', midi(step + 3), 53, 67), t = when(.004);
+      if (k) { sample(k.name, t, { rate: k.rate, gain: .3 * .8, pan: o.pan || 0, dur: 3 }); return; }
+      sine(midi(step + 3), t, .05, 1.2, o.pan || 0);
     },
-    d(step, o) {                                    // DAHLIA: a sitar (India), each note slid into (a gentle meend), its strings ringing
-      const m = midi(step), k = pick('sitar', m, 14);
-      if (k) { sample(k.name, when(.006), { rate: k.rate, gain: .3, pan: o.pan || 0, from: Math.pow(2, -1.6 / 12), lp: 4200 }); return; }
-      const out = panner(o.pan || 0), t = when(.006); [[1, .12, 1.6]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m - 12) * r; env(g, t, a, .006, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
+    d(step, o) {                                    // DAHLIA: the gamelan gender, low (an octave and more down), slow and warm
+      const k = pick('gender', midi(step), 36, 50), t = when(.006);
+      if (k) { sample(k.name, t, { rate: k.rate, gain: .3 * .9, pan: o.pan || 0, dur: 3 }); return; }
+      sine(midi(step) - 12, t, .06, 1.6, o.pan || 0);
     },
-    b(step, o) {                                    // WORD + LOGO: an Andean pan flute (siku): every bar is a pipe, a breathy note each
-      let m = midi(step + 2, o.down); while (m < 62) m += 12; while (m > 79) m -= 12;
-      const k = pick('pan', m, 12), vel = (o.amp || 1);
-      if (k) { sample(k.name, when(.004), { rate: k.rate, gain: .26 * vel, pan: o.pan || 0, dur: .85, att: .035 }); return; }
-      const out = panner(o.pan || 0), t = when(.006); [[1, .06 * vel, .7]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m) * r; env(g, t, a, .006, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
+    b(step, o) {                                    // WORD + LOGO: the gamelan gender in its own middle register, a stroke per bar
+      const m = midi(step + 2, o.down) + 12, k = pick('gender', m), t = when(.004), vel = (o.amp || 1) * .7;
+      if (k) { sample(k.name, t, { rate: k.rate, gain: .3 * vel, pan: o.pan || 0, dur: 3 }); return; }
+      sine(m, t, .05 * vel, 1, o.pan || 0);
     },
-    f(step, o) {                                    // FLOURISH: a quick pan-flute run up (opening) or down (folding)
-      const up = (o.dir || 1) > 0, base = up ? 2 : 7;
-      [0, 1, 2, 3, 4].forEach((k, i) => setTimeout(() => live() && atRest() && V.b(base + (up ? k : -k), { amp: .7, pan: (k - 2) * .18 }), i * 62));   // a quick breathy run up or down the pipes
+    f(step, o) {                                    // FLOURISH: a quick Ghanaian-marimba (balafon) run up (opening) or down (folding)
+      const up = (o.dir || 1) > 0, run = [64, 65, 68, 69, 71];
+      (up ? run : run.slice().reverse()).forEach((m, i) => setTimeout(() => {
+        if (!live() || !atRest()) return;
+        const k = pick('balafon', m), t = when(.002);
+        if (k) sample(k.name, t, { rate: k.rate, gain: .3 * .7, pan: (i - 2) * .18, dur: 3 }); else sine(m - 12, t, .04, .5);
+      }, i * 62));
     },
-    t(step, o) {                                    // FRAME DRUM: one soft, low boom, rarely, after a big full sweep
-      sample('drum', ctx.currentTime + .02, { gain: .3, lp: 900 });
+    t(step, o) {                                    // ACCENT: one low stroke of the gender, rarely, after a big full sweep
+      const k = pick('gender', 40, 30, 46), t = ctx.currentTime + .02;
+      if (k) sample(k.name, t, { rate: k.rate, gain: .3, dur: 3 }); else sine(40, t, .07, 2);
     },
     z(step, o) {                                    // BEE: a buzz, harmonized a fifth apart
       const t = ctx.currentTime + .02, out = panner(o.pan || .5), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(out);
@@ -218,12 +203,15 @@
         os.connect(g); g.connect(lp); os.start(t); tr.start(t); os.stop(t + 1.65); tr.stop(t + 1.65);
       });
     },
-    s(step, o) {                                    // SUN: a kalimba (its tines are the sun's rays); the tongue face: a jaw harp's boing
-      const pan = o.pan || 0;
-      if (o.tongue) { const j = pick('jaw', 64, 12); if (j) sample(j.name, when(.004), { rate: j.rate, gain: .3, pan }); return; }
-      const m = midi(step + 2), k = pick('kal', m);
-      if (k) { sample(k.name, when(.004), { rate: k.rate, gain: o.tap ? .34 : .26, pan, dur: 2.2 }); if (o.tap) { const k2 = pick('kal', m + 7); if (k2) sample(k2.name, when(.004) + .13, { rate: k2.rate, gain: .16, pan: pan + .1, dur: 1.8 }); } return; }
-      const out = panner(o.pan || 0), t = when(.006); [[1, .05, .9]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m) * r; env(g, t, a, .006, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
+    s(step, o) {                                    // SUN: a castanet click per tap and per step; the tongue face: palmas
+      const t = when(.004), pan = o.pan || 0;
+      if (o.tongue) {                               // the lab's palmas: two hands a breath apart
+        const k = pick('palmas', null); if (!k) return;
+        [[0, 1, .9], [.016, 1.06, .7]].forEach(([dt, r, g]) => sample(k.name, t + dt, { rate: r, gain: .3 * g, pan: dt ? .25 : -.2 }));
+        return;
+      }
+      const k = pick('click', null);
+      if (k) sample(k.name, t, { rate: .97 + Math.random() * .06, gain: .3 * (o.tap ? 1 : .75), pan });
     }
   };
 
@@ -309,13 +297,11 @@
   // ---------- sound credits (one place, easy to move to a credits page). CC BY sources need a credit; CC0 ones don't,
   // but are listed for the record ----------
   const CREDITS = [
-    { what: 'nylon guitar (the strings)', who: 'quartertone', title: 'ClassicalGuitar-multisampled', url: 'https://freesound.org/people/quartertone/packs/11573/', lic: 'CC BY 4.0' },
-    { what: 'kalimba (the sun)', who: 'iainmccurdy', title: 'Kalimba', url: 'https://freesound.org/people/iainmccurdy/packs/38025/', lic: 'CC BY 4.0' },
-    { what: 'koto (the peony)', who: 'RutgerMuller', title: 'Japan Koto Improv Session 1', url: 'https://freesound.org/people/RutgerMuller/sounds/364807/', lic: 'CC0' },
-    { what: 'sitar (the dahlia)', who: 'JOHNWALLY', title: 'sitar j', url: 'https://freesound.org/people/JOHNWALLY/sounds/32803/', lic: 'CC0' },
-    { what: 'pan flute (the word, the logo)', who: 'blukotek', title: 'pan flute', url: 'https://freesound.org/people/blukotek/sounds/246058/', lic: 'CC0' },
-    { what: 'jaw harp (the tongue)', who: 'stomachache', title: 'jaw harp', url: 'https://freesound.org/people/stomachache/sounds/29812/', lic: 'CC0' },
-    { what: 'frame drum', who: 'cabled_mess', title: 'Frame drum oneshot RAW 11', url: 'https://freesound.org/people/cabled_mess/sounds/345629/', lic: 'CC0' }
+    { what: 'guitar harmonics (the strings)', who: 'quartertone', title: 'ClassicalGuitarHarmonics', url: 'https://freesound.org/people/quartertone/packs/11598/', lic: 'CC BY 4.0' },
+    { what: 'castanet click (the sun)', who: 'NoahBangs', title: 'Castanets, 4 Fast Clicks', url: 'https://freesound.org/people/NoahBangs/sounds/666766/', lic: 'CC BY 4.0' },
+    { what: 'gamelan gender (the word, the flowers, the accent)', who: 'thedialogueproject', title: 'Bali Xylophone 2', url: 'https://freesound.org/people/thedialogueproject/sounds/48265/', lic: 'CC0' },
+    { what: 'Ghanaian marimba (the logo opening)', who: 'Sassaby', title: 'Ghanaian Marimba G1-mp', url: 'https://freesound.org/people/Sassaby/sounds/528065/', lic: 'CC0' },
+    { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' }
   ];
 
   // ---------- the footer's quiet way to change it ----------
