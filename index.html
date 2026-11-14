@@ -470,11 +470,12 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 <main>
   <section class="stage" id="stage" aria-label="planetbased.io">
     <div class="pin" id="pin">
-      <div class="loader" aria-hidden="true"><div class="loader-in"><video class="loader-tree" id="loaderTree" muted playsinline loop preload="none" poster="img/orange-tree-poster.webp" width="342" height="616"><source src="video/orange-tree.mov" type='video/quicktime; codecs="hvc1"'><source src="video/orange-tree.webm" type="video/webm"></video><p>planetbased.io</p></div></div>
+      <div class="loader" aria-hidden="true"><div class="loader-in"><img class="loader-tree" id="loaderTree" src="img/orange-tree-poster.webp" width="342" height="616" alt=""><p>planetbased.io</p></div></div>
       <script>
-      // phones: the tree starts moving as early as possible (autoplay can be refused in Low Power Mode: then the poster just stays)
-      (function () { var v = document.getElementById('loaderTree'); if (!v || !document.documentElement.classList.contains('boot-static') || !document.documentElement.classList.contains('boot')) return;
-        v.preload = 'auto'; v.autoplay = true; var p = v.play(); if (p && p.catch) p.catch(function () {}); })();
+      // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
+      (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot-static') || !document.documentElement.classList.contains('boot')) return;
+        // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
+        var a = new Image(); a.onload = function () { t.src = a.src; }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
 
       <div class="hero tex" id="hero">
@@ -1699,7 +1700,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
         doc.classList.remove('boot', 'boot-out');
         introDone = true; window.__heroSettled = performance.now();
         playLogo(); startSun(SUN_SETTLE);
-        const lt = document.getElementById('loaderTree'); if (lt) { lt.pause(); lt.removeAttribute('src'); }
+        const lt = document.getElementById('loaderTree'); if (lt) lt.removeAttribute('src');
       }, 140 + 800 + 60);
       // decode what lies further down while the hero arrives, so the first scroll on a phone never stalls on an image
       setTimeout(() => document.querySelectorAll('.work img, .closing img').forEach(im => { im.loading = 'eager'; if (im.decode) im.decode().catch(() => {}); }), 3600);
