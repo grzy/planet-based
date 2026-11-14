@@ -154,6 +154,8 @@
   // and goes for good (remembered) once the visitor has played a few notes or opened the logo ----------
   const HINT_KEY = 'pb-hint-done';
   let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
+  // ?hint shows it again for review (clears both memories)
+  if (/[?&]hint\b/.test(location.search)) { hintDone = false; try { localStorage.removeItem(HINT_KEY); sessionStorage.removeItem('pb-hint-shown'); } catch (e) {} }
   function hint(hero, s, hr) {
     if (hintDone || !s) return;
     let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
