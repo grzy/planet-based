@@ -140,6 +140,10 @@ body::after{
   font-family:"Ubuntu Sans Mono",monospace;font-weight:500;font-size:clamp(11.5px,1.1vw,13.5px);letter-spacing:.34em;text-transform:uppercase;
   color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.7);opacity:.95;
 }
+/* 11-14 (Ivy): two lines. The quiet note in the credits' label voice (small, lowercase), then the clear call on its own line */
+.arm-sub .arm-hp,.arm-sub .arm-go{display:block}
+.arm-sub .arm-hp{font-size:11px;font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.72;margin-bottom:.9em}
+.arm-sub .arm-go{font-size:clamp(13px,1.25vw,16px);letter-spacing:.3em}
 
 /* species card: a live sound-wave sitting above the credit, tight to the zone.
    no stroke -- matches the credits panel. the wave IS the bird's real voice. */
@@ -276,6 +280,7 @@ footer{
   .mm-eyebrow{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:none;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.7)}
   .mm-title{font-family:"Cormorant","Ubuntu Sans Mono",serif;font-weight:500;font-size:clamp(32px,10vw,42px);line-height:1.02;font-feature-settings:"dlig" 1,"liga" 1;text-shadow:0 1px 8px rgba(0,0,0,.6)}
   .mm-sub{font-family:"Ubuntu Sans Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.75;opacity:.9;text-shadow:0 1px 5px rgba(0,0,0,.85)}
+  .mm-sub .mm-hp{display:block;margin-top:.5em;text-transform:none;letter-spacing:.05em;opacity:.72}   /* 11-14 (Ivy): the quiet note, lowercase */
   .mm-contact{font-family:"Ubuntu Sans Mono",monospace;font-size:12px;letter-spacing:.12em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:3px;margin-top:8px;cursor:pointer}
 }
 </style>
@@ -302,7 +307,7 @@ footer{
     <div class="wall-place" id="wallPlace"></div>
     <div class="center" id="center">
       <button class="arm" id="arm">Living Walls</button>
-      <div class="arm-sub" id="armSub">Headphones recommended. Click to begin.</div>
+      <div class="arm-sub" id="armSub"><span class="arm-hp">headphones recommended</span><span class="arm-go">Click to begin</span></div>
     </div>
     <div class="chip" id="chip">
       <canvas class="chip__wave" id="chipWave"></canvas>
@@ -338,7 +343,7 @@ footer{
   <div class="mm-inner">
     <p class="mm-eyebrow"><a class="brand-home" href="/">planetbased.io</a></p>
     <h2 class="mm-title">Living Walls</h2>
-    <p class="mm-sub">Real recordings of animals;<br>best on a desktop with headphones</p>
+    <p class="mm-sub">Real recordings of animals<span class="mm-hp">best on a desktop, with headphones</span></p>
     <a class="mm-contact" id="contactCopyM">hi@planetbased.io</a>
   </div>
 </div>

@@ -343,7 +343,10 @@
     { what: 'castanet click (the sun)', who: 'NoahBangs', title: 'Castanets, 4 Fast Clicks', url: 'https://freesound.org/people/NoahBangs/sounds/666766/', lic: 'CC BY 4.0' },
     { what: 'gamelan gender (the word, the flowers, the accent)', who: 'thedialogueproject', title: 'Bali Xylophone 2', url: 'https://freesound.org/people/thedialogueproject/sounds/48265/', lic: 'CC0' },
     { what: 'Ghanaian marimba (the logo opening)', who: 'Sassaby', title: 'Ghanaian Marimba G1-mp', url: 'https://freesound.org/people/Sassaby/sounds/528065/', lic: 'CC0' },
-    { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' }
+    { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' },
+    { what: 'tūī (the Living Walls card)', who: 'Ken George, Whakatāne, NZ', title: 'Tūī, XC1090728', url: 'https://xeno-canto.org/1090728', lic: 'CC BY-NC-SA 4.0', licUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
+    { what: 'honeybee swarm (the Beekeeper card)', who: 'YleArkisto, Finland, 1975', title: 'Honeybee swarm', url: 'https://commons.wikimedia.org/wiki/File:263673_ylearkisto_mehilainen-tarhamehilainen-parvi-bees-honeybees-a-swarm-of-bees-buzzing-among-the-flowers-apis-mellifera.wav', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' },
+    { what: 'honeybee buzz (the Beekeeper card)', who: 'Natural History Museum, London, via BioAcoustica', title: 'Honeybee buzz', url: 'https://commons.wikimedia.org/wiki/File:BioAcoustica_898_4_Apis_mellifera_(Honey_Bee)_78.flac', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' }
   ];
 
   // ---------- the colour slider plays the gender (11-14, Ivy) ----------
@@ -483,7 +486,7 @@
     cb.setAttribute('aria-expanded', 'false'); cb.setAttribute('aria-controls', 'hsCredits');
     const pan = document.createElement('div'); pan.className = 'hs-cred'; pan.id = 'hsCredits'; pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-label', 'Sound credits'); pan.hidden = true;
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    pan.innerHTML = '<p class="hs-cred-h">Sounds</p><ul>' + CREDITS.map(c => `<li><span class="w">${esc(c.what)}</span> <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a> by ${esc(c.who)}, ${c.lic === 'CC0' ? 'CC0' : '<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">' + esc(c.lic) + '</a>'}</li>`).join('') + '</ul>';
+    pan.innerHTML = '<p class="hs-cred-h">Sounds</p><ul>' + CREDITS.map(c => `<li><span class="w">${esc(c.what)}</span> <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a> by ${esc(c.who)}, ${c.lic === 'CC0' ? 'CC0' : '<a href="' + esc(c.licUrl || 'https://creativecommons.org/licenses/by/4.0/') + '" target="_blank" rel="noopener">' + esc(c.lic) + '</a>'}</li>`).join('') + '</ul>';
     const open = v => { pan.hidden = !v; cb.setAttribute('aria-expanded', String(v)); if (v) { const a = pan.querySelector('a'); if (a) a.focus({ preventScroll: true }); } };
     cb.addEventListener('click', e => { e.stopPropagation(); open(pan.hidden); });
     document.addEventListener('pointerdown', e => { if (!pan.hidden && !wrap.contains(e.target)) open(false); });
