@@ -230,7 +230,7 @@
     const S = window.HeroStrings, L = window.HeroLogo;
     let lastWord = -1e9;
     song.forEach(([t, v, st, x]) => setTimeout(() => {
-      const o = { replay: true };
+      const o = { replay: true, song: true };
       if (v === 'g') { if (S && S.xs.length) { const i = S.stringFor(st); S.pluck(i, 1, false); HeroSound.play('g', st, { ...o, down: x === 1, amp: x === 1 ? .6 : 1, pan: (S.xs[i].x / innerWidth) * 1.6 - .8 }); } else HeroSound.play('g', st, { ...o, down: x === 1 }); return; }
       if (v === 'p' || v === 'd') { if (S && S.setObj) S.setObj(v === 'p' ? '.peony' : '.dahlia', st, 220); HeroSound.play(v, st, o); return; }
       if (v === 's') {

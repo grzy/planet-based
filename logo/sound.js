@@ -281,11 +281,13 @@
   // nothing plays again until the page is back at the top. A shared song's replay is the only exception
   const atRest = () => (window.scrollY || document.documentElement.scrollTop || 0) < 8;
   let wasRest = true;
-  addEventListener('scroll', () => { const r = atRest(); if (wasRest && !r) silence(); wasRest = r; }, { passive: true });
+  // 11-14 (Ivy): leaving the hero no longer cuts the sound: what is already ringing finishes on its own decay (3 s at most);
+  // only new hero notes are refused (the gate in play), and anything scheduled but not yet started is refused there too
+  addEventListener('scroll', () => { wasRest = atRest(); }, { passive: true });
   window.HeroAtRest = atRest;
   function play(voice, step = 0, o = {}) {
     if (!live() || !V[voice]) return false;
-    if (o.closing ? !closingSeen() : (!o.replay && !atRest())) return false;   // the closing has its own gate
+    if (o.closing ? !closingSeen() : (!atRest() && !(o.replay && o.song))) return false;   // the closing has its own gate; tremolos and tails scheduled earlier are refused once the hero is left
     V[voice](step, o);
     window.__hsNotes = (window.__hsNotes || 0) + 1; if (!o.replay) window.__hsLastPlay = performance.now();
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));

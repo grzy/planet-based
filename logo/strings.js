@@ -261,7 +261,7 @@
   // when the hero leaves the screen, every hero sound stops at once
   (function io() {
     const h = document.querySelector('.hero'); if (!h || !window.IntersectionObserver) return;
-    new IntersectionObserver(es => es.forEach(en => { if (en.intersectionRatio < .35 && window.HeroSound && HeroSound.silence) HeroSound.silence(); }), { threshold: [0, .35, .7] }).observe(h);
+    new IntersectionObserver(es => es.forEach(en => { /* 11-14: no cut on leaving; ringing notes finish, new ones are gated */ }), { threshold: [0, .35, .7] }).observe(h);
   })();
   window.HeroStrings = { positions, mount, pluck, scribblePath, stringFor, setObj, VOICE, get xs() { return xs; } };
 })();
