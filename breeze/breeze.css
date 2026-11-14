@@ -1,0 +1,33 @@
+/* The breeze (11-13, Ivy): the closing's breeze moment, the loader's wind, and the potted tree in layers */
+
+/* the potted orange tree, three layers cut from the same picture: the pot never moves, the trunk sways from where it meets
+   the soil, the canopy rustles a little more from the top of the trunk. The cuts sit where the trunk is thin, so no seam shows */
+.pot-tree{aspect-ratio:557/1026}
+.pot-tree img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pot-tree .pt-sway{position:absolute;inset:0;transform-origin:51.2% 77%}
+.pot-tree .pt-canopy{clip-path:inset(0 0 36.6% 0);transform-origin:51.4% 62%}
+.pot-tree .pt-trunk{clip-path:inset(62.4% 0 23.6% 0)}
+.pot-tree .pt-pot{clip-path:inset(75.4% 0 0 0)}
+
+/* the breeze layer: the wind lines and the chimney smoke, above the flowers and the house, below the bees */
+.breeze{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.breeze svg{will-change:transform,opacity}
+
+/* the newt who slips in at the upper window: small, crisp, with a tiny contact shadow. He lives in the house's layer,
+   above the house and below the potted tree (z-index 2), so the pot hides him until he crawls out */
+.bnewt{position:absolute;left:0;top:0;z-index:1;height:auto;pointer-events:none;will-change:transform,opacity;
+  filter:drop-shadow(0 1px .6px rgba(40,34,20,.45)) drop-shadow(0 2px 2px rgba(40,34,20,.18))}
+
+/* a cloud with no room above the roof passes in front of the house, never half behind its edge */
+.cloud.pass{z-index:1}
+
+/* the loader's wind: drawn round the tree, from the same studies */
+.loader-in{position:relative}
+.loader-wind{position:absolute;left:0;top:0;width:0;height:0;overflow:visible;pointer-events:none}
+
+/* review aid (?breeze): a small clock in the corner */
+.breeze-clock{position:fixed;right:10px;bottom:10px;z-index:99;font:11px/1 var(--mono, monospace);letter-spacing:.06em;
+  color:#26292a;background:rgba(241,242,227,.9);padding:6px 8px;border-radius:6px;pointer-events:none}
+
+/* on the dark page the graphite turns to a pale pencil, so the lines read on black the way they read on paper */
+html[data-page="dark"] :is(.breeze,.loader-wind) svg{filter:invert(1) brightness(.95)}

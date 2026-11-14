@@ -612,7 +612,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .guides span:nth-child(n+5){display:none}
   .ruler{background-size:1px 6px,calc((100% + var(--gut)) / 4) 6px}   /* 11-13: ticks on the phone's four guides, closed at the end */
   .punch{display:none}
-  .sun{left:calc(70cqw - 23cqh / 2);top:calc(45cqh - 23cqh / 2);width:23cqh;height:23cqh}
+  /* 11-13 (Ivy): centred on the third guide line (50% + half a gutter), clear of the logo and the peony */
+  .sun{left:calc(50cqw + var(--gut) / 2 - 23cqh / 2);top:calc(45cqh - 23cqh / 2);width:23cqh;height:23cqh}
   .peony{width:12cqh;left:calc(70cqw - 23cqh * .1 - 6cqh);top:calc(45cqh - 23cqh * .86 - 6cqh)}
   .dahlia{width:19cqh;right:-8cqw;left:auto;top:58cqh;bottom:auto}
   .mark-word .peony{left:calc(70cqw + 23cqh * .32 - 6cqh);top:calc(45cqh - 23cqh * .76 - 6cqh)}
@@ -762,6 +763,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
+<link rel="stylesheet" href="breeze/breeze.css">
 </head>
 <body>
 <main>
@@ -772,16 +774,17 @@ html.boot .pbs{visibility:hidden}
       // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
       (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot')) return;
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
-        var a = new Image(); a.onload = function () { t.src = a.src; }; a.src = 'img/orange-tree-anim.webp'; })();
+        var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
+      <script src="breeze/paths.js"></script>
+      <script src="breeze/scribble.js"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
           <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <span class="reg tl" aria-hidden="true"></span><span class="reg tr" aria-hidden="true"></span><span class="reg bl" aria-hidden="true"></span><span class="reg br" aria-hidden="true"></span>
           <h1 class="mark"><span class="sr">planetbased.io</span><svg class="mono-pb v1 pb-logo" viewBox="0 0 3 5.95" aria-hidden="true" focusable="false"><rect x="0" y="1" width="1" height="4.95"/><rect x="2" y="0" width="1" height="4.95"/></svg><span class="word" aria-hidden="true">planetbased.io</span></h1>
-          <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><span class="slot" aria-hidden="true"></span><b>Based in Mill Valley, California</b></p>
-          <p class="dl-sub">A design + creative technology studio</p>
+          <p class="dateline"><span>planetbased.io</span><span class="rule" aria-hidden="true"></span><span class="slot" aria-hidden="true"></span><b>A design + creative technology studio</b></p>
           <p class="thesis"><span class="t1">Technology that</span><span class="t2">gives energy back.</span></p>
         </div>
       </div>
@@ -893,7 +896,7 @@ html.boot .pbs{visibility:hidden}
     </div>
     <div class="home" id="home">
       <img class="cottage" id="cottage" src="img/cottage-3.webp" alt="" aria-hidden="true" width="756" height="780" loading="lazy">
-      <img class="pot-tree" id="potTree" src="img/orange-1.webp" alt="" aria-hidden="true" width="557" height="1026" loading="lazy">
+      <div class="pot-tree" id="potTree" aria-hidden="true"><div class="pt-sway"><img class="pt-trunk" src="img/orange-1.webp" alt="" width="557" height="1026" loading="lazy"><img class="pt-canopy" src="img/orange-1.webp" alt="" width="557" height="1026" loading="lazy"></div><img class="pt-pot" src="img/orange-1.webp" alt="" width="557" height="1026" loading="lazy"></div>
     </div>
     <div class="floor" id="floor">
       <div class="rule" aria-hidden="true"></div>
@@ -1325,7 +1328,7 @@ html.boot .pbs{visibility:hidden}
     const now = performance.now();
     if (now - lastShake < 900) return;
     lastShake = now;
-    if (!reduceQ.matches) shake(potTree, .55, 520);
+    if (!reduceQ.matches) shake(potTree.querySelector('.pt-sway') || potTree, .55, 520);
   }
   mail.addEventListener('pointerenter', onAddress);
   mail.addEventListener('focus', onAddress);
@@ -1602,7 +1605,7 @@ html.boot .pbs{visibility:hidden}
       const top = (phone() ? 10 : hidden + 18) + BOB, bottom = st.t - (phone() ? 22 : 44) - BOB;
       const d = relTo(document.getElementById('dahliaTop'), closing);
       // the chimney: the house picture is flipped, so the stack stands near its right edge; it runs from the top to 7% down
-      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, studioB: st.b,
+      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, roof: house.t + (house.b - house.t) * .07, studioB: st.b,
         dTop: d.t, dH: d.b - d.t, mailT: relTo(document.querySelector('.contact a.mail'), closing).t, ...(f => ({ fTop: f.t, fMid: (f.t + f.b) / 2, fL: f.l, fW: f.r - f.l }))(relTo(document.getElementById('flipBig'), closing)) };
     }
     function build() {
@@ -1632,6 +1635,13 @@ html.boot .pbs{visibility:hidden}
         c.wpx = w; c.hpx = w * ar; c.el.style.width = w.toFixed(1) + 'px';
         const [lo, hi] = c.box ? c.box(L) : [L.top, c.big ? Math.min(L.bottom, L.fTop - 14 - BOB) : L.bottom];
         c.y = clamp(c.lane(L, c.hpx), lo, Math.max(lo, hi - c.hpx));
+        // 11-13 (Ivy): a cloud behind the house never shows half of itself at the house's edge. One that drifts past the
+        // house keeps above its roof; if there is no room up there, it passes in front of the house instead
+        if (!phone() && !c.front && c.zone !== 'L') {
+          const clear = L.roof - c.hpx - BOB - 8;
+          c.el.classList.remove('pass');
+          if (c.y + c.hpx + BOB > L.roof) { if (clear >= lo) c.y = clear; else c.el.classList.add('pass'); }
+        }
       });
       // the lap. A pair shares one, half a lap apart, so one of the two is always in view. A zone cloud runs between the
       // page edge and the middle of the dahlia, wrapping round while it is hidden behind the flower. On phones each cloud
@@ -1657,7 +1667,7 @@ html.boot .pbs{visibility:hidden}
     function frame(now) {
       raf = 0;
       if (!on || reduceQ.matches) return;
-      t += Math.min(.1, (now - last) / 1000); last = now;
+      t += Math.min(.1, (now - last) / 1000) * (window.__breezeGust ? window.__breezeGust(now) : 1); last = now;   // the clouds hurry while the breeze passes
       draw();
       raf = requestAnimationFrame(frame);
     }
@@ -2333,6 +2343,7 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
+<script src="breeze/breeze.js"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>
