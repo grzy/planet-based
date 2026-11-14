@@ -227,4 +227,4 @@ html[data-page="dark"] .hs-cred{background:#232724;color:#ECEBDF}
 /* 11-14 (Ivy, iPhone): bits of other sun faces showed round the current one. WebKit keeps painting a transformed,
    opacity-0 face's tiles; a face that is not on is now truly hidden (visibility), and the one on is the only one painted */
 .sun img:not(.on){visibility:hidden}
-.sun img.on{visibility:visible}
+.sun img.on{visibility:inherit}   /* inherit, never visible: the sun must stay hidden while its parent is (loader, before its beat) */

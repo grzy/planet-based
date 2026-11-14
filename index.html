@@ -651,7 +651,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .studio{grid-column:1 / -1;order:1}
   .home{order:2}
   .contact a.mail{grid-column:1 / -1;order:3;justify-self:start}
-  .quiet{grid-column:1 / -1;order:4;margin-bottom:14px}
+  .quiet{grid-column:1 / -1;order:4;margin-bottom:14px;margin-top:calc(clamp(12px,1.6vh,22px) - 9px)}   /* 11-14 (Ivy): closer to the address, the gap about 40% smaller */
   .floor{order:5}
   .flip.big{left:calc(var(--m) + 12px);bottom:calc(var(--below,129px) + min(62vw,270px) * (1.032 - .19) - 15vw);width:30vw}
   .flip.small{left:50vw;bottom:calc(var(--below,129px) - 93px);width:16vw}
@@ -663,8 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=9">
-<link rel="stylesheet" href="logo/b-variant.css?v=9">
+<link rel="stylesheet" href="logo/story.css?v=10">
+<link rel="stylesheet" href="logo/b-variant.css?v=10">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -916,17 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=9"></script>
-<script src="logo/pose.js?v=9"></script>
-<script src="logo/sound.js?v=9"></script>
-<script src="logo/bees.js?v=9"></script>
-<script src="logo/hero-logo.js?v=9"></script>
-<script src="logo/story.js?v=9"></script>
-<script src="logo/common.js?v=9"></script>
-<script src="logo/song.js?v=9"></script>
-<script src="logo/strings.js?v=9"></script>
-<script src="logo/preload.js?v=9"></script>
-<script src="logo/b-variant.js?v=9"></script>
+<script src="logo/hero-logo-data.js?v=10"></script>
+<script src="logo/pose.js?v=10"></script>
+<script src="logo/sound.js?v=10"></script>
+<script src="logo/bees.js?v=10"></script>
+<script src="logo/hero-logo.js?v=10"></script>
+<script src="logo/story.js?v=10"></script>
+<script src="logo/common.js?v=10"></script>
+<script src="logo/song.js?v=10"></script>
+<script src="logo/strings.js?v=10"></script>
+<script src="logo/preload.js?v=10"></script>
+<script src="logo/b-variant.js?v=10"></script>
 <script>
 (() => {
   'use strict';
