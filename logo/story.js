@@ -186,6 +186,47 @@
   addEventListener('keydown', e => { if (loaderUp() && /^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| )$/.test(e.key)) e.preventDefault(); });
   addEventListener('scroll', () => { if (loaderUp() && (window.scrollY || 0) > 0) scrollTo(0, 0); }, { passive: true });
 
+  // ---------- the sun drawn as ONE fixed canvas (11-14, Ivy's iPhone) ----------
+  // The faces are different sizes; WebKit repainted only the new face's rect on a swap, so bits of an earlier, bigger face
+  // survived outside it. Now one canvas, a fixed box big enough for every face (the sun's box and 22% round it), is
+  // cleared whole and redrawn with the face that is on, every time the page swaps faces. The page's own face swapper is
+  // untouched (it still marks the face that is on); the <img> faces stay in the page, unseen, as the canvas's sources
+  (function sunCanvas() {
+    const wire = () => {
+      const sun = document.querySelector('.objs .sun'), jit = sun && sun.querySelector('.jit'); if (!jit || jit.querySelector('.hs-suncv')) return;
+      const imgs = [...jit.querySelectorAll('img')]; if (!imgs.length) return;
+      const cv = document.createElement('canvas'); cv.className = 'hs-suncv'; cv.setAttribute('aria-hidden', 'true');
+      jit.appendChild(cv); document.documentElement.classList.add('hs-cv');
+      const PAD = .22, ctx = cv.getContext('2d');
+      let W = 0, cur = null;
+      function size() {
+        const w = sun.clientWidth; if (!w) return false;
+        const dpr = Math.min(3, window.devicePixelRatio || 1), full = w * (1 + PAD * 2);
+        if (Math.abs(full - W) > .5 || cv.width !== Math.round(full * dpr)) { W = full; cv.width = Math.round(full * dpr); cv.height = Math.round(full * dpr); }
+        return true;
+      }
+      function draw() {
+        if (!size()) return;
+        const on = imgs.find(i => i.classList.contains('on')) || cur; if (!on) return;
+        cur = on;
+        const dpr = cv.width / W, box = sun.clientWidth, off = box * PAD;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);   // the whole fixed rect, every time
+        if (!on.complete || !on.naturalWidth) { on.addEventListener('load', draw, { once: true }); return; }
+        const cs = getComputedStyle(on), num = v => parseFloat(cs.getPropertyValue(v)) || 0;
+        const k = parseFloat(cs.getPropertyValue('--k')) || 1, dx = num('--dx') / 100 * box, dy = num('--dy') / 100 * box;
+        const ar = on.naturalWidth / on.naturalHeight, fw = ar >= 1 ? box : box * ar, fh = ar >= 1 ? box / ar : box;   // object-fit: contain
+        const cx = off + box / 2 + dx, cy = off + box / 2 + dy;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.drawImage(on, cx - fw * k / 2, cy - fh * k / 2, fw * k, fh * k);
+      }
+      new MutationObserver(draw).observe(jit, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      addEventListener('resize', () => requestAnimationFrame(draw));
+      imgs.forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (i.classList.contains('on')) draw(); }); });
+      draw();
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  })();
+
   window.__introAt = ms => { cancelAnimationFrame(S.raf); S.raf = 0; frame(ms); seekCSS(ms); return 'frozen at ' + ms; };
   window.__introPlay = () => { S.t0 = performance.now() - S.t / S.rate; S.raf = requestAnimationFrame(tick); document.getAnimations().forEach(a => { if (a.playState === 'paused') a.play(); }); };
 })();

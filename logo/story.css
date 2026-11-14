@@ -243,3 +243,6 @@ html{-webkit-tap-highlight-color:transparent}
 img{-webkit-user-drag:none;user-drag:none}
 :focus:not(:focus-visible){outline:none}
 .hero .mark:focus:not(:focus-visible),.pbs:focus:not(:focus-visible){outline:none;box-shadow:none}
+/* the sun as one fixed canvas (story.js): the faces stay in the page as its sources, unseen */
+.hs-cv .objs .sun .jit img{visibility:hidden!important}
+.hs-suncv{position:absolute;left:-22%;top:-22%;width:144%;height:144%;pointer-events:none;display:block}
