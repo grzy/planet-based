@@ -78,19 +78,33 @@
     tongue: t => { run(on(P.tongue, .3, t)); run(off(P.tongue, .3, t + 1.5)); return t + 1.9; },
     both: t => { run(off(P.eye, .16, t)); run(on(P.wink, .22, t + .18)); run(on(P.tongue, .3, t + .55)); run(off(P.tongue, .3, t + 1.9)); run(off(P.wink, .18, t + 2.05)); run(on(P.eye, .18, t + 2.25)); return t + 2.5; }
   };
+  // 11-14 (Ivy): it acts often, every 2.5 to 4 s while in view, and right away when a pointer comes over it or taps it
+  let busyTo = 0;
+  function play(n) {
+    last = n; live = live.filter(a => a.playState !== 'finished');
+    busyTo = performance.now() + ACTS[n](0) * 1000;
+  }
   function act() {
     actT = 0;
     if (!inView || !P || still()) return;
-    const names = Object.keys(ACTS).filter(n => n !== last), n = names[Math.floor(Math.random() * names.length)];
-    last = n; live = live.filter(a => a.playState !== 'finished'); ACTS[n](0);
-    actT = setTimeout(act, 6000 + Math.random() * 4000);
+    if (performance.now() < busyTo) { actT = setTimeout(act, busyTo - performance.now() + 200); return; }
+    const names = Object.keys(ACTS).filter(n => n !== last);
+    play(names[Math.floor(Math.random() * names.length)]);
+    actT = setTimeout(act, Math.max(busyTo - performance.now() + 600, 2500 + Math.random() * 1500));   // start to start, with a breath after a long act
   }
+  function poke() {
+    if (!P || still() || performance.now() < busyTo) return;
+    play(last === 'wink' ? 'tongue' : 'wink');                    // a quick wink or tongue, whichever it didn't just do
+    clearTimeout(actT); actT = setTimeout(act, Math.max(busyTo - performance.now() + 600, 2500 + Math.random() * 1500));
+  }
+  smiley.addEventListener('pointerenter', poke); smiley.addEventListener('pointerdown', poke);
+  at.addEventListener('pointerenter', poke); at.addEventListener('pointerdown', poke);
   const io = new IntersectionObserver(es => es.forEach(e => {
     const was = inView; inView = e.isIntersecting && e.intersectionRatio >= .9;
     if (inView && !was) {
       if (!P) setTimeout(writeOn, 450);
       live.forEach(a => { if (a.playState === 'paused') a.play(); });
-      clearTimeout(actT); actT = setTimeout(act, (P ? 2500 : 3200) + Math.random() * 2500);   // the first act comes soon
+      clearTimeout(actT); actT = setTimeout(act, P ? 1000 + Math.random() * 1000 : 2400);   // the first act about a second after it has written on
     } else if (!inView && was) { clearTimeout(actT); actT = 0; live.forEach(a => { if (a.playState === 'running') a.pause(); }); }
   }), { threshold: [0, .9] });
   io.observe(line);

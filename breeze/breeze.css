@@ -45,7 +45,7 @@ html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}
 
 /* the pencil smiley after "Don't be a stranger.": the period is its left eye (breeze/copied.js draws the rest) */
 .smile-at{position:relative;display:inline-block}
-.smiley{position:absolute;left:0;top:0;width:1.6em;pointer-events:none;visibility:hidden}   /* placed by copied.js from the period's baseline */
+.smiley{position:absolute;left:0;top:0;width:1.6em;pointer-events:auto;visibility:hidden}   /* hover or tap it: it pulls a face */   /* placed by copied.js from the period's baseline */
 .smiley .pb-copied{opacity:.78}
 
 /* 11-14 (Ivy): WebKit (Safari, every iPhone browser) paints filters and promoted layers on moving things as hot pink lines
