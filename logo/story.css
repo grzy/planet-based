@@ -199,3 +199,13 @@ html[data-page="dark"]{--hs-ink:#D9CDB7}
 .loader .hs-ing-2{color:var(--hs-ink)}
 html[data-page="dark"] .loader .hs-ing-2{color:var(--hs-ink)}
 .loader.hs-gone{display:none!important}
+
+/* B's default (?snd=t): the pencil note "sound on" that writes itself by the first touch, then fades */
+.hs-note{position:absolute;z-index:9;pointer-events:none;color:var(--oat);font-family:var(--serif);font-style:italic;font-size:17px;font-weight:380;display:inline-flex;flex-direction:column;
+  clip-path:inset(-30% 100% -30% 0);transition:clip-path .55s cubic-bezier(.35,.05,.45,.95)}
+.hs-note.in{clip-path:inset(-30% -4% -30% 0)}
+.hs-note.out{opacity:0;transition:opacity .7s ease}
+@media (prefers-reduced-motion:reduce){.hs-note{clip-path:none;transition:opacity .3s ease}}
+/* the loader's cut lines and its planetbased.io: soft graphite, lighter than the words (11-14, Ivy: not harsh) */
+.hs-lines i{background:color-mix(in srgb,var(--oat) var(--ink,0%),color-mix(in srgb,var(--hs-ink) 50%,transparent))}
+.loader .hs-word{opacity:.55}

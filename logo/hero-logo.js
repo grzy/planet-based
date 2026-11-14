@@ -106,7 +106,7 @@
     if (found >= 0 && found !== over) {
       const now = performance.now(), b = M.bars[found];
       if (!lastNote.get(found) || now - lastNote.get(found) > 90) {
-        HeroSound.play('b', found, { down: b.s[3] > 100, pan: (e.clientX / innerWidth) * 1.6 - .8 });   // the word: each bar a banjo note
+        HeroSound.play('b', found, { down: b.s[3] > 100, pan: (e.clientX / innerWidth) * 1.6 - .8 });   // the word: each bar a vibraphone note
         lastNote.set(found, now);
         if (window.HeroStory && HeroStory.ripple) HeroStory.ripple(found);
       }
@@ -116,8 +116,10 @@
   function enable(o = {}) {
     if (!mount() || live) return; live = true; opts = o;
     const hero = mark.closest('.hero');
+    let scrolledAt = 0; addEventListener('scroll', () => { scrolledAt = performance.now(); }, { passive: true });
     hero.addEventListener('pointermove', e => {
       if (e.pointerType === 'touch') return;
+      if (performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0)) return;   // a scroll's moves never play the word
       const open = target > 0, z = zone(open ? 28 : 10);
       if (inside(e, z)) { if (!open) go(2); sound(e); } else if (open) go(0);
     });

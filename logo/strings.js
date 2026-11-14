@@ -8,6 +8,10 @@
 (function () {
   let hero = null, layer = null, els = [], xs = [], objs = [], live = false;
   const OBJ = ['.sun', '.peony', '.dahlia'];
+  // 11-14 (the real dahlia bug): the dahlia and its resting bee are placed from the BOTTOM (and the right) on desktop, and
+  // a margin-top never moves a bottom-anchored box. Every move sets both sides, so it works however a thing is anchored
+  const setY = (el, m) => { el.style.marginTop = m.toFixed(1) + 'px'; el.style.marginBottom = (-m).toFixed(1) + 'px'; };
+  const setX = (el, m) => { el.style.marginLeft = m.toFixed(2) + 'px'; el.style.marginRight = (-m).toFixed(2) + 'px'; };
   let snapOpt = true, baseOp = .1;
   function positions(opts = {}) {
     if (opts.snap != null) snapOpt = opts.snap;
@@ -28,7 +32,7 @@
       let on = null, best = near; g.forEach(s => { if (s.kind === 'guide' && Math.abs(s.x - g[k].x) < best) { best = Math.abs(s.x - g[k].x); on = s; } });
       if (on) {
         const o = document.querySelector('.objs ' + g[k].sel), dx = on.x - g[k].x;
-        if (o && Math.abs(dx) >= .5) { o.style.marginLeft = ((parseFloat(o.style.marginLeft) || 0) + dx).toFixed(2) + 'px'; if (g[k].sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) r.style.marginLeft = o.style.marginLeft; } }
+        if (o && Math.abs(dx) >= .5) { const mx = (parseFloat(o.style.marginLeft) || 0) + dx; setX(o, mx); if (g[k].sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) setX(r, mx); } }
         Object.assign(on, { kind: 'obj', sel: g[k].sel, top: g[k].top, bottom: g[k].bottom }); g.splice(k, 1);
       }
     }
@@ -121,10 +125,16 @@
     // sweeping anywhere across the hero strums: every string you cross sounds (listened for on the window, so the sun
     // and the flowers, which sit above the hero, never swallow the sweep)
     let lastX = null;
+    // 11-14 (Ivy, a stuck hum after scrolling): a page scroll moves the hero under a still pointer and the browser sends
+    // moves for it; those never strum. Only real pointer movement, over the hero while it is mostly on screen
+    let scrolledAt = 0;
+    addEventListener('scroll', () => { scrolledAt = performance.now(); lastX = null; }, { passive: true });
     addEventListener('pointermove', e => {
       if (drag) return;
       const hr = hero.getBoundingClientRect();
+      if (performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0) || hr.bottom < innerHeight * .6 || hr.top > innerHeight * .4) { lastX = null; return; }
       if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
+      if (e.target && e.target.closest && e.target.closest('.work, .closing, footer, .foot, a, button, .pbs')) { lastX = null; return; }
       const x = e.clientX - hr.left;
       if (lastX != null) xs.forEach((s, i) => { if ((lastX - s.x) * (x - s.x) < 0) pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); });
       lastX = x;
@@ -173,9 +183,9 @@
         // up only as far as clears the top line, down only as far as stays inside the hero
         const top = Math.min(lim, Math.max(0, orr.top - m0 - hr.top - hero.clientHeight * .14)), bot = Math.min(lim, Math.max(0, hr.bottom - (orr.top - m0 + orr.height * .55)));   // down until about half of it has slipped under the hero's edge
         const m = Math.max(-top, Math.min(bot, drag.m0 + e.clientY - drag.y0));   // up only as far as clears the top line
-        o.style.marginTop = m.toFixed(1) + 'px';
+        setY(o, m);
         // the resting bee rides its flower: it moves with the dahlia, so it is never left on empty air
-        if (s.sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) r.style.marginTop = m.toFixed(1) + 'px'; }
+        if (s.sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) setY(r, m); }
         if (Math.abs(e.clientY - drag.y0) > 4) drag.moved = true;
         // a melodic run: every step of the tuning the flower passes sounds, in order (a sun drag moves its choir)
         const st = stepAt(m);
@@ -209,7 +219,7 @@
     const m = (10 - step) / 7 * limOf(), hr = hero.getBoundingClientRect(), r = o.getBoundingClientRect(), m0 = parseFloat(o.style.marginTop) || 0;
     const top = Math.max(0, r.top - m0 - hr.top - hero.clientHeight * .14), bot = Math.max(0, hr.bottom - (r.bottom - m0) - 6), mm = Math.max(-top, Math.min(bot, m));
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    [o, sel === '.dahlia' && document.querySelector('.objs .bee-rest')].forEach(el => { if (!el) return; el.style.transition = reduce ? '' : `margin-top ${ms}ms cubic-bezier(.65,0,.35,1)`; el.style.marginTop = mm.toFixed(1) + 'px'; });
+    [o, sel === '.dahlia' && document.querySelector('.objs .bee-rest')].forEach(el => { if (!el) return; el.style.transition = reduce ? '' : `margin-top ${ms}ms cubic-bezier(.65,0,.35,1),margin-bottom ${ms}ms cubic-bezier(.65,0,.35,1)`; setY(el, mm); });
   }
   let rz = 0;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!layer) return; const keep = live; positions(); live = keep; const op = baseOp; layer.remove(); layer = null; mountLines(op); }, 150); });
@@ -219,5 +229,10 @@
     els = xs.map(s => { const d = document.createElement('i'); d.style.left = s.x.toFixed(2) + 'px'; d.style.opacity = (s.kind === 'obj' ? opacity * 1.6 : opacity).toFixed(3); layer.appendChild(d); return d; });
     active.forEach(v => v.p.forEach(p => p.remove())); active.clear(); pencilLayer();
   }
+  // when the hero leaves the screen, every hero sound stops at once
+  (function io() {
+    const h = document.querySelector('.hero'); if (!h || !window.IntersectionObserver) return;
+    new IntersectionObserver(es => es.forEach(en => { if (en.intersectionRatio < .35 && window.HeroSound && HeroSound.silence) HeroSound.silence(); }), { threshold: [0, .35, .7] }).observe(h);
+  })();
   window.HeroStrings = { positions, mount, pluck, scribblePath, stringFor, setObj, VOICE, get xs() { return xs; } };
 })();

@@ -91,6 +91,7 @@
       HeroLogo.render(0);
       HeroLogo.enable({ askOnOpen: S.V.askOn === 'open' });
       if (S.V.afterEnd) S.V.afterEnd(K);
+      if (window.HeroSound && HeroSound.loadGuitar) setTimeout(HeroSound.loadGuitar, 900);   // the real guitar, after the hero
       if (window.HeroUnder) HeroUnder.layout();
     }
   }

@@ -12,8 +12,8 @@
 //   f  FLOURISH    the logo opening (rising) or folding (falling): four vibraphone notes up or down the tuning
 //   t  BRASS       a rare, soft flugelhorn-ish call after a big strum (a filtered saw, a slow bloom)
 //   z  BEE         a bee's buzz, harmonized (two quiet, wavering voices a fifth apart)
-// THE BUILD: whenever several things are played within a few seconds, a quiet low drone (D) comes in, then a soft
-// heartbeat; both let go within a few seconds of no input (and at once on blur or a hidden page).
+// No sustained layer: every note is one strike with its own natural release (the old drone and heartbeat are gone).
+// Everything stops at once on blur, a hidden page, or when the hero leaves the screen.
 // THE SONG: every note played is recorded (voice, step, time) so it can be shared as a link (shared/song.js).
 //   HeroSound.on()  HeroSound.start()  HeroSound.pitch(n, down)  HeroSound.onPlay(fn)  HeroSound.allowOnce()
 (function () {
@@ -51,7 +51,7 @@
         // iPhone Safari: a silent buffer started inside the tap unlocks output
         const sil = ctx.createBufferSource(); sil.buffer = ctx.createBuffer(1, 1, sr); sil.connect(ctx.destination); sil.start(0);
         // warm the string buffers in small idle slices, so the first touch never waits on them
-        build.init();
+        build.init(); decodeGuitar();
         let k = 0; const warmUp = () => { if (k < TUNING.length) { pluckBuffer(hz(k), .4985); pluckBuffer(hz(k), .4975); k++; if (window.requestIdleCallback) requestIdleCallback(warmUp, { timeout: 200 }); else setTimeout(warmUp, 30); } };
         warmUp();
       }
@@ -112,6 +112,25 @@
     s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + dur + .01);
   }
 
+  // ---------- the real guitar (11-14, Ivy: Carrie & Lowell, not a synth) ----------
+  // Recorded single notes of a steel-string Martin HD-28, one every three semitones (E2 to B5), each note played from
+  // the nearest one, pitch-shifted the last semitone or so. Lazy: fetched after the hero has arrived, decoded once sound is
+  // on. Until a note's sample is ready the string falls back to the plucked-string synth, so nothing ever waits.
+  // GUITAR lists the sample files (shared/guitar/, logo/guitar/ at the root); empty = the synth only.
+  const GUITAR = [];
+  const GDIR = (() => { try { const src = document.currentScript && document.currentScript.src; return src ? src.replace(/[^/]*$/, '') + 'guitar/' : 'guitar/'; } catch (e) { return 'guitar/'; } })();
+  const gRaw = new Map(), gBuf = new Map();   // midi -> ArrayBuffer, midi -> AudioBuffer
+  let gFetching = false;
+  function loadGuitar() {
+    if (gFetching || !GUITAR.length) return; gFetching = true;
+    GUITAR.forEach(([m, file]) => fetch(GDIR + file).then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { gRaw.set(m, ab); decodeGuitar(); } }).catch(() => {}));
+  }
+  function decodeGuitar() {
+    if (!ctx) return;
+    gRaw.forEach((ab, m) => { gRaw.delete(m); ctx.decodeAudioData(ab).then(b => gBuf.set(m, b)).catch(() => {}); });
+  }
+  const nearestGuitar = m => { let best = null, d = 1e9; gBuf.forEach((b, k) => { const dd = Math.abs(k - m) + (k > m ? .1 : 0); if (dd < d) { d = dd; best = k; } }); return best != null && d <= 3 ? best : null; };
+
   // ---------- the voices ----------
   // a string re-plucked damps its last voice (30 ms), as a real string does; and at most 32 voices sound at once
   const ringing = new Map(), voices = [];
@@ -124,13 +143,16 @@
   const V = {
     g(step, o) {                                    // STRINGS: fingerpicked guitar
       const t = when(.016), vel = (.62 + Math.random() * .3) * (o.amp || 1), f = hz(step, o.down), out = panner(o.pan || 0);
-      const src = ctx.createBufferSource(); src.buffer = pluckBuffer(f, .4985);
-      if (o.from) { src.playbackRate.setValueAtTime(o.from / f, t); src.playbackRate.linearRampToValueAtTime(1, t + .09); }
-      const body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 190; body.Q.value = 1.1; body.gain.value = 5;
+      const src = ctx.createBufferSource(), m = midi(step, o.down), k = nearestGuitar(m);
+      let rate = 1;
+      if (k != null) { src.buffer = gBuf.get(k); rate = Math.pow(2, (m - k) / 12); src.playbackRate.value = rate; }   // the real guitar
+      else src.buffer = pluckBuffer(f, .4985);                                                                         // the synth, until it loads
+      if (o.from) { src.playbackRate.setValueAtTime(rate * o.from / f, t); src.playbackRate.linearRampToValueAtTime(rate, t + .09); }
+      const body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 190; body.Q.value = 1.1; body.gain.value = k != null ? 1 : 5;   // the recording has its own body
       const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1700 + 3000 * (o.bright ?? .5) * vel;
       const g = ctx.createGain(); env(g, t, .3 * vel, .004, 2.6); track('g' + step + (o.down ? 'd' : ''), g, t);
       src.connect(body); body.connect(tone); tone.connect(g); g.connect(out); src.start(t); src.stop(t + 2.7);
-      const sq = Math.random() < .25; noise(t, .05, sq ? 2600 + Math.random() * 900 : 4200, sq ? 7 : 1.2, (sq ? .04 : .02) * vel, out);
+      if (k == null) { const sq = Math.random() < .25; noise(t, .05, sq ? 2600 + Math.random() * 900 : 4200, sq ? 7 : 1.2, (sq ? .04 : .02) * vel, out); }   // the synth's finger noise (the recording has real ones)
     },
     p(step, o) {                                    // PEONY: celesta / music-box tine
       const t = when(.006), f = hz(step + 3), out = panner(o.pan || 0), vel = .7 + Math.random() * .25;
@@ -239,7 +261,8 @@
     V[voice](step, o);
     window.__hsNotes = (window.__hsNotes || 0) + 1; if (!o.replay) window.__hsLastPlay = performance.now();
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));
-    if (voice !== 's' && voice !== 'z') build.bump(voice === 'g' ? .25 : .8);
+    // 11-14 (Ivy, a stuck hum): no build layer any more (no drone, no heartbeat); every note is a single strike that
+    // decays on its own
     // a big strum now and then answers with a soft brass call
     const now = performance.now(); recent = recent.filter(x => now - x < 600); recent.push(now);
     if (voice === 'g' && !o.replay && recent.length >= 9 && (bigStrums = now - lastBig > 1500 ? bigStrums + 1 : bigStrums, lastBig = now, bigStrums >= 2) && now - brassAt > 25000 && Math.random() < .15) { brassAt = now; setTimeout(() => play('t', 0, o.replay ? { replay: true } : {}), 220); }
@@ -281,7 +304,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', footer); else footer();
 
   window.HeroSound = {
-    ask, set, play, note, pitch, swell, start, TUNING,
+    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar,
     on: () => live(), answer: () => answer,
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)

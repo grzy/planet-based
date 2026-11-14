@@ -13,27 +13,31 @@
   //   3  ICON       a quiet speaker at the end of the colour slider
   //   Share always goes with it, in the same form. Everything takes the hero's type colour (var(--oat)), so it reads
   //   in every mode
-  const SND = () => { const m = location.search.match(/[?&]snd=([0123])/); return m ? m[1] : (/(^|\s)hs-b(\s|$)/.test(document.documentElement.className) ? '1' : '0'); };
+  //   t  TOUCH      (B's default, 11-14) no Sound button at all: the first touch on the instrument turns sound on and a
+  //                 small pencil note "sound on" writes itself by the finger, then fades; Share sits in the top line; the
+  //                 footer's "Sound: on/off" turns it off
+  const SND = () => { const m = location.search.match(/[?&]snd=([0123t])/); return m ? m[1] : (/(^|\s)hs-b(\s|$)/.test(document.documentElement.className) ? 't' : '0'); };
   const SPK = '<svg class="hs-spk" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M3 9.2h3.8L12 5v14l-5.2-4.2H3z"/><path class="w" d="M15.4 8.6a4.8 4.8 0 0 1 0 6.8M18 6.1a8.4 8.4 0 0 1 0 11.8"/><path class="x" d="M15.6 9.6l4.8 4.8M20.4 9.6l-4.8 4.8"/></svg>';
   const PEN = '<svg class="hs-pen" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M1.5 6.1C18 4.6 34 7.4 52 5.6S86 4.4 98.6 4.9"/><path class="p2" d="M4 7.2C24 6.2 46 7.9 66 6.6S90 6.1 97 6.5"/></svg>';
   window.HeroChips = () => {
     const hero = document.querySelector('.hero'); let r = hero.querySelector('.hs-chips'); if (r) return r;
     const m = SND(); r = document.createElement('div');
-    r.className = 'hs-chips' + (m !== '0' ? ' hs-ctl hs-ctl-' + m : '');
-    if (m === '1' && matchMedia('(min-width: 760px)').matches) { const dl = hero.querySelector('.dateline'); if (dl) { r.classList.add('inline'); dl.appendChild(r); return r; } }
+    r.className = 'hs-chips' + (m !== '0' ? ' hs-ctl hs-ctl-' + (m === 't' ? '1' : m) : '');
+    if ((m === '1' || m === 't') && matchMedia('(min-width: 760px)').matches) { const dl = hero.querySelector('.dateline'); if (dl) { r.classList.add('inline'); dl.appendChild(r); return r; } }
     hero.appendChild(r); return r;
   };
   // a chip's face in the current form: its word (and the speaker or the pencil line)
   function face(btn, word, kind) {
     const m = SND();
     if (m === '0') { btn.innerHTML = '<span class="hs-label">' + word + '</span>'; return; }
-    if (m === '1') btn.innerHTML = (kind === 'sound' ? SPK : '') + '<span class="hs-label">' + word + '</span>';
+    if (m === '1' || m === 't') btn.innerHTML = (kind === 'sound' ? SPK : '') + '<span class="hs-label">' + word + '</span>';
     if (m === '2') btn.innerHTML = '<span class="hs-label">' + word.toLowerCase() + '</span>' + PEN;
     if (m === '3') btn.innerHTML = kind === 'sound' ? SPK : '<span class="hs-label">' + word + '</span>';
   }
   // the Sound control: its word says what a tap does: "Sound" while it is off, "Quiet" while it is on
   window.HeroSoundChip = () => {
     const hero = document.querySelector('.hero'); if (!hero || hero.querySelector('.hs-sound')) return;
+    if (SND() === 't') { touchUnlock(); return; }
     const row = HeroChips(), b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-sound';
     const sync = () => {
       const on = HeroSound.answer() === 'yes';
@@ -45,6 +49,31 @@
     HeroSound.onChange(sync);
     row.prepend(b); sync(); requestAnimationFrame(() => b.classList.add('in'));
   };
+
+  // the touch that turns sound on: anywhere on the instrument (a string, a flower, the sun, the word), never a link, a
+  // button or the slider. A visitor who turned sound off in the footer keeps it off
+  let touchOn = false;
+  function touchUnlock() {
+    if (touchOn) return; touchOn = true;
+    addEventListener('pointerdown', e => {
+      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || e.button > 0) return;
+      const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect();
+      if (e.clientY < hr.top || e.clientY > hr.bottom || e.clientX < hr.left || e.clientX > hr.right) return;
+      if (e.target.closest && e.target.closest('a,button,input,.pbs,.hs-chips')) return;
+      HeroSound.set('yes');
+      penNote(hero, e.clientX - hr.left, e.clientY - hr.top);
+    }, { capture: true });
+  }
+  function penNote(hero, x, y) {
+    const n = document.createElement('span'); n.className = 'hs-note'; n.setAttribute('role', 'status');
+    n.innerHTML = '<span class="hs-label">sound on</span>' + PEN;
+    hero.appendChild(n);
+    const w = n.offsetWidth, h = n.offsetHeight;
+    n.style.left = Math.max(12, Math.min(hero.clientWidth - w - 12, x + 16)).toFixed(0) + 'px';
+    n.style.top = Math.max(12, Math.min(hero.clientHeight - h - 12, y - h - 14)).toFixed(0) + 'px';
+    requestAnimationFrame(() => n.classList.add('in'));
+    setTimeout(() => n.classList.add('out'), 1900); setTimeout(() => n.remove(), 2700);
+  }
 
   // ---------- the hero's foot (b and c): the slider under "gives energy back.", exactly as long as that line's ink, and the
   // chips at the bottom right, their words sitting on the same baseline as that line ----------
