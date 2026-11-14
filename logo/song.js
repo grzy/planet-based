@@ -59,9 +59,17 @@
       if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || e.button > 0 || (window.HeroAtRest && !HeroAtRest())) return;
       const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect();
       if (e.clientY < hr.top || e.clientY > hr.bottom || e.clientX < hr.left || e.clientX > hr.right) return;
-      if (e.target.closest && e.target.closest('a,button,input,.pbs,.hs-chips')) return;
+      if (e.target.closest && e.target.closest('a,button,input,.hs-chips')) return;   // the colour slider counts (11-14, Ivy)
       HeroSound.set('yes');
       penNote(hero, e.clientX - hr.left, e.clientY - hr.top);
+    }, { capture: true });
+    // the slider from the keyboard turns it on too (the note by the slider's sun)
+    addEventListener('keydown', e => {
+      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || (window.HeroAtRest && !HeroAtRest())) return;
+      if (!(e.target.closest && e.target.closest('.pbs')) || !/^(Arrow|Page|Home|End)/.test(e.key)) return;
+      const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect(), th = e.target.closest('.pbs').querySelector('.psun'), r = (th || e.target).getBoundingClientRect();
+      HeroSound.set('yes');
+      penNote(hero, r.left + r.width / 2 - hr.left, r.top - hr.top);
     }, { capture: true });
   }
   function penNote(hero, x, y) {
