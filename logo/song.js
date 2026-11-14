@@ -56,7 +56,7 @@
   function touchUnlock() {
     if (touchOn) return; touchOn = true;
     addEventListener('pointerdown', e => {
-      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || e.button > 0) return;
+      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || e.button > 0 || (window.HeroAtRest && !HeroAtRest())) return;
       const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect();
       if (e.clientY < hr.top || e.clientY > hr.bottom || e.clientX < hr.left || e.clientX > hr.right) return;
       if (e.target.closest && e.target.closest('a,button,input,.pbs,.hs-chips')) return;

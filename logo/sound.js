@@ -261,8 +261,15 @@
   };
   // ---------- playing: one entry point, recorded for the song, feeding the build ----------
   let recent = [], brassAt = 0, bigStrums = 0, lastBig = 0;
+  // 11-14 (Ivy): the instrument is live only while the hero is at rest. The moment the page scrolls (the blocks begin
+  // to part on desktop, where the hero stays pinned and so still "visible"), every hero sound stops (a fast fade) and
+  // nothing plays again until the page is back at the top. A shared song's replay is the only exception
+  const atRest = () => (window.scrollY || document.documentElement.scrollTop || 0) < 8;
+  addEventListener('scroll', () => { if (!atRest()) silence(); }, { passive: true });
+  window.HeroAtRest = atRest;
   function play(voice, step = 0, o = {}) {
     if (!live() || !V[voice]) return false;
+    if (!o.replay && !atRest()) return false;
     V[voice](step, o);
     window.__hsNotes = (window.__hsNotes || 0) + 1; if (!o.replay) window.__hsLastPlay = performance.now();
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));

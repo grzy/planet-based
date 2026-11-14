@@ -160,7 +160,7 @@
     addEventListener('pointermove', e => {
       if (drag) return;
       const hr = hero.getBoundingClientRect();
-      if (performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0) || hr.bottom < innerHeight * .6 || hr.top > innerHeight * .4) { lastX = null; return; }
+      if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0) || hr.bottom < innerHeight * .6 || hr.top > innerHeight * .4) { lastX = null; return; }
       if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
       if (e.target && e.target.closest && e.target.closest('.work, .closing, footer, .foot, a, button, .pbs')) { lastX = null; return; }
       const x = e.clientX - hr.left;
@@ -173,7 +173,7 @@
     // a flower's (or the sun's) string can be taken anywhere along it, not only at the flower: a press within reach of
     // the string moves its object
     addEventListener('pointerdown', e => {
-      if (drag || e.button > 0) return;
+      if (drag || e.button > 0 || (window.HeroAtRest && !HeroAtRest())) return;
       const hr = hero.getBoundingClientRect(); if (e.clientY < hr.top || e.clientY > hr.bottom) return;
       if (e.target.closest && e.target.closest('a,button,.pbs,.mark,.hs-ask,.hs-grab,.thesis,.dateline,.dl-sub')) return;
       const x = e.clientX - hr.left, reach = e.pointerType === 'mouse' ? 9 : 16;
@@ -202,6 +202,7 @@
       const o = document.querySelector('.objs ' + s.sel); if (!o) return;
       o.classList.add('hs-grab'); objs.push(o);
       o.addEventListener('pointerdown', e => {
+        if (window.HeroAtRest && !HeroAtRest()) return;   // only while the hero is at rest
         e.preventDefault(); e.stopPropagation();
         begin(o, i, e);
       });
@@ -236,7 +237,7 @@
   }
   // the number row plays the strings, 1 low to 0 high (not while typing, not with modifiers)
   addEventListener('keydown', e => {
-    if (!live || e.metaKey || e.ctrlKey || e.altKey || e.repeat || /input|textarea|select/i.test(e.target.tagName) || (e.target.isContentEditable)) return;
+    if (!live || (window.HeroAtRest && !HeroAtRest()) || e.metaKey || e.ctrlKey || e.altKey || e.repeat || /input|textarea|select/i.test(e.target.tagName) || (e.target.isContentEditable)) return;
     const k = '1234567890'.indexOf(e.key); if (k < 0) return;
     const order = xs.map((s, i) => [s.x, i]).sort((a, b) => a[0] - b[0]).map(a => a[1]);
     pluck(order[Math.round(k * (order.length - 1) / 9)], 1);

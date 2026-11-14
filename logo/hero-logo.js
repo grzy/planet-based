@@ -119,7 +119,7 @@
     let scrolledAt = 0; addEventListener('scroll', () => { scrolledAt = performance.now(); }, { passive: true });
     hero.addEventListener('pointermove', e => {
       if (e.pointerType === 'touch') return;
-      if (performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0)) return;   // a scroll's moves never play the word
+      if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0)) return;   // a scroll's moves never play the word
       const open = target > 0, z = zone(open ? 28 : 10);
       if (inside(e, z)) { if (!open) go(2); sound(e); } else if (open) go(0);
     });
