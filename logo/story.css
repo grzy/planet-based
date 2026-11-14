@@ -256,3 +256,10 @@ img{-webkit-user-drag:none;user-drag:none}
 @media (max-width:759px){.hs-hint{font-size:11.5px;font-weight:500;letter-spacing:.005em}.hs .reveal .hero .hs-hint{animation-name:hsHintInPh}}   /* 11-14 (Ivy): easier to read on phones */
 @keyframes hsHintInPh{0%{opacity:0}10%{opacity:.85}89%{opacity:.85}100%{opacity:0}}
 .hs .reveal .hero .hs-hint.gone,.hs-hint.gone{animation:none}
+/* 11-14 (Ivy): on desktop the thesis was shouting: 20% smaller; the slider under it follows (its length is measured from the
+   line's ink), with a smaller sun to suit. Phones unchanged */
+@media (min-width:760px){
+  .hs-b .thesis,.hs-c .thesis{font-size:calc(min(6.4cqh,3.8cqw) * .8);bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .8 * .62 + 52px)}
+  .hs-b .pbs:not(.dial) .psun,.hs-c .pbs:not(.dial) .psun{width:34px;height:34px;margin:-17px 0 0 -17px}
+  .hs-b .pbs:not(.dial),.hs-c .pbs:not(.dial){height:34px}
+}
