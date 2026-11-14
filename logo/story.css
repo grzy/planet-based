@@ -147,7 +147,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
    the top line on desktop */
 .hs-b .mark .mono-pb.pb-logo,.hs-c .mark .mono-pb.pb-logo{height:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 * 5.95 / 3)}
 @media (min-width:760px){.hs-b .mark,.hs-c .mark{margin-top:1.6cqh}}
-@media (max-width:759px){.hs-b .mark .mono-pb.pb-logo,.hs-c .mark .mono-pb.pb-logo{height:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 * 5.95 / 3)}}
+@media (max-width:759px){.hs-b .mark .mono-pb.pb-logo,.hs-c .mark .mono-pb.pb-logo{height:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 * 5.95 / 3 * .7)}}   /* 11-14 (Ivy): 70% on phones */
 /* WebKit (html.wk, set by c/): no filters or masks on anything that moves; the pencil word just fades and drifts */
 .wk .loader .hs-ing-2.smudge .hs-txt{filter:none;transition:opacity .4s ease,transform .42s ease}
 .wk .pbs .psun .moon.ph{filter:none;-webkit-mask:none;mask:none}
@@ -224,3 +224,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:var(--hs-ink)}
 html[data-page="dark"] .hs-cred{background:#232724;color:#ECEBDF}
 @media (max-width:759px){.hs-cred{right:auto;left:0}}
 .hs-cred,.hs-cred *{text-transform:none;letter-spacing:0;font-family:var(--serif)}
+/* 11-14 (Ivy, iPhone): bits of other sun faces showed round the current one. WebKit keeps painting a transformed,
+   opacity-0 face's tiles; a face that is not on is now truly hidden (visibility), and the one on is the only one painted */
+.sun img:not(.on){visibility:hidden}
+.sun img.on{visibility:visible}

@@ -194,6 +194,10 @@
       const k = pick('gender', 40, 30, 46), t = ctx.currentTime + .02;
       if (k) sample(k.name, t, { rate: k.rate, gain: .3, dur: 3 }); else sine(40, t, .07, 2);
     },
+    k(step, o) {                                    // SLIDER: one gamelan gender note (the lab's fold), quiet
+      const k = pick('gender', o.midi, o.lo, o.hi), t = when(.003);
+      if (k) sample(k.name, t, { rate: k.rate, gain: .3 * (o.lvl || .8), pan: o.pan || 0, dur: 3, key: 'k' + Math.round(k.m) });
+    },
     z(step, o) {                                    // BEE: a buzz, harmonized a fifth apart
       const t = ctx.currentTime + .02, out = panner(o.pan || .5), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(out);
       [mhz(57), mhz(64)].forEach((f, i) => {
@@ -303,6 +307,38 @@
     { what: 'Ghanaian marimba (the logo opening)', who: 'Sassaby', title: 'Ghanaian Marimba G1-mp', url: 'https://freesound.org/people/Sassaby/sounds/528065/', lic: 'CC0' },
     { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' }
   ];
+
+  // ---------- the colour slider plays the gender (11-14, Ivy) ----------
+  // Dragging: one note per step along the track (the scale from E3 up to G#4: rising toward the dark end, falling back
+  // toward green), at most ~12 notes a second. Released or settled on a mode: a soft rolled chord, the lab's strings
+  // gesture (green: E major, home; oatmeal: A minor; dark: F major). Arrow keys play a note per step. Same gate as
+  // everything: sound on, hero at rest
+  (function slider() {
+    const RANGE = 9, CH = [[52, 56, 59, 64, 68, 71, 76], [57, 60, 64, 69, 72, 76], [53, 57, 60, 65, 69, 72, 77]];
+    let dragging = false, lastStep = null, lastAt = 0, settleT = 0;
+    const tNow = () => (window.PBM ? PBM.t : 0);
+    const stepOf = t => Math.round(Math.max(0, Math.min(2, t)) / 2 * RANGE);
+    function noteFor(t, force) {
+      const st = stepOf(t), now = performance.now();
+      if (now - lastAt < 85 || (!force && st === lastStep)) return;   // never more than ~12 a second, keys included
+      lastStep = st; lastAt = now;
+      play('k', st, { midi: TUNING[st], lo: 48, hi: 70, lvl: .7, pan: st / RANGE * .8 - .4 });   // unfolded, so it always rises toward dark
+    }
+    function chord() {
+      const t = tNow(), mode = Math.round(Math.max(0, Math.min(2, t)));
+      CH[mode].forEach((m, i) => setTimeout(() => play('k', i, { midi: m, lvl: .8 * .8, pan: -.35 + i * .1 }), i * 55));
+    }
+    const onTrack = e => e.target && e.target.closest && e.target.closest('.pbs');
+    addEventListener('pointerdown', e => { if (onTrack(e)) { dragging = true; lastStep = null; clearTimeout(settleT); setTimeout(() => noteFor(tNow(), true), 30); } }, true);
+    addEventListener('pointermove', () => { if (dragging) noteFor(tNow()); }, { passive: true });
+    const up = () => { if (!dragging) return; dragging = false; clearTimeout(settleT); settleT = setTimeout(chord, 380); };   // after the soft pull onto a mode
+    addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+    addEventListener('keydown', e => {
+      if (!onTrack(e) || !/^(Arrow|Page|Home|End)/.test(e.key)) return;
+      setTimeout(() => noteFor(tNow(), true), 0);
+      clearTimeout(settleT); if (/^(Page|Home|End)/.test(e.key)) settleT = setTimeout(chord, 380);
+    }, true);
+  })();
 
   // ---------- the footer's quiet way to change it ----------
   let footLink = null;
