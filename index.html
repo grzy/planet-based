@@ -17,6 +17,10 @@
 <script>
 // ?mark=word swaps the pb monogram for the wordmark; ?mark=pb2 / pb3 try other faces. Set before anything is drawn or cloned
 (function () {
+  // 11-14 (Ivy): WebKit (Safari, every iPhone browser) paints filters on moving layers as pink lines and boxes: html.wk
+  // takes them off (breeze/breeze.css)
+  var ua = navigator.userAgent;
+  if (/iP(hone|ad|od)/.test(ua) || (/AppleWebKit/.test(ua) && !/Chrome|Chromium|Edg|Firefox|OPR/.test(ua)) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /[?&]wk(&|$)/.test(location.search)) document.documentElement.classList.add('wk');
   var m = (location.search.match(/[?&]mark=(word|pb2|pb3)(&|$)/) || [])[1];
   if (m) document.documentElement.classList.add('mark-' + m);
   // the intro will run: hold everything back until it does, so nothing can show before its beat
@@ -493,6 +497,13 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .reveal .peony{animation:bloom .75s 1.95s cubic-bezier(.2,.7,.3,1) both}
 .reveal .dahlia{animation:bloom .75s 2.2s cubic-bezier(.2,.7,.3,1) both}
 .reveal .bee-rest{animation:land .5s 2.8s steps(4,end) both}
+/* 11-14 (Ivy): phones: no long pause after the logo; each thing lands on its beat, sooner */
+@media (max-width:759px){
+  .reveal .sun{animation-delay:.7s}.reveal .peony{animation-delay:.95s}.reveal .dahlia{animation-delay:1.15s}
+  .reveal .hero .thesis{animation-delay:1.3s}.reveal .hero .dateline,.reveal .hero .dl-sub{animation-delay:1.45s}
+  .reveal .hero .dateline .rule{animation-delay:1.5s}.reveal .hero .ruler{animation-delay:1.55s}
+  .reveal .hero :is(.guides,.reg,.punch){animation-delay:1.6s}.reveal .bee-rest{animation-delay:1.75s}
+}
 /* 11-13 (Ivy): one calm sun on arrival; its stop-motion only starts once it has settled (script) */
 @keyframes sunIn{from{opacity:0;scale:.96}to{opacity:1;scale:1}}
 @keyframes bloom{from{opacity:0;scale:.45}30%{opacity:1}to{opacity:1;scale:1}}
@@ -506,7 +517,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 /* ---------- closing: the studio line, the address, the garden, the cottage ---------- */
 .closing{position:relative;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);padding:clamp(120px,18vh,240px) var(--m) 0;align-items:end;align-content:end;
   min-height:100vh;min-height:100svh}
-.contact{grid-column:1 / span 8;padding-bottom:calc(var(--nw) * .2)}
+.contact{grid-column:1 / span 8;padding-bottom:calc(var(--nw) * .07)}   /* 11-14 (Ivy): closer to the footer line */
 .studio{font-size:clamp(20px,1.6vw,34px);line-height:1.32;font-weight:380;letter-spacing:-.008em;max-width:var(--studiow,37.5ch);text-wrap:pretty;color:#26292a;
   font-variation-settings:"opsz" 32;margin-bottom:clamp(72px,11vh,140px)}
 .studio .pen{position:relative;white-space:nowrap}
@@ -514,7 +525,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 @media (max-width:759px){.ph-only{display:inline}}
 /* 11-14 (Ivy): desktop rag, one thought per line: studio, who she is, what she makes */
 .studio br.rag{display:none}
-@media (min-width:760px){.studio br.rag{display:inline}.studio{max-width:none}}   /* 11-13 (Ivy): phones read "An independent creative studio" */
+@media (min-width:760px){.studio br.rag{display:inline}.studio{max-width:none}}   /* desktop: one thought per line */
 /* the ampersand in the display serif (Gloock, subset to one glyph) */
 .studio .pen img{position:absolute;left:-4%;width:110%;max-width:none;top:84%;height:.46em;object-fit:fill;mix-blend-mode:multiply;opacity:.95;pointer-events:none;transform:scaleX(-1) rotate(-1.5deg)}
 /* 11-13 (Ivy): two lines now, one under each word, set apart: "hear" a touch higher, "feel" lower and tilted the other way */
@@ -584,7 +595,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .trail{position:absolute;z-index:3;height:auto;pointer-events:none;will-change:transform,opacity;
   filter:drop-shadow(0 3px 3px rgba(40,34,20,.18))}
 .foot-wrap{padding:0 var(--m)}
-.foot{display:flex;justify-content:space-between;gap:20px;padding:24px 0 clamp(30px,4.6vh,52px);   /* 11-13 (Ivy): clear of the ruler's ticks; a short bottom margin */
+.foot{display:flex;justify-content:space-between;gap:20px;padding:9px 0 clamp(30px,4.6vh,52px);   /* 11-14 (Ivy): close under the footer line; a short bottom margin */
   font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .foot span:last-child{margin-right:-.09em}
 /* 11-13 (Ivy): the promise in sentence case, set like "Don't be a stranger", never shouted */
@@ -630,7 +641,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .work{padding-bottom:64px}
   .dahlia-top{display:block;top:16px;left:calc(50% - 32vw + 4vw);width:64vw;rotate:-4deg}
   .closing{padding-top:calc(16px + 64vw * 1.047 + 44px)}
-  .studio{margin-bottom:40px}
+  .studio{margin-bottom:40px;text-wrap:balance}   /* 11-14 (Ivy): no short first line at 390 */
   .home{margin-top:30px;margin-bottom:116px}
   /* 11-13 (Ivy): phones read top to bottom: the dahlia, the studio line, the garden, then the address and "Don't be a
      stranger" just above the footer line. The flowers are anchored to the house: --below (set by the script) is the
@@ -639,7 +650,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .studio{grid-column:1 / -1;order:1}
   .home{order:2}
   .contact a.mail{grid-column:1 / -1;order:3;justify-self:start}
-  .quiet{grid-column:1 / -1;order:4;margin-bottom:30px}
+  .quiet{grid-column:1 / -1;order:4;margin-bottom:14px}
   .floor{order:5}
   .flip.big{left:calc(var(--m) + 12px);bottom:calc(var(--below,129px) + min(62vw,270px) * (1.032 - .19) - 15vw);width:30vw}
   .flip.small{left:50vw;bottom:calc(var(--below,129px) - 93px);width:16vw}
@@ -759,7 +770,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=3">
+<link rel="stylesheet" href="breeze/breeze.css?v=4">
 </head>
 <body>
 <main>
@@ -772,8 +783,8 @@ html.boot .pbs{visibility:hidden}
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
-      <script src="breeze/paths.js?v=3"></script>
-      <script src="breeze/scribble.js?v=3"></script>
+      <script src="breeze/paths.js?v=4"></script>
+      <script src="breeze/scribble.js?v=4"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -886,9 +897,9 @@ html.boot .pbs{visibility:hidden}
       <div class="cbee" id="cBee"><img src="img/bee-2.webp" alt="" class="rest on"><img src="img/bee-1.webp" alt="" class="wing"><img src="img/bee-3.webp" alt="" class="wing"></div>
     </div>
     <div class="contact">
-      <p class="studio">An independent <span class="ph-only">creative </span>studio by Ivy&nbsp;Grzybowski,<br class="rag"> a product designer who works in the terminal.<br class="rag"> She makes experiences you can <span class="pen">hear &amp;&nbsp;feel<img class="u-a" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"><img class="u-b" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span>.</p>
+      <p class="studio">An independent studio by Ivy&nbsp;Grzybowski,<br class="rag"> a designer who works in the terminal.<br class="rag"> She makes experiences you can <span class="pen">hear &amp;&nbsp;feel<img class="u-a" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"><img class="u-b" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span>.</p>
       <a class="mail" role="button" tabindex="0" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
-      <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
+      <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span><span class="smile-at">.<span class="smiley" id="smiley" aria-hidden="true"></span></span></p>
     </div>
     <div class="home" id="home">
       <img class="cottage" id="cottage" src="img/cottage-3.webp" alt="" aria-hidden="true" width="756" height="780" loading="lazy">
@@ -1251,6 +1262,7 @@ html.boot .pbs{visibility:hidden}
   const untilWink = () => 22 + Math.floor(wrand() * 13);   // 11-13 (Ivy): the tongue is rarer, about every 22 to 34 swaps
   let winkIn = untilWink();
   const calmSeen = new Set();
+  let phoneWink = false;
   function nextDelay() {
     if (sunIdx === tIdx) { runLeft = 0; const d = 1600 + wrand() * 1000; fidget(d); return d; }
     if (runLeft <= 0) {
@@ -1269,7 +1281,11 @@ html.boot .pbs{visibility:hidden}
     // 11-13 (Ivy): the tongue is the special one. Never on arrival: only once the hero has fully settled
     // (intro done, bees landed: ~4s after), and only after the sun has shown every calm face at least once since
     if (calmSeen.size < sunImgs.length - 1 || !introDone || performance.now() - (window.__heroSettled || 1e12) < 4000) { if (winkIn < 1) winkIn = 1; }
-    if (tIdx >= 0 && --winkIn <= 0 && calmSeen.size >= sunImgs.length - 1 && introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000) { n = tIdx; winkIn = untilWink(); calmSeen.clear(); }
+    // 11-14 (Ivy): phones never saw the tongue. There it comes first, early (the first swap after the settle hold, ~7 s
+    // in), and then every 8 to 13 swaps; still one face at a time
+    const phoneSun = innerWidth < 760, settled = introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000;
+    if (phoneSun && !phoneWink && settled && tIdx >= 0 && sunReady.has(tIdx)) { n = tIdx; phoneWink = true; winkIn = 8 + Math.floor(wrand() * 6); calmSeen.clear(); }
+    else if (tIdx >= 0 && --winkIn <= 0 && (phoneSun ? settled : calmSeen.size >= sunImgs.length - 1 && settled)) { n = tIdx; winkIn = phoneSun ? 8 + Math.floor(wrand() * 6) : untilWink(); calmSeen.clear(); }
     else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);
     if (!sunReady.has(n)) { sunTimer = setTimeout(sunFrame, 900); return; }   // not decoded yet: keep the face we have
     // one face at a time, always: the old one goes in the same frame the new one comes
@@ -1415,16 +1431,16 @@ html.boot .pbs{visibility:hidden}
       let wait = 70 + brand() * 60;
       if (!visited && d + stride >= P.visitAt) {                          // landed on the centre: linger, shuffle a little, then fly on
         d = P.visitAt; visited = true;
-        const q0 = beeAt(P, d); let k = 0, n = 3 + Math.floor(brand() * 4);
+        const q0 = beeAt(P, d); let k = 0, n = 2 + Math.floor(brand() * 2);   // 11-14 (Ivy): a quick touch at the centre
         const shuffle = () => {
           if (k++ >= n) { beeTimer = setTimeout(step, 300); return; }
           frame ^= (brand() < .35 ? 1 : 0); beeImgs.forEach((im, i) => im.classList.toggle('on', i === frame));
-          const jx = (brand() - .5) * P.bw * .14, jy = (brand() - .5) * P.bw * .1, rr = (brand() - .5) * 14;
+          const jx = (brand() - .5) * P.bw * .08, jy = (brand() - .5) * P.bw * .06, rr = (brand() - .5) * 12;
           beeFly.style.transform = `translate(${(q0.x - P.bw / 2 + jx).toFixed(1)}px,${(q0.y - P.bw / 2 + jy).toFixed(1)}px) rotate(${rr.toFixed(1)}deg) scaleX(${brand() < .5 ? 1 : -1})`;
-          beeTimer = setTimeout(shuffle, 420 + brand() * 520);
+          beeTimer = setTimeout(shuffle, 240 + brand() * 220);
         };
         beeFly.style.transform = `translate(${(q0.x - P.bw / 2).toFixed(1)}px,${(q0.y - P.bw / 2).toFixed(1)}px) scaleX(${q0.dx > 0 ? -1 : 1})`;
-        beeTimer = setTimeout(shuffle, 500);
+        beeTimer = setTimeout(shuffle, 260);
         return;
       }
       else { d += stride; if (brand() < (visited ? .08 : .03)) wait = 380 + brand() * 600; }   // a hover, now and then
@@ -1581,7 +1597,12 @@ html.boot .pbs{visibility:hidden}
       { n: 5,  depth: 'far', w: .095, v: 5.2, x: .65, bob: [4, 14], lane: (L, h) => L.fMid - h * .62, zone: 'R' },
       { n: 7,  depth: 'mid', w: .135, v: 9.4, x: .86, bob: [4, 15.5], lane: L => L.top, big: true, pair: 'b' },
       { n: 10, depth: 'near', front: true, w: .1, v: 7.4, x: .1, bob: [3, 12.5], lane: (L, h) => L.chim - h * .97, zone: 'R' },   // its round belly dips to the middle of the chimney, the top half hidden in cotton
-      { n: 1,  depth: 'near', w: .2, v: 9.4, x: .36, bob: [5, 13.5], lane: L => L.top, big: true, pair: 'b' }
+      { n: 1,  depth: 'near', w: .2, v: 9.4, x: .36, bob: [5, 13.5], lane: L => L.top, big: true, pair: 'b' },
+      // 11-14 (Ivy): a small far cloud in the open band under the studio line, above the address. It lives left of the
+      // house and fades in and out at the ends of its run, so it is never half behind anything
+      { n: 7,  depth: 'far', w: .065, v: 4.2, x: .55, bob: [2, 16], lane: L => L.studioB + 10, box: L => [L.studioB + 10, L.mailT - 10], zone: 'U' },
+      // 11-14 (Ivy): one more, lower, smaller and a little quicker: it passes in front of the house at the eaves
+      { n: 6,  depth: 'mid', front: true, w: .055, v: 13, x: .7, bob: [3, 11], lane: (L, h) => L.roof + (L.houseH || 200) * .08 - h * .5, box: L => [L.roof - 40, L.roof + (L.houseH || 200) * .3] }
     ];
     // phones: the café dahlia fills the middle, so the two back clouds keep to its open corners, top and bottom
     const PHONE = [
@@ -1590,7 +1611,7 @@ html.boot .pbs{visibility:hidden}
       { n: 10, depth: 'near', front: true, w: .3, v: 7.8, x: .45, bob: [3, 11.5], lane: (L, h) => L.chim - h * .7,
         box: L => [L.studioB + 16 + BOB, L.mailT - 30 - BOB] }   // between the studio line and the address, at the chimney
     ];
-    const BOB = 6;                                           // the most any cloud bobs, kept clear of the type
+    const BOB = 13;                                          // the most any cloud bobs (11-14: a gentler, fuller float), kept clear of the type
     let clouds = [], L = null, built = null, on = false, raf = 0, last = 0, t = 0;
     const phone = () => innerWidth < 760;
     function measure() {
@@ -1600,7 +1621,7 @@ html.boot .pbs{visibility:hidden}
       const top = (phone() ? 10 : hidden + 18) + BOB, bottom = st.t - (phone() ? 22 : 44) - BOB;
       const d = relTo(document.getElementById('dahliaTop'), closing);
       // the chimney: the house picture is flipped, so the stack stands near its right edge; it runs from the top to 7% down
-      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, roof: house.t + (house.b - house.t) * .07, studioB: st.b,
+      return { W, top, bottom, band: Math.max(40, bottom - top), chim: house.t + (house.b - house.t) * .035, roof: house.t + (house.b - house.t) * .07, houseL: house.l, houseH: house.b - house.t, studioB: st.b,
         dTop: d.t, dH: d.b - d.t, mailT: relTo(document.querySelector('.contact a.mail'), closing).t, ...(f => ({ fTop: f.t, fMid: (f.t + f.b) / 2, fL: f.l, fW: f.r - f.l }))(relTo(document.getElementById('flipBig'), closing)) };
     }
     function build() {
@@ -1624,7 +1645,7 @@ html.boot .pbs{visibility:hidden}
         const ar = SIZE[c.n][1] / SIZE[c.n][0];
         // never taller than the open band allows, so a cloud never reaches the type
         // (a big cloud also stays above the big dahlia's top)
-        const room = c.big ? Math.min(L.band, L.fTop - 14 - BOB - L.top) : L.band;
+        const room = c.zone === 'U' ? Math.max(30, c.box(L)[1] - c.box(L)[0]) : c.big ? Math.min(L.band, L.fTop - 14 - BOB - L.top) : L.band;
         let w = c.w * L.W; if (w * ar > room * .9) w = room * .9 / ar;
         w = Math.max(phone() ? 70 : 90, w);
         c.wpx = w; c.hpx = w * ar; c.el.style.width = w.toFixed(1) + 'px';
@@ -1632,7 +1653,7 @@ html.boot .pbs{visibility:hidden}
         c.y = clamp(c.lane(L, c.hpx), lo, Math.max(lo, hi - c.hpx));
         // 11-13 (Ivy): a cloud behind the house never shows half of itself at the house's edge. One that drifts past the
         // house keeps above its roof; if there is no room up there, it passes in front of the house instead
-        if (!phone() && !c.front && c.zone !== 'L') {
+        if (!phone() && !c.front && c.zone !== 'L' && c.zone !== 'U') {
           const clear = L.roof - c.hpx - BOB - 8;
           c.el.classList.remove('pass');
           if (c.y + c.hpx + BOB > L.roof) { if (clear >= lo) c.y = clear; else c.el.classList.add('pass'); }
@@ -1647,6 +1668,7 @@ html.boot .pbs{visibility:hidden}
         if (phone()) c.span = L.W + c.wpx + 40;
         else if (c.zone === 'L') c.span = hide - c.x0;
         else if (c.zone === 'R') { c.x0 = hide; c.span = L.W + 20 - hide; }
+        else if (c.zone === 'U') { c.x0 = -c.wpx * .5; c.span = Math.max(200, L.houseL - 40 - c.wpx * .5 - c.x0); }
         else c.span = L.W * 1.45 + Math.max(...mates.map(o => o.wpx)) + 40;
       });
       draw();
@@ -1655,8 +1677,9 @@ html.boot .pbs{visibility:hidden}
       for (const c of clouds) {
         const x = c.x0 + ((c.x * c.span + c.v * t) % c.span);
         const b = Math.sin(t * Math.PI * 2 / c.bob[1] + c.ph);
-        const y = c.y + b * c.bob[0];
+        const y = c.y + b * c.bob[0] * 2 + Math.sin(t * Math.PI * 2 / (c.bob[1] * .41) + c.ph * 1.7) * c.bob[0] * .5;   // 11-14 (Ivy): a gentle float, up and down, as it drifts
         c.el.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) rotate(${(b * .5).toFixed(2)}deg)`;
+        if (c.zone === 'U') { const u = (x - c.x0) / c.span; c.el.firstChild.style.opacity = (.8 * Math.max(0, Math.min(1, u / .14, (1 - u) / .14))).toFixed(3); }
       }
     }
     function frame(now) {
@@ -1696,8 +1719,12 @@ html.boot .pbs{visibility:hidden}
       t = null;
       if (!on || reduceQ.matches) return;
       const R = flower.offsetWidth * .13, q = r();
-      if (q < .55) {                                        // a crawl: two or three small stop-motion steps toward a new spot near the centre
-        const a = r() * Math.PI * 2, d = R * Math.sqrt(r()), tx = Math.cos(a) * d, ty = Math.sin(a) * d * .8 - 4;
+      if (q < .4) {                                         // 11-14 (Ivy): working the pollen: a small circle at the centre, stop-motion
+        const rr = flower.offsetWidth * (.025 + r() * .02), n = 5 + Math.floor(r() * 3), dir = r() < .5 ? 1 : -1, a0 = r() * Math.PI * 2, cx = x * .6, cy = (y + 4) * .6 - 4;
+        for (let i = 1; i <= n; i++) setTimeout(() => { const a = a0 + dir * i / n * Math.PI * 2; x = cx + Math.cos(a) * rr; y = cy + Math.sin(a) * rr * .7; rot = -6 + Math.sin(a) * 10; draw(0); }, i * (120 + r() * 50));
+        t = setTimeout(tick, n * 145 + 900 + r() * 1600);   // then a pause
+      } else if (q < .62) {                                        // a crawl: two or three small stop-motion steps toward a new spot near the centre
+        const a = r() * Math.PI * 2, d = R * .55 * Math.sqrt(r()), tx = Math.cos(a) * d, ty = Math.sin(a) * d * .8 - 4;   // never far from the centre
         if ((tx - x) * face < 0 && Math.abs(tx - x) > 3) face = -face;
         rot = clamp(Math.atan2(ty - y, Math.abs(tx - x) + 1) * 57 * .5, -18, 18) * face - 6;
         const n = 2 + Math.floor(r() * 2), x0 = x, y0 = y;
@@ -1749,13 +1776,13 @@ html.boot .pbs{visibility:hidden}
       pos = start; bee.classList.add('placed');
       arc(start, centre, () => {
         show(true);
-        let n = 3 + Math.floor(r() * 4);
+        let n = 1 + Math.floor(r() * 2);   // 11-14 (Ivy): a quick touch at the centre
         const linger = () => {                                   // a few small shuffles on the flower, then off it goes
           if (n-- <= 0) { arc(pos, end, () => { bee.classList.remove('placed'); timer = setTimeout(visit, 9000 + r() * 9000); }); return; }
-          if (r() < .5) { face = -face; } else { pos = { x: centre.x + (r() - .5) * w * .3, y: centre.y + (r() - .5) * w * .2 }; }
-          show(true); timer = setTimeout(linger, 600 + r() * 700);
+          if (r() < .5) { face = -face; } else { pos = { x: centre.x + (r() - .5) * w * .14, y: centre.y + (r() - .5) * w * .1 }; }
+          show(true); timer = setTimeout(linger, 280 + r() * 260);
         };
-        timer = setTimeout(linger, 700);
+        timer = setTimeout(linger, 320);
       });
     }
     // 11-13 (Ivy): the first visit starts the moment the flower is in view, from just beside it; then the usual rhythm
@@ -1774,8 +1801,8 @@ html.boot .pbs{visibility:hidden}
     function spot(name) {
       const w = bw();
       if (name === 'word') { const q = relTo(word, closing); return { x: lerp(q.l, q.r, .55) - w / 2, y: q.t - w * .62 }; }
-      if (name === 'big') { const q = relTo(big, closing); return { x: q.l + (q.r - q.l) * .12 - w / 2, y: q.t + (q.b - q.t) * .3 - w / 2 }; }
-      const q = relTo(small, closing); return { x: lerp(q.l, q.r, .5) - w / 2, y: q.t + (q.b - q.t) * .08 - w / 2 };
+      if (name === 'big') { const q = relTo(big, closing); return { x: q.l + (q.r - q.l) * .38 - w / 2, y: q.t + (q.b - q.t) * .42 - w / 2 }; }   // beside the resident bee, at the centre
+      const q = relTo(small, closing); return { x: lerp(q.l, q.r, .5) - w / 2, y: lerp(q.t, q.b, .46) - w / 2 };   // 11-14 (Ivy): the centre
     }
     function show(resting) {
       restImg.classList.toggle('on', resting);
@@ -1802,13 +1829,31 @@ html.boot .pbs{visibility:hidden}
       };
       step();
     }
+    // 11-14 (Ivy): while it stays on the small flower it works the pollen: small stop-motion circles at the centre, pauses
+    function work(ms, then) {
+      const home = spot('small'), w = bw(), end = performance.now() + ms;
+      const loop = () => {
+        if (!on || reduceQ.matches) { timer = setTimeout(then, 400); return; }
+        if (performance.now() >= end) { pos = home; show(true); then(); return; }
+        const rr = w * (.08 + r() * .06), n = 5 + Math.floor(r() * 3), dir = r() < .5 ? 1 : -1, a0 = r() * Math.PI * 2;
+        let i = 0;
+        const step = () => {
+          if (++i > n) { pos = home; show(true); timer = setTimeout(loop, 900 + r() * 1500); return; }
+          const a = a0 + dir * i / n * Math.PI * 2; pos = { x: home.x + Math.cos(a) * rr, y: home.y + Math.sin(a) * rr * .7 };
+          if (i === 1 || r() < .3) face = -face;
+          show(true); timer = setTimeout(step, 130 + r() * 60);
+        };
+        step();
+      };
+      timer = setTimeout(loop, 500 + r() * 700);
+    }
     function next() {
       timer = null;
       if (!on || reduceQ.matches) return;
       if (at === 'small') {
         const go = r() < .35 ? 'big' : 'word';
-        fly(go, () => { timer = setTimeout(go === 'big' ? () => fly('small', () => { timer = setTimeout(next, 6000 + r() * 6000); }) : next, go === 'big' ? 900 + r() * 900 : 5000 + r() * 4000); });
-      } else fly('small', () => { timer = setTimeout(next, 7000 + r() * 7000); });
+        fly(go, () => { timer = setTimeout(go === 'big' ? () => fly('small', () => work(6000 + r() * 6000, next)) : next, go === 'big' ? 500 + r() * 400 : 5000 + r() * 4000); });
+      } else fly('small', () => work(7000 + r() * 7000, next));
     }
     watch(closing, v => { on = v; if (!pos) place(); if (on && !timer && !reduceQ.matches) timer = setTimeout(next, 3000 + r() * 3000); });
     bee.__place = () => { if (!timer) place(); };
@@ -2339,8 +2384,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/copied.js?v=3"></script>
-<script src="breeze/breeze.js?v=3"></script>
+<script src="breeze/copied.js?v=4"></script>
+<script src="breeze/breeze.js?v=4"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>

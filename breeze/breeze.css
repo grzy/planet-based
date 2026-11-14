@@ -40,3 +40,28 @@ html[data-page="dark"] :is(.breeze,.loader-wind) svg{filter:invert(1) brightness
 .pb-copied .pc{stroke:#2c2c2f}
 html[data-page="dark"] .pb-copied .pc{stroke:#ECEBDF}
 html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}
+.pb-copied{opacity:.72}   /* 11-14 (Ivy): a little lighter */
+
+/* the pencil smiley after "Don't be a stranger.": the period is its left eye (breeze/copied.js draws the rest) */
+.smile-at{position:relative;display:inline-block}
+.smiley{position:absolute;left:0;top:0;width:1.9em;pointer-events:none;visibility:hidden}   /* placed by copied.js from the period's baseline */
+.smiley .pb-copied{opacity:.78}
+
+/* 11-14 (Ivy): WebKit (Safari, every iPhone browser) paints filters and promoted layers on moving things as hot pink lines
+   and boxes. html.wk (set in the head) takes every filter off the closing and the roaming newt, lets go of will-change,
+   and fakes the cutouts' shadows with soft gradients instead */
+.wk .closing :is(.cloud img,.flip,.dahlia-top,.cottage,.pot-tree,.cbee img,.flip .perch img,.bnewt,.trail,.breeze svg,.studio .pen img),
+.wk :is(.newt,.trail){filter:none!important}
+.wk .closing :is(.cloud,.cbee,.flip .perch,.breeze svg,.bnewt,.trail){will-change:auto}
+.wk .closing .cloud img{opacity:.92}
+.wk .closing .cloud.far img{opacity:.72}
+.wk .closing :is(.flip,.dahlia-top)::before{content:"";position:absolute;left:10%;right:10%;top:16%;bottom:-6%;z-index:-1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(40,34,20,.16),rgba(40,34,20,.07) 60%,rgba(40,34,20,0))}
+.wk .closing .dahlia-top{isolation:isolate}
+.wk .closing .home::before{content:"";position:absolute;left:4%;right:-2%;bottom:-1%;height:9%;
+  background:radial-gradient(closest-side,rgba(40,34,20,.26),rgba(40,34,20,.1) 55%,rgba(40,34,20,0))}
+.wk .closing .cottage{position:relative}
+html.wk[data-page="dark"] :is(.breeze,.loader-wind){display:none}   /* pale lines need a filter; on dark WebKit they rest */
+/* and the hero's moving cutouts (sun, flowers, bees, the slider's sun): no filters on WebKit either */
+.wk :is(.shadow,.bee-fly img,.cap-bee img,.reg,.pbs .psun){filter:none!important}
+.wk :is(.sun .jit,.bee-fly,.cap-bee,.newt){will-change:auto}

@@ -51,13 +51,15 @@
 
     // the wind: lines from her picks, never two the same in a row, each mirrored, scaled, tilted and timed its own
     // way. They cross the garden toward the house
-    const pool = ['W09', 'W09', 'W03', 'W03', 'W02', 'W02', 'W08', 'W08', 'W06', 'W06', 'W05', 'W11', 'W11'];
+    // 11-14 (Ivy): phones get only the thin studies, fewer and lighter
+    const thin = innerWidth < 760;
+    const pool = thin ? ['W11', 'W11', 'W06', 'W08'] : ['W09', 'W09', 'W03', 'W03', 'W02', 'W02', 'W08', 'W08', 'W06', 'W06', 'W05', 'W11', 'W11'];
     // two pulses, like a gust and its follow-through: each pulse travels in one lane with a shared tilt, quick and close
     const x0 = Math.min(S.l, B.l) - 240 * k, x1 = H.l + H.w * .18;
     const ST = rel(document.querySelector('.studio'));
     let yTop = B.t - 70 * k, yBot = B.t + B.h * .7;
     if (innerWidth < 760) { yTop = Math.max(yTop, ST.t + ST.h + 14); yBot = Math.max(yBot, yTop + 60); }   // phones: under the studio line, never over it
-    const bursts = [[.4, .6, .85], [2.0, 2.2, 2.45, 2.7]];
+    const bursts = thin ? [[.4, .75], [2.0, 2.4]] : [[.4, .6, .85], [2.0, 2.2, 2.45, 2.7]];
     let last = '';
     const mid = B.t + B.h * .3;
     bursts.forEach((times, bi) => {
@@ -69,11 +71,11 @@
         let y = lane + R(-25, 25) * k - h / 2;
         if (x < ST.l + ST.w && y + h > ST.t - 8 && y < ST.t + ST.h) y = innerWidth < 760 ? ST.t + ST.h + 8 : ST.t - 8 - h;   // never across the type
         scribble(key, { x, y, k: k * s, fx: false, fy: rng() < .4, rot: tilt + R(-1.5, 1.5), t0: t + R(-.08, .08),
-          dur: R(1.6, 2.2), win: R(.38, .5), lag: R(.06, .12), dx: R(90, 140) * k, dy: R(-6, 4) * k, op: R(.8, 1) });
+          dur: R(1.6, 2.2), win: R(.38, .5), lag: R(.06, .12), dx: R(90, 140) * k, dy: R(-6, 4) * k, op: thin ? R(.5, .65) : R(.8, 1) });
       });
     });
     // now and then (her "beautiful but risky" one): a sweep that lifts into the tree's canopy
-    if (rng() < .35) {
+    if (!thin && rng() < .35) {   // not on phones: it is one of the thicker studies
       const s = .78, st = P.W10, w = st.w * k * s, h = st.h * k * s;
       const ex = T.l + T.w * .45, ey = T.t + T.h * .22;        // the sweep's tip lands in the leaves
       scribble('W10', { x: ex - w * .96, y: ey - h * .09, k: k * s, fx: false, fy: false, rot: 6, t0: 1.3, dur: 3, win: .6, lag: .16, dx: 20 * k, dy: -4 * k, op: .85 });
@@ -149,7 +151,7 @@
       const st = P.S05, s = R(.5, .7), fx = i === 2 && rng() < .5;   // mostly as drawn, hook downwind
       const ox = (fx ? st.w - 130 : 130) * k * s, oy = 404 * k * s;
       scribble('S05', { x: chx - ox + R(-3, 3) * k, y: chy - oy, k: k * s, fx, fy: false, rot: R(6, 14), t0: smokeAt + i * R(.8, 1.1),
-        dur: R(3.4, 4.4), win: R(.34, .44), lag: .2, dx: R(18, 30) * k, dy: -R(18, 32) * k, op: R(.75, .95), mw: 13, org: [ox, oy] });
+        dur: R(2.3, 2.9), win: R(.34, .44), lag: .15, dx: R(18, 30) * k, dy: -R(18, 32) * k, op: R(.75, .95), mw: 13, org: [ox, oy], fade: .42 });   // 11-14 (Ivy): out of the chimney and gone, sooner
     }
 
     // review clock

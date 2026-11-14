@@ -10,7 +10,7 @@
   // t0 (s), dur (s), win (share of each stroke shown at once), lag (s between strokes), dx/dy (drift over its life, px),
   // op, mw (mask width in study units), org ([x, y] px pivot, default the centre), alpha (darken the graphite, for small
   // sizes). Returns its element and animations
-  const SAFE = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent) || /iP(hone|ad|od)/.test(navigator.userAgent);
+  const SAFE = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent) || /iP(hone|ad|od)/.test(navigator.userAgent) || document.documentElement.classList.contains('wk');   // html.wk: set in the head (and by ?wk, for review)
   window.pbScribble = function (host, key, o) {
     const st = P[key], id = 'pbs' + (++uid), w = st.w * o.k, h = st.h * o.k, anims = [];
     const svg = document.createElementNS(SVGNS, 'svg');
@@ -37,7 +37,7 @@
     anims.push(svg.animate([
       { transform: at(0, 0), opacity: 0 },
       { transform: at(o.dx * .08, o.dy * .08), opacity: o.op, offset: .08 },
-      { transform: at(o.dx * .8, o.dy * .8), opacity: o.op, offset: .8 },
+      { transform: at(o.dx * (o.fade || .8), o.dy * (o.fade || .8)), opacity: o.op, offset: o.fade || .8 },   // o.fade: when the fade-out begins (share of its life)
       { transform: at(o.dx, o.dy), opacity: 0 }],
       { duration: life * 1000, delay: o.t0 * 1000, easing: 'linear', fill: 'both' }));
     return { el: svg, anims };
