@@ -31,3 +31,6 @@
 
 /* on the dark page the graphite turns to a pale pencil, so the lines read on black the way they read on paper */
 html[data-page="dark"] :is(.breeze,.loader-wind) svg{filter:invert(1) brightness(.95)}
+
+/* 11-14 (Ivy): no house newt on phones; the footer has enough going on */
+@media (max-width:759px){.bnewt{display:none!important}}
