@@ -164,7 +164,7 @@
       if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
       if (e.target && e.target.closest && e.target.closest('.work, .closing, footer, .foot, a, button, .pbs')) { lastX = null; return; }
       const x = e.clientX - hr.left;
-      if (lastX != null) xs.forEach((s, i) => { if ((lastX - s.x) * (x - s.x) < 0) pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); });
+      if (lastX != null) xs.forEach((s, i) => { if ((lastX - s.x) * (x - s.x) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); } });
       lastX = x;
     }, { passive: true });
     document.addEventListener('pointerleave', () => { lastX = null; });
@@ -234,6 +234,23 @@
       o.addEventListener('pointerup', end); o.addEventListener('pointercancel', end); o.addEventListener('lostpointercapture', end);
       // a press taken on the string (begin from the window) moves here too: pointer capture sends its moves to the object
     });
+  }
+  // ---------- a strum beneath the sun makes it stick its tongue out (11-14, Ivy) ----------
+  // four or more strings crossed in one sweep, passing under the sun (below its middle, within its width): the sun flips
+  // to its tongue face for a few seconds (with the palmas), then back; once every 12 s at most. Its own schedule goes on
+  let sweep = [], tongueAt = 0;
+  function strumUnderSun(e) {
+    const now = performance.now(); sweep = sweep.filter(t => now - t < 650); sweep.push(now);
+    if (sweep.length < 4 || now - tongueAt < 12000 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const sun = document.querySelector('.objs .sun'), jit = sun && sun.querySelector('.jit'); if (!jit) return;
+    const r = sun.getBoundingClientRect();
+    if (e.clientY < r.top + r.height * .5 || e.clientX < r.left - r.width * .1 || e.clientX > r.right + r.width * .1) return;
+    const imgs = [...jit.querySelectorAll('img')], tg = jit.querySelector('img.tongue'), prev = imgs.find(i => i.classList.contains('on'));
+    if (!tg || tg === prev || !tg.complete) return;
+    tongueAt = now; sweep = [];
+    imgs.forEach(i => i.classList.toggle('on', i === tg));
+    if (window.HeroSound) HeroSound.play('s', 0, { tongue: true });
+    setTimeout(() => { if (tg.classList.contains('on') && prev && !imgs.some(i => i !== tg && i.classList.contains('on'))) imgs.forEach(i => i.classList.toggle('on', i === prev)); }, 3200);
   }
   // the number row plays the strings, 1 low to 0 high (not while typing, not with modifiers)
   addEventListener('keydown', e => {

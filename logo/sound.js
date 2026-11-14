@@ -85,6 +85,15 @@
   addEventListener('keydown', wake, { capture: true });
   const live = () => allowed() && ctx && ctx.state === 'running';
   // nothing can be orphaned: on blur or a hidden page every voice and the build let go at once
+  // 11-14 (Ivy): a gentle ease-out (about 1.2 s) of everything ringing that belongs to one side: the hero ('h') as the page
+  // leaves it, the closing ('c') as it leaves view. Never a cut
+  function easeOut(tag, sec = 1.2) {
+    if (!ctx) return; const t = ctx.currentTime;
+    allGains = allGains.filter(([g, end, tg]) => {
+      if (tg !== tag || end <= t) return end > t;
+      hold(g.gain, t); g.gain.setTargetAtTime(.00001, t, sec / 4); return false;
+    });
+  }
   function silence() {
     if (!ctx) return; const t = ctx.currentTime;
     allGains.forEach(([g]) => { hold(g.gain, t); g.gain.setTargetAtTime(.00001, t, .02); }); allGains = [];
@@ -104,7 +113,8 @@
   // ---------- helpers: every gain ramps (no clicks) ----------
   // anchor a param at its current value before a new move (a release during an attack never jumps)
   const hold = (p, t) => { const v = p.value; p.cancelScheduledValues(t); p.setValueAtTime(v, t); };
-  const env = (g, t, peak, a, d) => { allGains.push([g, t + a + d]); if (allGains.length > 200) { const now = ctx.currentTime; allGains = allGains.filter(x => x[1] > now); } g.gain.setValueAtTime(.00001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.00001, t + a + d); };
+  let curTag = 'h';   // whose note is being made (play sets it): the hero 'h' or the closing 'c'
+  const env = (g, t, peak, a, d) => { allGains.push([g, t + a + d, curTag]); if (allGains.length > 200) { const now = ctx.currentTime; allGains = allGains.filter(x => x[1] > now); } g.gain.setValueAtTime(.00001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.00001, t + a + d); };
   let lastAt = 0;
   const when = (jit = .012) => { const t = Math.max(ctx.currentTime + .003 + Math.random() * jit, lastAt + .012); lastAt = t; return t; };
   const panner = p => { const o = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(); if (o.pan) o.pan.value = Math.max(-.7, Math.min(.7, p * .7)); o.connect(bus); return o; };
@@ -288,12 +298,13 @@
   let wasRest = true;
   // 11-14 (Ivy): leaving the hero no longer cuts the sound: what is already ringing finishes on its own decay (3 s at most);
   // only new hero notes are refused (the gate in play), and anything scheduled but not yet started is refused there too
-  addEventListener('scroll', () => { wasRest = atRest(); }, { passive: true });
+  addEventListener('scroll', () => { const r = atRest(); if (wasRest && !r) easeOut('h'); wasRest = r; }, { passive: true });   // ease out, never cut
   window.HeroAtRest = atRest;
   function play(voice, step = 0, o = {}) {
     if (!live() || !V[voice]) return false;
     if (o.closing ? !closingSeen() : (!atRest() && !(o.replay && o.song))) return false;   // the closing has its own gate; tremolos and tails scheduled earlier are refused once the hero is left
-    V[voice](step, o);
+    curTag = o.closing ? 'c' : 'h';
+    try { V[voice](step, o); } finally { curTag = 'h'; }
     window.__hsNotes = (window.__hsNotes || 0) + 1; if (!o.replay) window.__hsLastPlay = performance.now();
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));
     // 11-14 (Ivy, a stuck hum): no build layer any more (no drone, no heartbeat); every note is a single strike that
@@ -431,7 +442,7 @@
     const wire = () => {
       hookScribble(); hookCopied();
       const closing = document.querySelector('.closing'); if (!closing || closing.__hs) return; closing.__hs = true;
-      if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { closingIn = e.isIntersecting && e.intersectionRatio >= .2; }), { threshold: [0, .2, .5] }).observe(closing);
+      if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { const was = closingIn; closingIn = e.isIntersecting && e.intersectionRatio >= .2; if (was && !closingIn) easeOut('c'); }), { threshold: [0, .2, .5] }).observe(closing);
       // taps and hovers: each flower its register, the tree its roll (a hover only once in a while)
       // the flowers take no pointer events (the scene's own design), so a press or a hover is found by where it lands: inside
       // the flower's round head (an ellipse of 40% of its box)

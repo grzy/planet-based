@@ -64,6 +64,7 @@
       if (e.target.closest && e.target.closest('a,button,input,.hs-chips')) return;   // the colour slider counts (11-14, Ivy)
       HeroSound.set('yes');
       penNote(hero, e.clientX - hr.left, e.clientY - hr.top);
+      if (window.HeroLogo && HeroLogo.replayOnce) HeroLogo.replayOnce();
     }, { capture: true });
     // the slider from the keyboard turns it on too (the note by the slider's sun)
     addEventListener('keydown', e => {
@@ -72,6 +73,7 @@
       const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect(), th = e.target.closest('.pbs').querySelector('.psun'), r = (th || e.target).getBoundingClientRect();
       HeroSound.set('yes');
       penNote(hero, r.left + r.width / 2 - hr.left, r.top - hr.top);
+      if (window.HeroLogo && HeroLogo.replayOnce) HeroLogo.replayOnce();
     }, { capture: true });
   }
   function penNote(hero, x, y) {
@@ -111,7 +113,7 @@
     const hr = hero.getBoundingClientRect();
     const s = hero.querySelector('.pbs:not(.dial)');
     if (s) {
-      const h = s.offsetHeight || 44, top = k.base + k.desc + 16 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
+      const h = s.offsetHeight || 44, top = k.base + k.desc + 18 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
       s.style.setProperty('left', (k.l - hr.left).toFixed(1) + 'px', 'important');
       s.style.setProperty('top', top.toFixed(1) + 'px', 'important');
       s.style.setProperty('bottom', 'auto', 'important');

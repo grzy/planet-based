@@ -29,7 +29,8 @@
   var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!calm) document.documentElement.classList.add('boot');
   // the orange-tree loader (phones since 11-12, desktop too since 11-13): fetch its poster first, so the first paint already has it
-  if (/[?&]static(&|$)/.test(location.search) || window.innerWidth < 760 || window.innerHeight < 520) document.documentElement.classList.add('boot-static');
+  // 11-14 (Ivy): one vertical page at every width: the hero is a normal green section, the cards scroll down after it
+  document.documentElement.classList.add('boot-static');
   if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
   // settling can never resize the mark. It only changes when the width does (rotation)
@@ -339,6 +340,16 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 }
 .plate{position:relative;grid-column:1 / span 8;--c:1}
 .plate[data-k="bee"],.plate[data-k="bio"]{grid-column:5 / span 8}
+/* 11-14 (Ivy): desktop reads straight down. Each card spans the grid: the framed picture (with its field band) on one side,
+   the title and its words on the other; the next card flips, back and forth */
+@media (min-width:760px){
+  .plate,.plate[data-k="bee"],.plate[data-k="bio"]{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);align-items:center}
+  .plate .frame{grid-column:1 / span 8;grid-row:1}
+  .plate .cap{grid-column:9 / span 4;grid-row:1;grid-template-columns:1fr;row-gap:clamp(14px,1.6vw,26px);padding-top:0;align-self:center}
+  .plate:nth-of-type(even) .frame{grid-column:5 / span 8}
+  .plate:nth-of-type(even) .cap{grid-column:1 / span 4}
+  .plate .cap p{max-width:34ch}
+}
 .frame{position:relative;overflow:hidden;z-index:1}
 .frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
   box-shadow:inset 0 0 0 1px rgba(241,242,227,calc(var(--seam,0) * .55))}
@@ -398,7 +409,8 @@ html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:cen
 .loader-in{display:grid;justify-items:center;gap:16px}
 .loader-tree{display:none;width:clamp(120px,37vw,260px);height:auto;background:transparent}
 html.boot-static .loader-tree,.motion .loader-tree{display:block}
-html.boot-static .loader-in,.motion .loader-in{margin-bottom:9vh}          /* the tree and its word sit a little above centre */
+html.boot-static .loader-in,.motion .loader-in{margin-bottom:9vh}
+@media (min-width:760px){html.boot-static .loader-tree{width:clamp(110px,15vh,190px)}}   /* 11-14: the desktop's tree size */          /* the tree and its word sit a little above centre */
 /* 11-13 (Ivy): desktop gets the tree too, a touch smaller for the wide screen; as the first blocks glide in, the tree and
    its word lift away the same way they do on the phone */
 .motion .loader-tree{width:clamp(110px,15vh,190px)}
@@ -664,8 +676,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=27">
-<link rel="stylesheet" href="logo/b-variant.css?v=27">
+<link rel="stylesheet" href="logo/story.css?v=30">
+<link rel="stylesheet" href="logo/b-variant.css?v=30">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -774,7 +786,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=9">
+<link rel="stylesheet" href="breeze/breeze.css?v=10">
 </head>
 <body>
 <main>
@@ -787,8 +799,8 @@ html.boot .pbs{visibility:hidden}
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
-      <script src="breeze/paths.js?v=9"></script>
-      <script src="breeze/scribble.js?v=9"></script>
+      <script src="breeze/paths.js?v=10"></script>
+      <script src="breeze/scribble.js?v=10"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -835,7 +847,7 @@ html.boot .pbs{visibility:hidden}
           <div class="frame ptex">
             <div class="slice tex" aria-hidden="true" inert></div>
             <div class="pc">
-              <div class="media" data-video="beekeeper.mp4"><img src="img/beekeeper.webp" alt="The home page of a beekeeper's website: an ink drawing of a dog walking through wildflowers." width="1440" height="900" decoding="async"><a class="go-cover" href="https://dandsbees.com/" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"></a></div>
+              <div class="media" data-video="beekeeper.mp4"><img src="img/beekeeper-2.webp" alt="The home page of a beekeeper's website: an ink drawing of a dog walking through wildflowers." width="1440" height="900" decoding="async"><a class="go-cover" href="https://dandsbees.com/" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"></a></div>
               <div class="band"><span class="hole" aria-hidden="true"></span>
                 <dl>
                   <div><dt>Project</dt><dd>Beekeeper</dd></div>
@@ -853,7 +865,7 @@ html.boot .pbs{visibility:hidden}
           <div class="frame ptex">
             <div class="slice tex" aria-hidden="true" inert></div>
             <div class="pc">
-              <div class="media" data-video="living-wall.mp4"><img src="img/living-wall.webp" alt="A dense living wall of ferns, moss, and leaves." width="1800" height="1149" decoding="async"><a class="go-cover" href="/living-walls/" tabindex="-1" aria-hidden="true"></a></div>
+              <div class="media" data-video="living-wall.mp4"><img src="img/living-wall-hawaii.webp" alt="A Hawaiian living wall: ferns, anthuriums, orchids and proteas, dense and green." width="2560" height="1635" decoding="async"><a class="go-cover" href="/living-walls/" tabindex="-1" aria-hidden="true"></a></div>
               <div class="band"><span class="hole" aria-hidden="true"></span>
                 <dl>
                   <div><dt>Project</dt><dd>Living Walls</dd></div>
@@ -882,7 +894,7 @@ html.boot .pbs{visibility:hidden}
               </div>
             </div>
           </div>
-          <div class="cap"><h2><span class="tt">Bioindicators<img class="t-under" src="img/pencil-under-9.webp" alt="" aria-hidden="true" width="298" height="24"></span></h2><p>An iPhone app for the trails you walk again and again. It keeps what you notice each day, so over time you start to understand what the trail is telling you.</p></div>
+          <div class="cap"><h2><span class="tt">Bioindicators<img class="t-under" src="img/pencil-under-9.webp" alt="" aria-hidden="true" width="298" height="24"></span></h2><p>An iOS app for the trails you walk again and again. It keeps what you notice each day, so over time you start to understand what the trail is telling you.</p></div>
         </article>
       </div>
 
@@ -917,17 +929,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=27"></script>
-<script src="logo/pose.js?v=27"></script>
-<script src="logo/sound.js?v=27"></script>
-<script src="logo/bees.js?v=27"></script>
-<script src="logo/hero-logo.js?v=27"></script>
-<script src="logo/story.js?v=27"></script>
-<script src="logo/common.js?v=27"></script>
-<script src="logo/song.js?v=27"></script>
-<script src="logo/strings.js?v=27"></script>
-<script src="logo/preload.js?v=27"></script>
-<script src="logo/b-variant.js?v=27"></script>
+<script src="logo/hero-logo-data.js?v=30"></script>
+<script src="logo/pose.js?v=30"></script>
+<script src="logo/sound.js?v=30"></script>
+<script src="logo/bees.js?v=30"></script>
+<script src="logo/hero-logo.js?v=30"></script>
+<script src="logo/story.js?v=30"></script>
+<script src="logo/common.js?v=30"></script>
+<script src="logo/song.js?v=30"></script>
+<script src="logo/strings.js?v=30"></script>
+<script src="logo/preload.js?v=30"></script>
+<script src="logo/b-variant.js?v=30"></script>
 <script>
 (() => {
   'use strict';
@@ -1000,28 +1012,6 @@ html.boot .pbs{visibility:hidden}
   });
 
   let motion = false, W = 0, H = 0, L = {}, introRunning = false, introDone = false, stageTop = 0;
-  // the rail (11-14, Ivy): eased, speed-capped travel and a soft settle on the nearest card. ?railv1 = the old 1:1 rail, for comparison
-  const RAIL_V1 = /[?&]railv1(&|$)/.test(location.search), RAIL_MAXV = .012;   // at most 1.2% of the width per 60 Hz frame
-  let railGoal = 0, railShown = null, railRaf = 0, railStepAt = 0, settleT = 0, settleRaf = 0;
-  function railSettle() {
-    settleT = 0;
-    if (RAIL_V1 || !motion || introRunning || reduceQ.matches) return;
-    const s = Math.max(0, window.scrollY - stageTop), p = s - L.FADE, start = L.SP + L.MP + L.REST;
-    const goal = (p - start) * L.RATE;
-    if (goal <= 1 || goal >= L.RT - 1) return;                      // only while a card is between stops on the rail
-    const stop = L.STOPS.reduce((a, b) => Math.abs(b - goal) < Math.abs(a - goal) ? b : a);
-    const y0 = window.scrollY, y1 = stageTop + L.FADE + start + stop / L.RATE, d = y1 - y0;
-    if (Math.abs(d) < 2) return;
-    const t0 = performance.now(), dur = clamp(260 + Math.abs(d) * .9, 320, 700);
-    const go = now => {                                               // a soft ease out, never a snap
-      const k = clamp((now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-      window.scrollTo(0, y0 + d * e);
-      settleRaf = k < 1 ? requestAnimationFrame(go) : 0;
-    };
-    settleRaf = requestAnimationFrame(go);
-  }
-  const railHands = () => { if (settleRaf) { cancelAnimationFrame(settleRaf); settleRaf = 0; } };
-  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(ev => addEventListener(ev, railHands, { passive: true }));
 
   function measure() {
     W = pin.clientWidth; H = pin.clientHeight;
@@ -1056,11 +1046,7 @@ html.boot .pbs{visibility:hidden}
     const RT = Math.max(0, Math.round(last.x + last.w / 2 - W / 2));
     // FADE: the type, marks, rules and hero objects fade out on the whole green before anything moves
     const FADE = H * .22, SP = H * .42, MP = H * 1.05, REST = H * .24, HOLD = H * .3;
-    // 11-14 (Ivy): the rail travels slower than the scroll (RATE px across per px down), so a flick never whips it
-    const RATE = RAIL_V1 ? 1 : .5;
-    const STOPS = RAIL.map(k => clamp(Math.round(rail[k].x + rail[k].w / 2 - W / 2), 0, RT));   // each card centred
-    L = { m, gut, col, rail, RT, FADE, SP, MP, REST, HOLD, RATE, STOPS, G: Math.max(14, gut) };
-    stage.style.height = Math.round(H + FADE + SP + MP + REST + RT / RATE + HOLD) + 'px';
+    L = { m, gut, col, rail, RT, FADE, SP, MP, REST, HOLD, G: Math.max(14, gut) };
     stageTop = stage.getBoundingClientRect().top + window.scrollY;     // read once here, never in the scroll loop
     // fixed sizes for everything inside a block: the plate content is laid out once at its rail size and only scaled
     blocks.forEach(b => {
@@ -1104,17 +1090,7 @@ html.boot .pbs{visibility:hidden}
     const e = ease(clamp(p / L.SP));
     const g = e * L.G, push = e * W * .022;
     const t = clamp((p - L.SP) / L.MP);
-    // the first stop rests before the rail moves. 11-14 (Ivy): the rail follows its target with a capped, eased step, so a
-    // fast flick glides instead of jumping; nothing else moves while it travels
-    railGoal = clamp((p - L.SP - L.MP - L.REST) * L.RATE, 0, L.RT);
-    if (RAIL_V1 || railShown == null || t < 1 || Math.abs(railGoal - railShown) < .6) railShown = railGoal;
-    else {
-      // one step per frame however often render() is called, scaled to the frame's real length
-      const now = performance.now(), gap = (now - (railStepAt || now - 16.7)) / 16.7, dt = gap > 3 ? 1 : Math.min(gap, 2);   // a stale clock (after a rest) counts as one frame
-      if (dt > .45) { railStepAt = now; railShown += clamp((railGoal - railShown) * (1 - Math.pow(.78, dt)), -W * RAIL_MAXV * dt, W * RAIL_MAXV * dt); }
-      if (!railRaf) railRaf = requestAnimationFrame(() => { railRaf = 0; render(); });
-    }
-    const railX = railShown;
+    const railX = clamp(p - L.SP - L.MP - L.REST, 0, L.RT);   // (unused: motion mode is off)
 
     blocks.forEach(b => {
       const hr = b.hr;
@@ -2193,7 +2169,7 @@ html.boot .pbs{visibility:hidden}
     objs.style.cssText = ''; objs.__pb = {}; stage.style.height = '';
   }
   function setMode(first) {
-    const want = !location.search.includes('static') && !reduceQ.matches && innerWidth >= 760 && innerHeight >= 520;
+    const want = false;   // 11-14 (Ivy): no horizontal rail, no pinned stage; the page scrolls straight down at every width
     if (want !== motion) {
       motion = want;
       doc.classList.toggle('motion', motion);
@@ -2247,7 +2223,7 @@ html.boot .pbs{visibility:hidden}
 
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   let raf = 0;
-  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); if (!settleRaf) { clearTimeout(settleT); settleT = setTimeout(railSettle, 170); } }, { passive: true });
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }, { passive: true });
   let rt = 0;
   let lastW = innerWidth;
   addEventListener('resize', () => {
@@ -2359,8 +2335,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/copied.js?v=9"></script>
-<script src="breeze/breeze.js?v=9"></script>
+<script src="breeze/copied.js?v=10"></script>
+<script src="breeze/breeze.js?v=10"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>

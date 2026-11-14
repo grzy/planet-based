@@ -63,6 +63,7 @@
     const set = (k, landMs, dur) => st.setProperty(k, ((landMs - r - dur) / 1000).toFixed(3) + 's');
     set('--hs-sun', G.sun, 900); set('--hs-peony', G.peony + 150, 750); set('--hs-dahlia', G.dahlia + 150, 750); set('--hs-bee', G.bee, 500);
     set('--hs-text', G.text, 0);
+    st.setProperty('--hs-hint', ((S.endT - r + 1800) / 1000).toFixed(3) + 's');   // the hint: ~1.8 s after the hero has fully settled
     S.G = G;
   }
   function seekCSS(t) {
@@ -182,7 +183,9 @@
   // can't be scrolled away from the top (desktop). A scroll there used to make the page skip its entrance and show the
   // hero with the tree and the "-ing" word still on it; now the loader always hands over to the story, the tree is cut
   // and gone before any of the hero shows
-  const loaderUp = () => !S.ctx && !cleared && doc.classList.contains('motion') && (() => { const pin = document.querySelector('.pin'); return pin && pin.classList.contains('intro'); })();
+  // (the vertical page, 11-14: every width takes the static arrival; the loader is up while html has .boot and the story
+  // has not revealed the hero)
+  const loaderUp = () => !cleared && !S.revealed && (doc.classList.contains('boot') || (doc.classList.contains('motion') && !S.ctx && (() => { const pin = document.querySelector('.pin'); return pin && pin.classList.contains('intro'); })()));
   addEventListener('wheel', e => { if (loaderUp()) e.preventDefault(); }, { passive: false });
   addEventListener('touchmove', e => { if (loaderUp()) e.preventDefault(); }, { passive: false });
   addEventListener('keydown', e => { if (loaderUp() && /^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| )$/.test(e.key)) e.preventDefault(); });

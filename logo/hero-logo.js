@@ -133,9 +133,9 @@
       if (e.pointerType === 'touch') return;
       if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0)) return;   // a scroll's moves never play the word
       const open = target > 0, z = zone(open ? 28 : 10);
-      if (inside(e, z)) { touch(); if (!open) go(2); sound(e); } else if (open) go(0);
+      if (inside(e, z)) { touch(); if (!open) go(2); sound(e); } else if (open && !replaying && !nudging) go(0);
     });
-    hero.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') go(0); });
+    hero.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch' && !replaying && !nudging) go(0); });
     // touch: tap toggles, a sideways drag scrubs (vertical drags still scroll the page: touch-action pan-y on the mark)
     mark.addEventListener('pointerdown', e => {
       touch();
@@ -168,6 +168,19 @@
     if (nudging) { nudging = false; clearTimeout(nudgeT); }
     if (!touched) { touched = true; dispatchEvent(new CustomEvent('hs:logo-touched')); }
   }
+  // the first time a visitor turns sound on (their first touch), the logo plays its open and fold once with its notes on
+  // the beat, so the sound the preloader could not play is heard (11-14, Ivy). Not if they are touching the logo
+  let replayed = false, replaying = false;
+  function replayOnce() {
+    if (replayed || touched || !live) return; replayed = true;
+    const t0 = performance.now();
+    const wait = () => {
+      if (touched) return;
+      if (window.HeroSound && HeroSound.on()) { nudging = false; replaying = true; go(2); setTimeout(() => { if (!touched) go(0); setTimeout(() => { replaying = false; }, 1200); }, 1100 + 700); }
+      else if (performance.now() - t0 < 3000) setTimeout(wait, 60);   // (iOS: the audio starts as the finger lifts)
+    };
+    setTimeout(wait, 120);
+  }
   function scheduleNudge() {
     let seen = false; try { seen = sessionStorage.getItem('pb-logo-nudged') === '1'; } catch (e) {}
     if (seen || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -183,5 +196,5 @@
     };
     nudgeT = setTimeout(tryNudge, 2600);
   }
-  window.HeroLogo = { word, mount, render, enable, go, flourish, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
+  window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();

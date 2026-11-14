@@ -21,11 +21,12 @@
   // 1. terminal: type on, hold, backspace
   function typeWord() {
     const w = WORDS[i++ % WORDS.length] + '…';
-    if (reduce) { txt.textContent = w; later(typeWord, 1100); return; }
+    if (reduce) { txt.textContent = w; if (w.startsWith(POLL)) { shownAt = performance.now(); pollinate(); return; } later(typeWord, 1100); return; }
+    if (w.startsWith(POLL)) pollinate();   // the wind comes as Pollinating begins (11-14)
     let k = 0;
     // 11-14 (Ivy): quicker on, a shorter hold, so every word gets read and the words keep moving
     shownAt = 0;
-    const type = () => { txt.textContent = w.slice(0, ++k); if (k < w.length) later(type, 16 + Math.random() * 12); else { shownAt = performance.now(); later(erase, 430); } };
+    const type = () => { txt.textContent = w.slice(0, ++k); if (k < w.length) later(type, 16 + Math.random() * 12); else { shownAt = performance.now(); if (w.startsWith(POLL)) return; later(erase, 430); } };
     const erase = () => { shownAt = 0; k = Math.max(0, k - 3); txt.textContent = w.slice(0, k); if (k > 0) later(erase, 14); else later(typeWord, 80); };
     type();
   }
@@ -37,8 +38,8 @@
     const dur = 180 + w.length * 15;
     el.style.setProperty('--write', dur + 'ms');
     el.classList.add('write'); shownAt = 0;
-    later(() => { shownAt = performance.now(); }, dur);
-    later(() => { shownAt = 0; el.classList.add('smudge'); later(penWord, 360); }, dur + 430);
+    later(() => { shownAt = performance.now(); if (w.startsWith(POLL)) pollinate(); }, dur);
+    if (!w.startsWith(POLL)) later(() => { shownAt = 0; el.classList.add('smudge'); later(penWord, 360); }, dur + 430);
   }
   function urls() {
     const out = new Set();
@@ -47,6 +48,31 @@
     return [...out].filter(Boolean);
   }
   const load = u => new Promise(r => { const im = new Image(); im.onload = im.onerror = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(r); im.src = u; });
+  // ---------- the wind waits for "Pollinating" (11-14, Ivy: the wind pollinates) ----------
+  // The words run Germinating, Photosynthesizing, then Pollinating, which stays; the tree's pencil wind swirls (c/breeze)
+  // are held back until it appears and then blow; the cut follows the wind. The swirls' own calls are caught here and
+  // replayed at that moment, keeping their timing
+  const POLL = 'Pollinating';
+  let windOn = false, windQ = [], windDoneFn; const windDone = new Promise(r => { windDoneFn = r; });
+  const hookWind = () => {
+    const orig = window.pbScribble; if (!orig || orig.__hsWind) return;
+    const w = function (layer, key, o) {
+      if (!windOn && layer && layer.classList && layer.classList.contains('loader-wind')) { windQ.push([this, layer, key, o]); return { el: document.createElement('i'), anims: [] }; }
+      return orig.apply(this, arguments);
+    };
+    w.__hsWind = true; w.__hs = orig.__hs; window.pbScribble = w;
+  };
+  hookWind();
+  function pollinate() {
+    if (windOn) return; windOn = true;
+    if (!windQ.length) { setTimeout(windDoneFn, reduce ? 300 : 900); return; }
+    const t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s); let end = 0;
+    windQ.forEach(([self, layer, key, o]) => { const oo = Object.assign({}, o, { t0: ((o && o.t0) || 0) - base + .05 }); end = Math.max(end, oo.t0 + (oo.dur || 1)); window.pbScribble.call(self, layer, key, oo); });
+    windQ = [];
+    setTimeout(windDoneFn, Math.max(600, (end - .35) * 1000));   // the cut begins as the last line lifts off
+  }
+  // a safety: if Pollinating never comes (a very slow start), the wind and the cut still happen
+  setTimeout(() => { if (!windOn) pollinate(); }, MAX);
   let resolve; const done = new Promise(r => resolve = r);
   function start() {
     const host = document.querySelector('.loader .loader-in');
@@ -61,7 +87,7 @@
     const t0 = performance.now();
     // ready = everything loaded (capped), the tree's pencil swirls finished (capped, c/breeze), and MIN; then the word in
     // view is let finish and be read (shown whole for 300 ms), at most 900 ms more, so a word is never cut mid-way
-    const swirls = Promise.race([new Promise(r => { const w = () => window.pbSwirlsDone ? window.pbSwirlsDone.then(r) : performance.now() - t0 > 500 ? r() : setTimeout(w, 50); w(); }), new Promise(r => setTimeout(r, 2600))]);
+    const swirls = windDone;   // the wind with Pollinating, then the cut
     Promise.all([Promise.race([all, new Promise(r => setTimeout(r, MAX))]), swirls]).then(() => setTimeout(() => {
       const t1 = performance.now();
       const gate = () => { const now = performance.now(); if (!el || stopped || (shownAt && now - shownAt >= 300) || now - t1 > 900) resolve(); else setTimeout(gate, 30); };

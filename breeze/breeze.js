@@ -41,7 +41,8 @@
     const H = rel(cottage), B = rel(big), S = rel(small), T = rel(tree), k = H.w / 400, ST = rel(document.querySelector('.studio'));
     let yTop = B.t - 70 * k, yBot = B.t + B.h * .7;
     if (thinLines()) { yTop = Math.max(yTop, ST.t + ST.h + 14); yBot = Math.max(yBot, yTop + 60); }   // phones: under the studio line, never over it
-    return { H, B, S, T, k, ST, yTop, yBot, x0: Math.min(S.l, B.l) - 240 * k, x1: H.l + H.w * .18 };
+    // 11-14 (Ivy): on the desktop the gusts start anywhere from the page's left edge, so the wind crosses the whole width
+    return { H, B, S, T, k, ST, yTop, yBot, x0: thinLines() ? Math.min(S.l, B.l) - 240 * k : -60 * k, x1: H.l + H.w * .18 };
   }
   // add(key, opts) draws a line; nudge(el, amount, t0) makes it move. n lines, at t0 (s), in lane (px), tilted (deg)
   function gustLines(G, t0, n, lane, tilt, add) {
@@ -108,7 +109,7 @@
   function armGust(first) {
     clearTimeout(gTimer); gTimer = null;
     if (!inView || reduce.matches || !isNaN(freezeAt)) return;
-    gTimer = setTimeout(smallGust, first ? R(1500, 3500) : R(6000, 12000));
+    gTimer = setTimeout(smallGust, first ? R(1500, 3500) : thinLines() ? R(6000, 12000) : R(3500, 7000));   // 11-14 (Ivy): more often on the desktop; phones stay sparse
   }
 
   // ---------- the full breeze, rarely: clouds hurry, gusts a couple of seconds apart, the newt, the smoke ----------
