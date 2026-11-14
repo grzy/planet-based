@@ -128,7 +128,7 @@
     // a scroll, a wheel or a key during the entrance: run the rest four times faster (never snap)
     hurry() { if (S.done || !S.ctx) return; const now = performance.now(); const t = (now - S.t0) * S.rate; S.rate = 4; S.t0 = now - t / 4; },
     get t() { return S.t; }, K, S,
-    SUN_SETTLE: 9000, BEE_FIRST: 8000
+    SUN_SETTLE: 5500, BEE_FIRST: 8000
   };
   // ---------- the loader never outlives the hero (11-14, a stuck tree + "-ing" word over the arrived hero on the live
   // site): whatever path the page took (a background tab, a scroll or a resize during the loader, a story that never

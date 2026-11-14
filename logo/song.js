@@ -156,7 +156,7 @@
     if (!rec.length) t0 = now;
     rec.push([Math.round(now - t0), voice, Math.max(0, Math.min(35, step | 0)), voice === 'f' ? ((o.dir || 1) > 0 ? 1 : 0) : (voice === 'g' || voice === 'b') && o.down ? 1 : 0]);
     while (rec.length > MAXN || (rec.length && now - t0 - rec[0][0] > MAXMS)) rec.shift();
-    if (rec.length >= 6 && rec[rec.length - 1][0] - rec[0][0] > 3000) showShare();
+    // 11-14 (Ivy): no Share (people won't share it); the recording stays, quiet, unused
   }
   // ---------- the link: "v1" then tokens  voice + step(base36) + gap in 10 ms (base36) [+ "." extra(base36)] ----------
   function encode(r) {
@@ -264,7 +264,7 @@
     if (!window.HeroSound) return;
     HeroSound.onPlay(onPlay);
     const song = songFromHash();
-    if (song) { const wait = () => (window.HeroStory && HeroStory.S && HeroStory.S.done) ? offerPlay(song) : setTimeout(wait, 300); wait(); }
+    if (song && /[?&]songs(&|$)/.test(location.search)) { const wait = () => (window.HeroStory && HeroStory.S && HeroStory.S.done) ? offerPlay(song) : setTimeout(wait, 300); wait(); }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   window.HeroSong = { encode, decode, get rec() { return rec; }, perform };

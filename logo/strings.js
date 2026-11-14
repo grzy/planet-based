@@ -58,7 +58,35 @@
   const thumb = i => { const r = rankOf(i); return r > 0 && Math.round((r - 1) * 13 / Math.max(1, xs.length - 1)) === stepOf(i); };
   const stringFor = step => { let k = 0, best = 1e9; xs.forEach((s, i) => { const d = Math.abs(stepOf(i) - step); if (d < best) { best = d; k = i; } }); return k; };
   const panOf = i => (xs[i].x / hero.clientWidth) * 1.6 - .8;
-  const note = (i, amp = 1) => { if (!window.HeroSound) return; const th = thumb(i); HeroSound.play('g', stepOf(i), { amp: th ? amp * .6 : amp, down: th, pan: panOf(i), bright: th ? .2 : .3 + .3 * amp }); };
+  // 11-14 (Ivy): Spanish and romantic. A sweep is a soft rolled chord (a gentle rasgueado): every string it crosses
+  // sounds the nearest tone of one chord of the Andalusian cadence, Am, G, F, then E major, home; each new sweep moves to
+  // the next chord (a long pause starts again from Am). A lone pluck is the string's own note; now and then it blooms into
+  // a soft tremolo, or leans on the note a half step above and settles (the Phrygian sigh). Tender, never flashy
+  const CHORDS = [[9, 0, 4], [7, 11, 2], [5, 9, 0], [4, 8, 11]];   // Am G F E (pitch classes)
+  let chordI = 0, inRow = 0, lastAt = 0, endT = 0, soloT = 0;
+  const snap = (m, ch) => { for (const d of [0, -1, 1, -2, 2, -3, 3]) if (ch.includes(((m + d) % 12 + 12) % 12)) return m + d; return m; };
+  const note = (i, amp = 1) => {
+    if (!window.HeroSound) return;
+    const now = performance.now(), gap = now - lastAt; lastAt = now;
+    if (gap > 6000) chordI = 0;
+    if (gap < 150) inRow++; else { if (inRow >= 3) chordI = (chordI + 1) % 4; inRow = 1; }
+    clearTimeout(endT); endT = setTimeout(() => { if (inRow >= 3) { chordI = (chordI + 1) % 4; inRow = 0; } }, 420);
+    const th = thumb(i), m0 = HeroSound.midiOf ? HeroSound.midiOf(stepOf(i), th) : null, pan = panOf(i);
+    if (gap < 150 || inRow > 1) {                       // in a sweep: a tone of the chord
+      clearTimeout(soloT);
+      HeroSound.play('g', stepOf(i), { midi: m0 != null ? snap(m0, CHORDS[chordI]) : undefined, amp: (th ? .5 : .72) * amp, down: th, pan, bright: .22 });
+      return;
+    }
+    HeroSound.play('g', stepOf(i), { amp: th ? amp * .6 : amp, down: th, pan, bright: th ? .2 : .3 + .25 * amp });
+    // a lone pluck (nothing follows within a beat): sometimes a little more
+    clearTimeout(soloT);
+    soloT = setTimeout(() => {
+      if (performance.now() - lastAt < 170 || m0 == null) return;
+      const r = Math.random();
+      if (r < .18) [0, 1, 2].forEach(k => setTimeout(() => HeroSound.play('g', stepOf(i), { midi: m0, amp: .32 - k * .07, pan, bright: .18, replay: true }), k * 82));   // tremolo
+      else if (r < .32) { HeroSound.play('g', stepOf(i), { midi: m0 + 1, amp: .3, pan, bright: .2, replay: true }); setTimeout(() => HeroSound.play('g', stepOf(i), { midi: m0, amp: .36, pan, bright: .2, replay: true }), 190); }   // the sigh
+    }, 180);
+  };
   // ---------- the pencil vibration (11-14, Ivy): a plucked, strummed or dragged string shivers as the same loose pencil
   // scribble the strings fell in as, and settles back into its clean line. Drawn in the strings' own layer (under the
   // type and the logo), one loop for every string in motion; a string plucked again takes the larger swing

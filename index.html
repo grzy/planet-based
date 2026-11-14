@@ -663,8 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=3">
-<link rel="stylesheet" href="logo/b-variant.css?v=3">
+<link rel="stylesheet" href="logo/story.css?v=4">
+<link rel="stylesheet" href="logo/b-variant.css?v=4">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -916,17 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=3"></script>
-<script src="logo/pose.js?v=3"></script>
-<script src="logo/sound.js?v=3"></script>
-<script src="logo/bees.js?v=3"></script>
-<script src="logo/hero-logo.js?v=3"></script>
-<script src="logo/story.js?v=3"></script>
-<script src="logo/common.js?v=3"></script>
-<script src="logo/song.js?v=3"></script>
-<script src="logo/strings.js?v=3"></script>
-<script src="logo/preload.js?v=3"></script>
-<script src="logo/b-variant.js?v=3"></script>
+<script src="logo/hero-logo-data.js?v=4"></script>
+<script src="logo/pose.js?v=4"></script>
+<script src="logo/sound.js?v=4"></script>
+<script src="logo/bees.js?v=4"></script>
+<script src="logo/hero-logo.js?v=4"></script>
+<script src="logo/story.js?v=4"></script>
+<script src="logo/common.js?v=4"></script>
+<script src="logo/song.js?v=4"></script>
+<script src="logo/strings.js?v=4"></script>
+<script src="logo/preload.js?v=4"></script>
+<script src="logo/b-variant.js?v=4"></script>
 <script>
 (() => {
   'use strict';
@@ -1220,7 +1220,7 @@ html.boot .pbs{visibility:hidden}
     if (calmSeen.size < sunImgs.length - 1 || !introDone || performance.now() - (window.__heroSettled || 1e12) < 4000) { if (winkIn < 1) winkIn = 1; }
     // 11-14 (Ivy): phones never saw the tongue. There it comes first, early (the first swap after the settle hold, ~7 s
     // in), and then every 8 to 13 swaps; still one face at a time
-    const phoneSun = innerWidth < 760, settled = introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000;
+    const phoneSun = true /* logo-r5: the tongue's early wink on every screen */, settled = introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000;
     if (phoneSun && !phoneWink && settled && tIdx >= 0 && sunReady.has(tIdx)) { n = tIdx; phoneWink = true; winkIn = 8 + Math.floor(wrand() * 6); calmSeen.clear(); }
     else if (tIdx >= 0 && --winkIn <= 0 && (phoneSun ? settled : calmSeen.size >= sunImgs.length - 1 && settled)) { n = tIdx; winkIn = phoneSun ? 8 + Math.floor(wrand() * 6) : untilWink(); calmSeen.clear(); }
     else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);

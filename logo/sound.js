@@ -1,10 +1,10 @@
-// HeroSound: the hero as one instrument, every voice in the same key (D major, open-tuned, add9 / maj7 colours) and the
+// HeroSound: the hero as one instrument, every voice in the same key (E Phrygian, the Andalusian colour) and the
 // same hushed, close, warm room. Silent until the visitor asks for sound (the "Sound" button in c, "Sound?" Yes / No in
 // a and b); the answer is remembered (localStorage, guarded); a quiet serif link in the footer changes it.
 //
 // THE VOICES (HeroSound.play(voice, step, opts); step = a degree of the shared tuning, so every voice agrees):
-//   g  STRINGS     the guide lines: a fingerpicked steel-string guitar (Karplus-Strong, body resonance, string noise,
-//                  an occasional soft finger squeak, uneven fingers)
+//   g  STRINGS     the guide lines: a recorded nylon-string Spanish guitar (falls back to a plucked-string synth until the
+//                  samples load); a sweep rolls a chord of the Andalusian cadence, a lone pluck may bloom into a tremolo
 //   p  PEONY       a celesta / music-box tine: a bright sine with a glassy inharmonic partial, quick bloom, long ring
 //   d  DAHLIA      a felt-piano / soft marimba: a warm mallet, the felt taking the edge off the attack
 //   s  SUN         a soft, short, warm chime per step as the sun moves on its string (no sustain)
@@ -80,8 +80,10 @@
   addEventListener('blur', silence); document.addEventListener('visibilitychange', () => { if (document.hidden) silence(); });
 
   // ---------- the tuning: open D with add9 and maj7, each step a third or a fourth above the last ----------
-  const TUNING = [50, 57, 62, 66, 69, 73, 76, 81, 86, 88, 90, 93, 97, 98];   // D3 A3 D4 F#4 A4 C#5 E5 A5 D6 E6 F#6 A6 C#7 D7
-  const midi = (n, down) => { n = Math.max(0, Math.round(n)); return Math.min(TUNING[n % TUNING.length] + 12 * Math.floor(n / TUNING.length), 100) - (down ? 12 : 0); };
+  // 11-14 (Ivy): Spanish and romantic. E Phrygian with the raised third (the Andalusian colour: E F G# A B C D), two
+  // octaves from E3; every voice (strings, flowers, sun, the word) shares it. A step past the top wraps two octaves up
+  const TUNING = [52, 53, 56, 57, 59, 60, 62, 64, 65, 68, 69, 71, 72, 74];   // E3 F3 G#3 A3 B3 C4 D4 E4 F4 G#4 A4 B4 C5 D5
+  const midi = (n, down) => { n = Math.max(0, Math.round(n)); return Math.min(TUNING[n % TUNING.length] + 24 * Math.floor(n / TUNING.length), 100) - (down ? 12 : 0); };
   const hz = (n, down) => 440 * Math.pow(2, (midi(n, down) - 69) / 12);
   const mhz = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -117,7 +119,9 @@
   // the nearest one, pitch-shifted the last semitone or so. Lazy: fetched after the hero has arrived, decoded once sound is
   // on. Until a note's sample is ready the string falls back to the plucked-string synth, so nothing ever waits.
   // GUITAR lists the sample files (shared/guitar/, logo/guitar/ at the root); empty = the synth only.
-  const GUITAR = [];
+  const GUITAR = [40, 42, 44, 47, 49, 52, 54, 57, 59, 61, 64, 66, 68, 71, 73, 76, 79].map(m => [m, 'nylon-' + m + '.m4a']);
+  // the nylon-string guitar: "ClassicalGuitar-multisampled" by quartertone (Freesound pack 11573), a Yamaha Eterna
+  // classical guitar, close-miked; CC BY 4.0 (credited in the footer's sound credits). Trimmed, mono, AAC
   const GDIR = (() => { try { const src = document.currentScript && document.currentScript.src; return src ? src.replace(/[^/]*$/, '') + 'guitar/' : 'guitar/'; } catch (e) { return 'guitar/'; } })();
   const gRaw = new Map(), gBuf = new Map();   // midi -> ArrayBuffer, midi -> AudioBuffer
   let gFetching = false;
@@ -142,15 +146,16 @@
   }
   const V = {
     g(step, o) {                                    // STRINGS: fingerpicked guitar
-      const t = when(.016), vel = (.62 + Math.random() * .3) * (o.amp || 1), f = hz(step, o.down), out = panner(o.pan || 0);
-      const src = ctx.createBufferSource(), m = midi(step, o.down), k = nearestGuitar(m);
+      const m = o.midi != null ? o.midi : midi(step, o.down);   // o.midi: a chord tone chosen by the strings
+      const t = when(.016), vel = (.62 + Math.random() * .3) * (o.amp || 1), f = mhz(m), out = panner(o.pan || 0);
+      const src = ctx.createBufferSource(), k = nearestGuitar(m);
       let rate = 1;
       if (k != null) { src.buffer = gBuf.get(k); rate = Math.pow(2, (m - k) / 12); src.playbackRate.value = rate; }   // the real guitar
       else src.buffer = pluckBuffer(f, .4985);                                                                         // the synth, until it loads
       if (o.from) { src.playbackRate.setValueAtTime(rate * o.from / f, t); src.playbackRate.linearRampToValueAtTime(rate, t + .09); }
       const body = ctx.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 190; body.Q.value = 1.1; body.gain.value = k != null ? 1 : 5;   // the recording has its own body
       const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1700 + 3000 * (o.bright ?? .5) * vel;
-      const g = ctx.createGain(); env(g, t, .3 * vel, .004, 2.6); track('g' + step + (o.down ? 'd' : ''), g, t);
+      const g = ctx.createGain(); env(g, t, .3 * vel, .004, 2.6); track('g' + m, g, t);
       src.connect(body); body.connect(tone); tone.connect(g); g.connect(out); src.start(t); src.stop(t + 2.7);
       if (k == null) { const sq = Math.random() < .25; noise(t, .05, sq ? 2600 + Math.random() * 900 : 4200, sq ? 7 : 1.2, (sq ? .04 : .02) * vel, out); }   // the synth's finger noise (the recording has real ones)
     },
@@ -300,11 +305,15 @@
     footLink = document.createElement('button'); footLink.type = 'button'; footLink.className = 'hs-foot';
     footLink.addEventListener('click', () => set(answer === 'yes' ? 'no' : 'yes'));
     foot.appendChild(footLink); syncFooter();
+    // the sound credits (CC BY 4.0 asks for the author, the source and the licence)
+    const cr = document.createElement('span'); cr.className = 'hs-credit';
+    cr.innerHTML = 'Guitar: <a href="https://freesound.org/people/quartertone/packs/11573/" target="_blank" rel="noopener">ClassicalGuitar-multisampled</a> by quartertone, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>';
+    foot.appendChild(cr);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', footer); else footer();
 
   window.HeroSound = {
-    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar,
+    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, midiOf: (n, down) => midi(n, down),
     on: () => live(), answer: () => answer,
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)
