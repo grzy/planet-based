@@ -574,7 +574,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
   clip-path:inset(0 0 0 100%);transition:clip-path .55s cubic-bezier(.4,0,.2,1)}
 .contact a.mail:hover::after,.contact a.mail:focus-visible::after{clip-path:inset(0 0 0 0);transition:clip-path .85s cubic-bezier(.45,.05,.25,1)}
 /* a click copies the address: a pencil check and the word "copied" write themselves in beside it, then fade */
-.copied{position:absolute;left:calc(100% + .1em);bottom:.04em;width:1.8em;pointer-events:none;opacity:0;visibility:hidden;transform:rotate(-4deg);transform-origin:0 100%}
+.copied{position:absolute;left:calc(100% + .22em);bottom:.04em;width:1.8em;pointer-events:none;opacity:0;visibility:hidden;transform:rotate(-4deg);transform-origin:0 100%}
 /* 11-14 (Ivy): the check and the word are hand-drawn pencil now (breeze/copied.js, styles in breeze/breeze.css) */
 .home{--cw:clamp(250px,21.5vw,500px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * 1.4);position:relative}
 /* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
@@ -773,7 +773,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=7">
+<link rel="stylesheet" href="breeze/breeze.css?v=8">
 </head>
 <body>
 <main>
@@ -786,8 +786,8 @@ html.boot .pbs{visibility:hidden}
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
-      <script src="breeze/paths.js?v=7"></script>
-      <script src="breeze/scribble.js?v=7"></script>
+      <script src="breeze/paths.js?v=8"></script>
+      <script src="breeze/scribble.js?v=8"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -2352,8 +2352,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/copied.js?v=7"></script>
-<script src="breeze/breeze.js?v=7"></script>
+<script src="breeze/copied.js?v=8"></script>
+<script src="breeze/breeze.js?v=8"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>
