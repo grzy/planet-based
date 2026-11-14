@@ -67,9 +67,21 @@
     hw = word(svg);
     return hw;
   }
+  // 11-14 (Ivy): the sound is locked to the motion. Each beat of the pose sounds on the very frame the mark passes it,
+  // opening or folding (so folding plays the same notes, falling): the p bar setting (.15), the bars between opening
+  // (.25), the bars after the b opening (.55), the b landing on its stem (.7), the barcode whole (1); then the letters
+  // half grown (1.5) and the word whole (2). Bars play the balafon run, letters the word's gender
+  const BEATS = [[.15, 'f', 0], [.25, 'f', 1], [.55, 'f', 2], [.7, 'f', 3], [.995, 'f', 4], [1.5, 'b', 7], [1.99, 'b', 9]];
+  function beats(a, b) {
+    if (!live || a === b || !window.HeroSound) return;
+    const up = b > a, list = up ? BEATS : BEATS.slice().reverse();
+    list.forEach(([th, v, k]) => { if (up ? (a < th && b >= th) : (a >= th && b < th)) HeroSound.play(v, k, v === 'f' ? { single: k, pan: (k - 2) * .18 } : { amp: .8 }); });
+  }
   function render(v) {
     if (!mount()) return;
+    const was = s;
     s = Math.max(0, Math.min(2, v));
+    beats(was, s);
     logoRects();
     hw.draw(s, hw.logo);
     mark.classList.toggle('hl-open', s > .0005);
@@ -85,7 +97,7 @@
   // opening plays a short rising flourish, folding a falling one (once per gesture)
   let lastFlour = 0;
   function flourish(dir) { const now = performance.now(); if (now - lastFlour < 1500 || !window.HeroSound) return; lastFlour = now; HeroSound.play('f', 0, { dir }); }
-  function go(t) { const prev = target; target = Math.max(0, Math.min(2, t)); if (prev === 0 && target > 0) flourish(1); else if (prev > 0 && target === 0) flourish(-1); if (!raf && target !== s) raf = requestAnimationFrame(tick); if (target > 0) firstOpen(); }
+  function go(t) { target = Math.max(0, Math.min(2, t)); if (!raf && target !== s) raf = requestAnimationFrame(tick); if (target > 0) firstOpen(); }
   function firstOpen() {
     if (openedOnce) return; openedOnce = true;
     if (opts.askOnOpen && window.HeroSound) HeroSound.ask(mark.closest('.hero'), { onAnswer: () => {} });

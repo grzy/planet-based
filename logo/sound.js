@@ -183,7 +183,13 @@
       sine(m, t, .05 * vel, 1, o.pan || 0);
     },
     f(step, o) {                                    // FLOURISH: a quick Ghanaian-marimba (balafon) run up (opening) or down (folding)
-      const up = (o.dir || 1) > 0, run = [64, 65, 68, 69, 71];
+      const run = [64, 65, 68, 69, 71];
+      if (o.single != null) {                       // one note of the run, on the frame the logo passes that beat (hero-logo.js)
+        const m = run[Math.max(0, Math.min(4, o.single))], k = pick('balafon', m), t = when(.002);
+        if (k) sample(k.name, t, { rate: k.rate, gain: .3 * .7, pan: o.pan || 0, dur: 3 }); else sine(m - 12, t, .04, .5);
+        return;
+      }
+      const up = (o.dir || 1) > 0;
       (up ? run : run.slice().reverse()).forEach((m, i) => setTimeout(() => {
         if (!live() || !atRest()) return;
         const k = pick('balafon', m), t = when(.002);

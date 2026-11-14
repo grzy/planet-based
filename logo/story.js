@@ -98,10 +98,24 @@
   }
   // WebKit (html.wk): once the sun has landed, it lets go of its arrival animation and is repainted from scratch, so no
   // stale copy of an earlier frame can stay painted behind it (11-14, Ivy's iPhone)
+  // no image can be dragged out as a ghost (Chrome needs the attribute; WebKit the CSS)
+  const noDrag = () => document.querySelectorAll('img').forEach(i => { i.draggable = false; });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', noDrag); else noDrag();
+  addEventListener('load', noDrag);
   function settleSun() {
     if (!document.documentElement.classList.contains('wk')) return;
     const sun = document.querySelector('.objs .sun'); if (!sun) return;
-    const go = () => { sun.classList.add('hs-settled'); sun.style.display = 'none'; void sun.offsetWidth; sun.style.display = ''; };
+    const go = () => {
+      sun.classList.add('hs-settled');
+      // (b) a fresh render of the sun: the same node taken out of the page and put back, so WebKit drops every layer it
+      // ever made for it (the page's face swapper keeps its references, so nothing else changes)
+      const parent = sun.parentNode, next = sun.nextSibling;
+      parent.removeChild(sun); parent.insertBefore(sun, next);
+      // (a) phones and the static layout: the green blocks' copies of the hero art are never shown there; take them out
+      // of the page entirely so no stale copy can paint
+      if (!document.documentElement.classList.contains('motion')) document.querySelectorAll('.slice').forEach(sl => { while (sl.firstChild) sl.removeChild(sl.firstChild); });
+      window.__hsSunSettled = { slicesLeft: document.querySelectorAll('.slice > *').length, suns: document.querySelectorAll('.objs .sun').length };
+    };
     const anims = sun.getAnimations ? sun.getAnimations() : [];
     Promise.all(anims.map(a => a.finished.catch(() => {}))).then(() => setTimeout(go, 120));
   }
