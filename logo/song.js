@@ -56,7 +56,9 @@
   function touchUnlock() {
     if (touchOn) return; touchOn = true;
     addEventListener('pointerdown', e => {
-      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || e.button > 0 || (window.HeroAtRest && !HeroAtRest())) return;
+      // 11-14 (Ivy): a direct touch on the instrument is a clear wish to hear it: it turns sound on even if it was saved
+      // off (the footer can still turn it off again)
+      if (!window.HeroSound || HeroSound.answer() === 'yes' || e.button > 0 || (window.HeroAtRest && !HeroAtRest())) return;
       const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect();
       if (e.clientY < hr.top || e.clientY > hr.bottom || e.clientX < hr.left || e.clientX > hr.right) return;
       if (e.target.closest && e.target.closest('a,button,input,.hs-chips')) return;   // the colour slider counts (11-14, Ivy)
@@ -65,7 +67,7 @@
     }, { capture: true });
     // the slider from the keyboard turns it on too (the note by the slider's sun)
     addEventListener('keydown', e => {
-      if (!window.HeroSound || HeroSound.answer() === 'yes' || HeroSound.answer() === 'no' || (window.HeroAtRest && !HeroAtRest())) return;
+      if (!window.HeroSound || HeroSound.answer() === 'yes' || (window.HeroAtRest && !HeroAtRest())) return;
       if (!(e.target.closest && e.target.closest('.pbs')) || !/^(Arrow|Page|Home|End)/.test(e.key)) return;
       const hero = document.querySelector('.hero'), hr = hero.getBoundingClientRect(), th = e.target.closest('.pbs').querySelector('.psun'), r = (th || e.target).getBoundingClientRect();
       HeroSound.set('yes');
@@ -154,6 +156,9 @@
   let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
   function hint(hero, s, hr) {
     if (hintDone || !s) return;
+    let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
+    if (seenVisit) return;
+    try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {}
     let h = hero.querySelector('.hs-hint');
     if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); }
     const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;

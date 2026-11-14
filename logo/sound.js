@@ -24,8 +24,12 @@
   let master, bus, roomSend, cache = new Map();
 
   // ---------- the room: one context, one bus, tape warmth, a small warm room, a master limiter ----------
+  // iOS 16.4+: a 'playback' audio session plays even when the ringer switch is on silent (Web Audio is muted there otherwise)
+  const session = () => { try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {} };
+  session();
   function start() {
     if (!allowed()) return false;
+    session();
     try {
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
@@ -70,8 +74,9 @@
   function gestureUnlock() {
     if (!allowed()) return;
     try {
-      if (!ctx) { start(); return; }
-      if (ctx.state !== 'running') ctx.resume();
+      session();
+      if (!ctx) { start(); if (!ctx) return; }
+      if (ctx.state !== 'running') ctx.resume();   // (not running yet? the next touchend tries again)
       const b = ctx.createBufferSource(); b.buffer = ctx.createBuffer(1, 1, ctx.sampleRate); b.connect(ctx.destination); b.start(0);
     } catch (e) {}
   }
@@ -335,6 +340,10 @@
   // toward green), at most ~12 notes a second. Released or settled on a mode: a soft rolled chord, the lab's strings
   // gesture (green: E major, home; oatmeal: A minor; dark: F major). Arrow keys play a note per step. Same gate as
   // everything: sound on, hero at rest
+  (function sliderUnlock() {
+    const hook = () => { const el = document.querySelector('.hero .pbs'); if (!el) return setTimeout(hook, 400); if (el.__hsU) return; el.__hsU = true; ['touchend', 'pointerup'].forEach(t => el.addEventListener(t, gestureUnlock, { passive: true })); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook); else hook();
+  })();
   (function slider() {
     const RANGE = 9, CH = [[52, 56, 59, 64, 68, 71, 76], [57, 60, 64, 69, 72, 76], [53, 57, 60, 65, 69, 72, 77]];
     let dragging = false, lastStep = null, lastAt = 0, settleT = 0;
@@ -474,7 +483,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', footer); else footer();
 
   window.HeroSound = {
-    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, CREDITS, loaded: () => ({ guitar: gBuf.size, voices: vBuf.size, of: VFILES.length }), midiOf: (n, down) => midi(n, down),
+    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, CREDITS, unlock: gestureUnlock, loaded: () => ({ guitar: gBuf.size, voices: vBuf.size, of: VFILES.length }), midiOf: (n, down) => midi(n, down),
     on: () => live(), answer: () => answer,
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)
