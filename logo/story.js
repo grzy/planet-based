@@ -80,6 +80,7 @@
     if (!S.revealed && t >= S.revealT) {
       S.revealed = true; gardenDelays();
       S.ctx.finish();                      // the page's own reveal: the hero shows, its CSS arrival starts
+      clearLoader();
       if (window.HeroUnder) HeroUnder.layout();
       if (S.V.afterReveal) S.V.afterReveal(K);
     }
@@ -128,6 +129,29 @@
     get t() { return S.t; }, K, S,
     SUN_SETTLE: 9000, BEE_FIRST: 8000
   };
+  // ---------- the loader never outlives the hero (11-14, a stuck tree + "-ing" word over the arrived hero on the live
+  // site): whatever path the page took (a background tab, a scroll or a resize during the loader, a story that never
+  // ran), once the hero is shown the loader goes: its words stop, the tree, its swirls and its pieces are hidden ----------
+  const doc = document.documentElement;
+  let cleared = false;
+  function clearLoader() {
+    if (cleared) return; cleared = true;
+    try { if (window.HeroPreload) HeroPreload.stop(); } catch (e) {}
+    const L = document.querySelector('.loader'); if (L) L.classList.add('hs-gone');
+    document.querySelectorAll('.lcut').forEach(n => n.remove());
+    const lt = document.getElementById('loaderTree'); if (lt && lt.getAttribute('src')) setTimeout(() => lt.removeAttribute('src'), 50);
+  }
+  // the hero is shown when the page is out of boot and the pin is out of its intro (or the story has revealed it)
+  const heroShown = () => { const pin = document.querySelector('.pin'); return S.revealed || (!doc.classList.contains('boot') && !(pin && pin.classList.contains('intro'))); };
+  const check = () => { if (!cleared && heroShown()) clearLoader(); };
+  const mo = new MutationObserver(check);
+  const watch = () => { mo.observe(doc, { attributes: true, attributeFilter: ['class'] }); const pin = document.querySelector('.pin'); if (pin) mo.observe(pin, { attributes: true, attributeFilter: ['class'] }); check(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+  addEventListener('pageshow', check); document.addEventListener('visibilitychange', check);
+  // a last guarantee: if the story never started (a script failed, a path skipped it), the loader still lets go
+  setTimeout(() => { if (cleared || S.ctx) return; doc.classList.remove('boot', 'boot-out'); const pin = document.querySelector('.pin'); if (pin) pin.classList.remove('intro'); clearLoader(); }, 15000);
+  HeroStory.clearLoader = clearLoader;
+
   window.__introAt = ms => { cancelAnimationFrame(S.raf); S.raf = 0; frame(ms); seekCSS(ms); return 'frozen at ' + ms; };
   window.__introPlay = () => { S.t0 = performance.now() - S.t / S.rate; S.raf = requestAnimationFrame(tick); document.getAnimations().forEach(a => { if (a.playState === 'paused') a.play(); }); };
 })();

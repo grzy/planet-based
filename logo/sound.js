@@ -8,8 +8,8 @@
 //   p  PEONY       a celesta / music-box tine: a bright sine with a glassy inharmonic partial, quick bloom, long ring
 //   d  DAHLIA      a felt-piano / soft marimba: a warm mallet, the felt taking the edge off the attack
 //   s  SUN         a soft, short, warm chime per step as the sun moves on its string (no sustain)
-//   b  WORD        the logo's bars and the letters of planetbased.io: a small banjo (a bright, short pluck, a little twang)
-//   f  FLOURISH    the logo opening (rising) or folding (falling): four banjo notes up or down the tuning
+//   b  WORD        the logo's bars and the letters of planetbased.io: a vibraphone (soft mallet, long ring, slow tremolo)
+//   f  FLOURISH    the logo opening (rising) or folding (falling): four vibraphone notes up or down the tuning
 //   t  BRASS       a rare, soft flugelhorn-ish call after a big strum (a filtered saw, a slow bloom)
 //   z  BEE         a bee's buzz, harmonized (two quiet, wavering voices a fifth apart)
 // THE BUILD: whenever several things are played within a few seconds, a quiet low drone (D) comes in, then a soft
@@ -148,14 +148,23 @@
       });
       noise(t, .03, 900, 1, .02 * vel, out);        // the felt hammer
     },
-    b(step, o) {                                    // WORD: a small banjo
-      const t = when(.008), vel = (.6 + Math.random() * .3) * (o.amp || 1), f = hz(step + 2, o.down), out = panner(o.pan || 0);
-      const src = ctx.createBufferSource(); src.buffer = pluckBuffer(f, .4975);
-      const twang = ctx.createBiquadFilter(); twang.type = 'peaking'; twang.frequency.value = 1300; twang.Q.value = 3; twang.gain.value = 7;   // the drum head
-      const g = ctx.createGain(); env(g, t, .22 * vel, .002, 1.1); track('b' + step, g, t);
-      src.connect(twang); twang.connect(g); g.connect(out); src.start(t); src.stop(t + 1.2);
+    b(step, o) {                                    // WORD: a vibraphone (11-14, Ivy: its own instrument, far from the strings)
+      // soft mallet on a tuned bar: the fundamental with the bar's 4x and 10x partials (they die fast), a long ring,
+      // and the vibraphone's slow motor tremolo
+      const t = when(.008), vel = (.6 + Math.random() * .25) * (o.amp || 1), f = hz(step + 2, o.down), out = panner(o.pan || 0);
+      const trem = ctx.createGain(); trem.gain.value = .8;
+      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = .2; lfo.connect(lg); lg.connect(trem.gain);
+      const g = ctx.createGain(); env(g, t, .17 * vel, .005, 3.2); track('b' + step, g, t);
+      trem.connect(g); g.connect(out);
+      [[1, 1, 3.2], [4, .22, .55], [10, .05, .16]].forEach(([r, a, d]) => {
+        const os = ctx.createOscillator(), og = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r;
+        og.gain.setValueAtTime(a, t); og.gain.exponentialRampToValueAtTime(.0001, t + d);
+        os.connect(og); og.connect(trem); os.start(t); os.stop(t + d + .05);
+      });
+      lfo.start(t); lfo.stop(t + 3.3);
+      noise(t, .02, 2400, 2, .012 * vel, out);      // the mallet's soft tick
     },
-    f(step, o) {                                    // FLOURISH: four banjo notes up (opening) or down (folding)
+    f(step, o) {                                    // FLOURISH: four vibraphone notes up (opening) or down (folding)
       const up = (o.dir || 1) > 0, base = up ? 2 : 7;
       [0, 1, 2, 3].forEach((k, i) => setTimeout(() => live() && V.b(base + (up ? k : -k), { amp: .8, pan: (k - 1.5) * .2 }), i * 85));
     },

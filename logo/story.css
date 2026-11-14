@@ -151,3 +151,51 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
 /* WebKit (html.wk, set by c/): no filters or masks on anything that moves; the pencil word just fades and drifts */
 .wk .loader .hs-ing-2.smudge .hs-txt{filter:none;transition:opacity .4s ease,transform .42s ease}
 .wk .pbs .psun .moon.ph{filter:none;-webkit-mask:none;mask:none}
+
+/* ---------- 11-14 (Ivy, B): the sound control's three forms (shared/song.js, ?snd=1/2/3). No paper chip: the words and
+   the speaker take the hero's type colour (var(--oat): oat on the green and the dark, ink on the light ground) ---------- */
+.hs .hs-chips.hs-ctl{position:absolute;right:auto;bottom:auto;top:0;left:0;z-index:8;display:flex;flex-direction:row;align-items:center;gap:1.1em;color:var(--oat)}
+.hs .hs-ctl .hs-chip{background:none;box-shadow:none;color:inherit;padding:.35em .15em;border-radius:4px;font-family:var(--serif);font-size:15px;letter-spacing:0;text-transform:none;font-weight:420;display:inline-flex;align-items:center;gap:.45em}
+.hs .hs-ctl .hs-chip:hover{box-shadow:none}
+.hs .hs-ctl .hs-chip:focus-visible{outline:1.5px solid currentColor;outline-offset:3px;box-shadow:none}
+.hs .hs-ctl .hs-chip .hs-label{text-decoration:underline 1px transparent;text-underline-offset:.22em;transition:text-decoration-color .2s ease}
+.hs .hs-ctl .hs-chip:hover .hs-label{text-decoration-color:currentColor}
+.hs-spk{width:1.15em;height:1.15em;flex:none;overflow:visible}
+.hs-spk .b{fill:currentColor}
+.hs-spk .w,.hs-spk .x{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.hs-chip:not(.on) .hs-spk .w,.hs-chip.on .hs-spk .x{display:none}
+/* 1. TOP LINE: in the line, after the studio line (desktop); phones: right-aligned just under it */
+.hs .hs-ctl-1.inline{position:static;display:inline-flex;margin-left:1.6em;font-size:inherit;flex:none}
+.hs .hs-ctl-1.inline .hs-chip{font-size:inherit;padding:.25em .1em;margin:-.25em 0}
+.hs .hs-ctl-1:not(.inline){left:auto;right:var(--m);top:calc(7cqh + 22px)}
+.hs .hs-ctl-1:not(.inline) .hs-chip{font-size:13px}
+/* 2. PENCIL: a hand-written word with a pencil line under it, below the logo */
+.hs .hs-ctl-2 .hs-chip{flex-direction:column;align-items:stretch;gap:0;font-style:italic;font-size:19px;font-weight:380;padding:.2em .1em .1em}
+.hs .hs-ctl-2 .hs-chip:hover .hs-label{text-decoration-color:transparent}
+.hs-pen{display:block;width:0;min-width:100%;height:.42em;margin-top:.04em;overflow:visible}
+.hs-pen path{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.85}
+.hs-pen .p2{stroke-width:.9;opacity:.45}
+.hs .hs-ctl-2 .hs-chip:hover .hs-pen path{opacity:1}
+/* 3. ICON: a speaker at the end of the slider, Share in small type after it */
+.hs .hs-ctl-3{gap:.8em}
+.hs .hs-ctl-3 .hs-sound{font-size:22px;padding:.25em}
+.hs .hs-ctl-3 .hs-chip:not(.hs-sound){font-size:13px}
+/* the pencil "copied" sits above Share in every form */
+.hs .hs-ctl .hs-chip .hs-copied{width:4.6em}
+@media (max-width:759px){.hs .hs-ctl .hs-chip .hs-copied{right:auto;left:50%;bottom:calc(100% + .3em);top:auto}}
+
+/* the strings, shared (b mounts them invisible over its own guides: the flowers and the sun slide on them, every
+   guide can be strummed, and a plucked one shivers in pencil) */
+.hs-strings{position:absolute;inset:0;z-index:1;pointer-events:none}
+.hs-strings i{position:absolute;top:0;bottom:0;width:1px;margin-left:-.5px;background:var(--oat);will-change:transform}
+.hs-strum{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;stroke:var(--oat)}
+.hs .objs .hs-grab{pointer-events:auto;cursor:grab;touch-action:none}
+.hs .objs .hs-grab.hs-held{cursor:grabbing}
+
+/* ---------- 11-14 (Ivy): the loader's words, lines and planetbased.io are ink on the paper (the pencil strokes' graphite),
+   oat on the dark page; the lines turn to the hero's type colour as the green lands (story.js mixes --ink) ---------- */
+:root{--hs-ink:#2c2c2f}
+html[data-page="dark"]{--hs-ink:#D9CDB7}
+.loader .hs-ing-2{color:var(--hs-ink)}
+html[data-page="dark"] .loader .hs-ing-2{color:var(--hs-ink)}
+.loader.hs-gone{display:none!important}

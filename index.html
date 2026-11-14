@@ -663,8 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=1">
-<link rel="stylesheet" href="logo/b-variant.css?v=1">
+<link rel="stylesheet" href="logo/story.css?v=2">
+<link rel="stylesheet" href="logo/b-variant.css?v=2">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -773,7 +773,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=4">
+<link rel="stylesheet" href="breeze/breeze.css?v=5">
 </head>
 <body>
 <main>
@@ -786,8 +786,8 @@ html.boot .pbs{visibility:hidden}
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
-      <script src="breeze/paths.js?v=4"></script>
-      <script src="breeze/scribble.js?v=4"></script>
+      <script src="breeze/paths.js?v=5"></script>
+      <script src="breeze/scribble.js?v=5"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -821,7 +821,7 @@ html.boot .pbs{visibility:hidden}
                 <dl>
                   <div><dt>Project</dt><dd>Unicorn</dd></div>
                   <div class="tools"><dt>Tools</dt><dd>Claude Code, Electron, Figma MCP</dd></div>
-                  <div><dt>When</dt><dd>Spring and fall 2026</dd></div>
+                  <div><dt>When</dt><dd>Spring &amp; Fall 2026</dd></div>
                   <div><dt>Status</dt><dd>Shipped</dd></div>
                 </dl>
               </div>
@@ -916,16 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=1"></script>
-<script src="logo/pose.js?v=1"></script>
-<script src="logo/sound.js?v=1"></script>
-<script src="logo/bees.js?v=1"></script>
-<script src="logo/hero-logo.js?v=1"></script>
-<script src="logo/story.js?v=1"></script>
-<script src="logo/common.js?v=1"></script>
-<script src="logo/song.js?v=1"></script>
-<script src="logo/preload.js?v=1"></script>
-<script src="logo/b-variant.js?v=1"></script>
+<script src="logo/hero-logo-data.js?v=2"></script>
+<script src="logo/pose.js?v=2"></script>
+<script src="logo/sound.js?v=2"></script>
+<script src="logo/bees.js?v=2"></script>
+<script src="logo/hero-logo.js?v=2"></script>
+<script src="logo/story.js?v=2"></script>
+<script src="logo/common.js?v=2"></script>
+<script src="logo/song.js?v=2"></script>
+<script src="logo/strings.js?v=2"></script>
+<script src="logo/preload.js?v=2"></script>
+<script src="logo/b-variant.js?v=2"></script>
 <script>
 (() => {
   'use strict';
@@ -998,6 +999,28 @@ html.boot .pbs{visibility:hidden}
   });
 
   let motion = false, W = 0, H = 0, L = {}, introRunning = false, introDone = false, stageTop = 0;
+  // the rail (11-14, Ivy): eased, speed-capped travel and a soft settle on the nearest card. ?railv1 = the old 1:1 rail, for comparison
+  const RAIL_V1 = /[?&]railv1(&|$)/.test(location.search), RAIL_MAXV = .012;   // at most 1.2% of the width per 60 Hz frame
+  let railGoal = 0, railShown = null, railRaf = 0, railStepAt = 0, settleT = 0, settleRaf = 0;
+  function railSettle() {
+    settleT = 0;
+    if (RAIL_V1 || !motion || introRunning || reduceQ.matches) return;
+    const s = Math.max(0, window.scrollY - stageTop), p = s - L.FADE, start = L.SP + L.MP + L.REST;
+    const goal = (p - start) * L.RATE;
+    if (goal <= 1 || goal >= L.RT - 1) return;                      // only while a card is between stops on the rail
+    const stop = L.STOPS.reduce((a, b) => Math.abs(b - goal) < Math.abs(a - goal) ? b : a);
+    const y0 = window.scrollY, y1 = stageTop + L.FADE + start + stop / L.RATE, d = y1 - y0;
+    if (Math.abs(d) < 2) return;
+    const t0 = performance.now(), dur = clamp(260 + Math.abs(d) * .9, 320, 700);
+    const go = now => {                                               // a soft ease out, never a snap
+      const k = clamp((now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      window.scrollTo(0, y0 + d * e);
+      settleRaf = k < 1 ? requestAnimationFrame(go) : 0;
+    };
+    settleRaf = requestAnimationFrame(go);
+  }
+  const railHands = () => { if (settleRaf) { cancelAnimationFrame(settleRaf); settleRaf = 0; } };
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(ev => addEventListener(ev, railHands, { passive: true }));
 
   function measure() {
     W = pin.clientWidth; H = pin.clientHeight;
@@ -1032,8 +1055,11 @@ html.boot .pbs{visibility:hidden}
     const RT = Math.max(0, Math.round(last.x + last.w / 2 - W / 2));
     // FADE: the type, marks, rules and hero objects fade out on the whole green before anything moves
     const FADE = H * .22, SP = H * .42, MP = H * 1.05, REST = H * .24, HOLD = H * .3;
-    L = { m, gut, col, rail, RT, FADE, SP, MP, REST, HOLD, G: Math.max(14, gut) };
-    stage.style.height = Math.round(H + FADE + SP + MP + REST + RT + HOLD) + 'px';
+    // 11-14 (Ivy): the rail travels slower than the scroll (RATE px across per px down), so a flick never whips it
+    const RATE = RAIL_V1 ? 1 : .5;
+    const STOPS = RAIL.map(k => clamp(Math.round(rail[k].x + rail[k].w / 2 - W / 2), 0, RT));   // each card centred
+    L = { m, gut, col, rail, RT, FADE, SP, MP, REST, HOLD, RATE, STOPS, G: Math.max(14, gut) };
+    stage.style.height = Math.round(H + FADE + SP + MP + REST + RT / RATE + HOLD) + 'px';
     stageTop = stage.getBoundingClientRect().top + window.scrollY;     // read once here, never in the scroll loop
     // fixed sizes for everything inside a block: the plate content is laid out once at its rail size and only scaled
     blocks.forEach(b => {
@@ -1077,7 +1103,17 @@ html.boot .pbs{visibility:hidden}
     const e = ease(clamp(p / L.SP));
     const g = e * L.G, push = e * W * .022;
     const t = clamp((p - L.SP) / L.MP);
-    const railX = clamp(p - L.SP - L.MP - L.REST, 0, L.RT);   // the first stop rests before the rail moves
+    // the first stop rests before the rail moves. 11-14 (Ivy): the rail follows its target with a capped, eased step, so a
+    // fast flick glides instead of jumping; nothing else moves while it travels
+    railGoal = clamp((p - L.SP - L.MP - L.REST) * L.RATE, 0, L.RT);
+    if (RAIL_V1 || railShown == null || t < 1 || Math.abs(railGoal - railShown) < .6) railShown = railGoal;
+    else {
+      // one step per frame however often render() is called, scaled to the frame's real length
+      const now = performance.now(), gap = (now - (railStepAt || now - 16.7)) / 16.7, dt = gap > 3 ? 1 : Math.min(gap, 2);   // a stale clock (after a rest) counts as one frame
+      if (dt > .45) { railStepAt = now; railShown += clamp((railGoal - railShown) * (1 - Math.pow(.78, dt)), -W * RAIL_MAXV * dt, W * RAIL_MAXV * dt); }
+      if (!railRaf) railRaf = requestAnimationFrame(() => { railRaf = 0; render(); });
+    }
+    const railX = railShown;
 
     blocks.forEach(b => {
       const hr = b.hr;
@@ -2204,7 +2240,7 @@ html.boot .pbs{visibility:hidden}
 
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   let raf = 0;
-  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }, { passive: true });
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); if (!settleRaf) { clearTimeout(settleT); settleT = setTimeout(railSettle, 170); } }, { passive: true });
   let rt = 0;
   let lastW = innerWidth;
   addEventListener('resize', () => {
@@ -2316,8 +2352,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/copied.js?v=4"></script>
-<script src="breeze/breeze.js?v=4"></script>
+<script src="breeze/copied.js?v=5"></script>
+<script src="breeze/breeze.js?v=5"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>

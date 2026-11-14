@@ -7,16 +7,43 @@
 //   playback only, the visitor's own setting untouched) and the hero performs it: the strings shiver, the flowers slide
 //   to their notes on their strings, the sun chimes, the word opens for its banjo notes.
 (function () {
-  // the row the hero's chips sit in (Sound, Share, Play): made once
-  window.HeroChips = () => { const hero = document.querySelector('.hero'); let r = hero.querySelector('.hs-chips'); if (!r) { r = document.createElement('div'); r.className = 'hs-chips'; hero.appendChild(r); } return r; };
-  // the Sound chip: one word that says what a tap does: "Sound" while it is off, "Quiet" while it is on (b and c)
+  // 11-14 (Ivy, B): three forms for the sound control, to compare (?snd=1/2/3; B defaults to 1, C keeps its chips = 0)
+  //   1  TOP LINE   a small speaker and the word, in the top line beside the studio line (phones: just under it)
+  //   2  PENCIL     a hand-drawn word with a pencil underline, under the logo
+  //   3  ICON       a quiet speaker at the end of the colour slider
+  //   Share always goes with it, in the same form. Everything takes the hero's type colour (var(--oat)), so it reads
+  //   in every mode
+  const SND = () => { const m = location.search.match(/[?&]snd=([0123])/); return m ? m[1] : (/(^|\s)hs-b(\s|$)/.test(document.documentElement.className) ? '1' : '0'); };
+  const SPK = '<svg class="hs-spk" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M3 9.2h3.8L12 5v14l-5.2-4.2H3z"/><path class="w" d="M15.4 8.6a4.8 4.8 0 0 1 0 6.8M18 6.1a8.4 8.4 0 0 1 0 11.8"/><path class="x" d="M15.6 9.6l4.8 4.8M20.4 9.6l-4.8 4.8"/></svg>';
+  const PEN = '<svg class="hs-pen" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M1.5 6.1C18 4.6 34 7.4 52 5.6S86 4.4 98.6 4.9"/><path class="p2" d="M4 7.2C24 6.2 46 7.9 66 6.6S90 6.1 97 6.5"/></svg>';
+  window.HeroChips = () => {
+    const hero = document.querySelector('.hero'); let r = hero.querySelector('.hs-chips'); if (r) return r;
+    const m = SND(); r = document.createElement('div');
+    r.className = 'hs-chips' + (m !== '0' ? ' hs-ctl hs-ctl-' + m : '');
+    if (m === '1' && matchMedia('(min-width: 760px)').matches) { const dl = hero.querySelector('.dateline'); if (dl) { r.classList.add('inline'); dl.appendChild(r); return r; } }
+    hero.appendChild(r); return r;
+  };
+  // a chip's face in the current form: its word (and the speaker or the pencil line)
+  function face(btn, word, kind) {
+    const m = SND();
+    if (m === '0') { btn.innerHTML = '<span class="hs-label">' + word + '</span>'; return; }
+    if (m === '1') btn.innerHTML = (kind === 'sound' ? SPK : '') + '<span class="hs-label">' + word + '</span>';
+    if (m === '2') btn.innerHTML = '<span class="hs-label">' + word.toLowerCase() + '</span>' + PEN;
+    if (m === '3') btn.innerHTML = kind === 'sound' ? SPK : '<span class="hs-label">' + word + '</span>';
+  }
+  // the Sound control: its word says what a tap does: "Sound" while it is off, "Quiet" while it is on
   window.HeroSoundChip = () => {
     const hero = document.querySelector('.hero'); if (!hero || hero.querySelector('.hs-sound')) return;
     const row = HeroChips(), b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-sound';
-    const sync = () => { const on = HeroSound.answer() === 'yes'; b.textContent = on ? 'Quiet' : 'Sound'; b.setAttribute('aria-label', on ? 'Turn the sound off' : 'Turn the sound on'); b.classList.toggle('on', on); };
+    const sync = () => {
+      const on = HeroSound.answer() === 'yes';
+      face(b, on ? 'Quiet' : 'Sound', 'sound');
+      b.setAttribute('aria-label', on ? 'Turn the sound off' : 'Turn the sound on'); b.title = on ? 'Sound off' : 'Sound on';
+      b.classList.toggle('on', on); HeroUnder.layout();
+    };
     b.addEventListener('click', e => { e.stopPropagation(); HeroSound.set(HeroSound.answer() === 'yes' ? 'no' : 'yes'); sync(); });
-    HeroSound.onChange(sync); sync();
-    row.prepend(b); HeroUnder.layout(); requestAnimationFrame(() => b.classList.add('in'));
+    HeroSound.onChange(sync);
+    row.prepend(b); sync(); requestAnimationFrame(() => b.classList.add('in'));
   };
 
   // ---------- the hero's foot (b and c): the slider under "gives energy back.", exactly as long as that line's ink, and the
@@ -45,13 +72,25 @@
     const hr = hero.getBoundingClientRect();
     const s = hero.querySelector('.pbs:not(.dial)');
     if (s) {
-      const h = s.offsetHeight || 44, top = k.base + k.desc + 8 - hr.top;
+      const h = s.offsetHeight || 44, top = k.base + k.desc + 16 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
       s.style.setProperty('left', (k.l - hr.left).toFixed(1) + 'px', 'important');
       s.style.setProperty('top', top.toFixed(1) + 'px', 'important');
       s.style.setProperty('bottom', 'auto', 'important');
       s.style.setProperty('width', (k.r - k.l).toFixed(1) + 'px', 'important');
     }
     const row = hero.querySelector('.hs-chips');
+    if (row && row.classList.contains('hs-ctl')) {
+      // the forms: 2 under the logo, 3 at the slider's end, 1 phones just under the studio line (desktop: in the line, CSS)
+      if (row.classList.contains('hs-ctl-2')) {
+        const lg = hero.querySelector('.mark .pb-logo'), r = lg && lg.getBoundingClientRect();
+        if (r && r.width) { row.style.left = (r.left - hr.left).toFixed(1) + 'px'; row.style.top = (r.bottom - hr.top + 22).toFixed(1) + 'px'; }
+      }
+      if (row.classList.contains('hs-ctl-3') && s) {
+        const sr = s.getBoundingClientRect();
+        row.style.left = (sr.right - hr.left + 12).toFixed(1) + 'px'; row.style.top = (sr.top - hr.top + sr.height / 2 - row.offsetHeight / 2).toFixed(1) + 'px';
+      }
+      return true;
+    }
     if (row && row.children.length) {
       // side by side, Sound at the far right; stacked (Share above Sound) when they would touch the line's ink
       row.classList.remove('stack');
@@ -110,7 +149,7 @@
   function showShare() {
     const hero = document.querySelector('.hero'); if (!hero) return;
     if (!shareBtn) {
-      shareBtn = document.createElement('button'); shareBtn.type = 'button'; shareBtn.className = 'hs-chip hs-share'; shareBtn.innerHTML = '<span class="hs-label">Share your song</span>';
+      shareBtn = document.createElement('button'); shareBtn.type = 'button'; shareBtn.className = 'hs-chip hs-share'; face(shareBtn, 'Share your song', 'share');
       shareBtn.setAttribute('aria-label', 'Share your song: copies a link that plays it');
       const mark = !window.pbCopied && document.querySelector('.mail .copied');
       if (mark) { const c = mark.cloneNode(true); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id')); shareBtn.appendChild(c); }
@@ -171,7 +210,7 @@
   // after the song, one invitation to answer it: the listener becomes the next sender
   function invite() {
     const hero = document.querySelector('.hero'); if (!hero || hero.querySelector('.hs-reply')) return;
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-reply'; b.textContent = 'Play it back';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-reply'; face(b, 'Play it back', 'play');
     b.addEventListener('click', e => { e.stopPropagation(); HeroSound.set('yes'); b.classList.remove('in'); setTimeout(() => b.remove(), 500); });
     HeroChips().appendChild(b); HeroUnder.layout(); requestAnimationFrame(() => b.classList.add('in'));
     setTimeout(() => { b.classList.remove('in'); setTimeout(() => b.remove(), 600); }, 12000);
@@ -180,7 +219,7 @@
     const hero = document.querySelector('.hero'); if (!hero) return;
     document.title = 'A song played on planetbased.io';
     const og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute('content', 'A song played on planetbased.io');
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-play'; b.textContent = 'Play';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'hs-chip hs-play'; face(b, 'Play', 'play');
     b.setAttribute('aria-label', 'Play the song someone made on this page');
     b.addEventListener('click', e => {
       e.stopPropagation();

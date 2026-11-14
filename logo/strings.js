@@ -8,7 +8,9 @@
 (function () {
   let hero = null, layer = null, els = [], xs = [], objs = [], live = false;
   const OBJ = ['.sun', '.peony', '.dahlia'];
-  function positions() {
+  let snapOpt = true, baseOp = .1;
+  function positions(opts = {}) {
+    if (opts.snap != null) snapOpt = opts.snap;
     hero = document.querySelector('.hero');
     const hr = hero.getBoundingClientRect(), out = [];
     hero.querySelectorAll('.guides span').forEach(sp => {
@@ -21,7 +23,8 @@
     // and one within a gutter's width of a guide moves onto that guide (a nudge sideways), so no two lines ever run
     // side by side
     const near = Math.max(16, (hero.clientWidth || innerWidth) * .012);
-    for (let k = g.length - 1; k >= 0; k--) if (g[k].kind === 'obj') {
+    // (b: snap false, its object strings are invisible, so nothing moves sideways after the entrance)
+    if (snapOpt) for (let k = g.length - 1; k >= 0; k--) if (g[k].kind === 'obj') {
       let on = null, best = near; g.forEach(s => { if (s.kind === 'guide' && Math.abs(s.x - g[k].x) < best) { best = Math.abs(s.x - g[k].x); on = s; } });
       if (on) {
         const o = document.querySelector('.objs ' + g[k].sel), dx = on.x - g[k].x;
@@ -33,6 +36,7 @@
     return g;
   }
   function mount(opacity = .1) {
+    baseOp = opacity;
     if (!hero) positions();
     if (layer) layer.remove();
     layer = document.createElement('div'); layer.className = 'hs-strings'; layer.setAttribute('aria-hidden', 'true');
@@ -77,7 +81,7 @@
       const d = els[i], k = Math.min(1, (now - v.t0) / DUR);
       if (k >= 1 || !d) { if (d) d.style.visibility = ''; v.p.forEach(p => p.remove()); active.delete(i); return; }
       d.style.visibility = 'hidden';
-      const base = parseFloat(d.style.opacity) || .1, e = Math.pow(1 - k, 1.7), A = v.amp * e;
+      const base = d.style.opacity === '' ? .1 : parseFloat(d.style.opacity), e = Math.pow(1 - k, 1.7), A = v.amp * e;
       v.p.forEach((p, q) => {
         p.setAttribute('d', scribblePath(xs[i].x, H, A, i, q, now, k));
         p.setAttribute('stroke-width', q ? (1.1 * e).toFixed(2) : lerp(1.3, 1, k).toFixed(2));
@@ -208,7 +212,7 @@
     [o, sel === '.dahlia' && document.querySelector('.objs .bee-rest')].forEach(el => { if (!el) return; el.style.transition = reduce ? '' : `margin-top ${ms}ms cubic-bezier(.65,0,.35,1)`; el.style.marginTop = mm.toFixed(1) + 'px'; });
   }
   let rz = 0;
-  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!layer) return; const keep = live; positions(); live = keep; const op = parseFloat(els[0] && els[0].style.opacity) || .1; layer.remove(); layer = null; mountLines(op); }, 150); });
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!layer) return; const keep = live; positions(); live = keep; const op = baseOp; layer.remove(); layer = null; mountLines(op); }, 150); });
   function mountLines(opacity) {
     layer = document.createElement('div'); layer.className = 'hs-strings'; layer.setAttribute('aria-hidden', 'true');
     hero.insertBefore(layer, hero.querySelector('.art'));   // under the type and the logo: a string never crosses the mark

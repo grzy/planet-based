@@ -14,7 +14,12 @@
   let from = null, strips = [], bounds = [], assign = new Map(), cx = 0, lineTop = 0, lineBot = 0;
   window.HeroVariant = {
     askOn: 'none',
-    afterEnd() { window.HeroSoundChip(); },
+    afterEnd() {
+      // 11-14 (Ivy): the flowers and the sun slide on strings in B too (invisible, over B's own guides), and the guides can
+      // be strummed; a plucked one shivers in pencil
+      if (window.HeroStrings) { HeroStrings.positions({ snap: false }); HeroStrings.mount(0); }
+      window.HeroSoundChip();
+    },
     plan(K, phone) {
       const reveal = phone ? 2500 : T.grow0 + 5 * T.step + T.dur + 30;
       // the lines gather as the slices go (while the last blocks settle); the barcode opens into the word, holds, and
@@ -41,7 +46,13 @@
       Kit.markOn(false);
       document.documentElement.classList.add('hs-cutting');
     },
-    garden(K, phone) { if (phone) return Kit.phoneBeats(T.g1); const b = Kit.closeBeats(T.close[0], T.close[1]); return { sun: b.sun, peony: b.peony, dahlia: b.dahlia, bee: b.bee, text: T.f1 + 120 }; },
+    garden(K, phone) {
+      if (phone) return Kit.phoneBeats(T.g1);
+      // 11-14 (Ivy): the garden comes out during the word's hold (the word stays out as long as before): the sun as the word
+      // is fully open, then the peony and the dahlia, the bee as the logo settles
+      const o = T.open[1], sun = Math.max(o - 80, T.reveal + 920);
+      return { sun, peony: sun + 260, dahlia: sun + 520, bee: T.close[1], text: T.f1 + 120 };
+    },
     frame(t, K, phone) {
       // 0. the last "-ing" word gives way and planetbased.io is written on in its place
       const ing = window.HeroPreload && HeroPreload.el, ks = seg(t, ...T.swap);
