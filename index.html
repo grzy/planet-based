@@ -21,12 +21,11 @@
   if (m) document.documentElement.classList.add('mark-' + m);
   // the intro will run: hold everything back until it does, so nothing can show before its beat
   try { history.scrollRestoration = 'manual'; } catch (e) {}
-  if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) document.documentElement.classList.add('boot');
-  // phones and ?static get the orange-tree loader: mark it now and fetch its poster first, so the first paint already has it
-  if (/[?&]static(&|$)/.test(location.search) || window.innerWidth < 760 || window.innerHeight < 520) {
-    document.documentElement.classList.add('boot-static');
-    document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
-  }
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!calm) document.documentElement.classList.add('boot');
+  // the orange-tree loader (phones since 11-12, desktop too since 11-13): fetch its poster first, so the first paint already has it
+  if (/[?&]static(&|$)/.test(location.search) || window.innerWidth < 760 || window.innerHeight < 520) document.documentElement.classList.add('boot-static');
+  if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
   // settling can never resize the mark. It only changes when the width does (rotation)
   document.documentElement.style.setProperty('--hero-h', Math.max(560, window.innerHeight) + 'px');
@@ -44,6 +43,9 @@
   if (f !== 'source') document.write('<link id="trialFonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0,0&family=Gloock&family=Young+Serif&family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap">');
 })();
 </script>
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300..700&display=swap" rel="stylesheet">
@@ -57,6 +59,9 @@
   --green-lo:#2c5c3d;
   --sea:#B1D9DC;
   --sea-d:#8BB5AA;
+  /* 11-13 (Ivy): the hero's type and marks in a dark oatmeal on the green (hero only; the cards keep the sea glass) */
+  --oat:#D9CDB7;
+  --oat-rgb:217,205,183;
   --paper:#F1F2E3;
   --shade:#96958D;
   --ink:#0E1112;
@@ -118,13 +123,13 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 
 /* ---------- hero art (same markup in the hero and in every slice) ---------- */
 .hero,.slice{container-type:size}
-.art{position:absolute;inset:0;color:var(--sea)}
+.art{position:absolute;inset:0;color:var(--oat)}
 
 /* register line language: column guides, corner marks, punched holes, a ticked ruler */
 .guides{position:absolute;top:0;bottom:0;left:var(--m);right:var(--m);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);pointer-events:none}
-.guides span{border-left:1px solid rgba(177,217,220,.085);border-right:1px solid rgba(177,217,220,.085)}
-.reg{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(177,217,220,.75);transform:scale(.6)}
-.reg::before,.reg::after{content:"";position:absolute;background:rgba(177,217,220,.75)}
+.guides span{border-left:1px solid rgba(var(--oat-rgb),.085);border-right:1px solid rgba(var(--oat-rgb),.085)}
+.reg{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(var(--oat-rgb),.75);transform:scale(.6)}
+.reg::before,.reg::after{content:"";position:absolute;background:rgba(var(--oat-rgb),.75)}
 .reg::before{left:50%;top:-6px;bottom:-6px;width:1px}
 .reg::after{top:50%;left:-6px;right:-6px;height:1px}
 .reg.tl{left:calc(var(--m) * .5);top:calc(var(--m) * .5)}
@@ -135,9 +140,10 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   box-shadow:inset 0 2px 3px rgba(20,48,30,.45), 0 1px 0 rgba(241,242,227,.18)}
 .punch.p1{top:27cqh}.punch.p2{top:79cqh}
 .mark-word .punch.p1{top:44cqh}
-.ruler{position:absolute;left:var(--m);right:var(--m);bottom:7cqh;height:7px;border-top:1px solid rgba(177,217,220,.6);
-  background-image:repeating-linear-gradient(to right, rgba(177,217,220,.6) 0 1px, transparent 1px 100%);
-  background-size:calc((100% + var(--gut)) / 12) 6px;background-repeat:repeat-x}
+.ruler{position:absolute;left:var(--m);right:var(--m);bottom:7cqh;height:7px;border-top:1px solid rgba(var(--oat-rgb),.6);
+  /* 11-13 (Ivy): a tick at each column's left guide, and one closing tick on the last column's right guide */
+  background-image:linear-gradient(rgba(var(--oat-rgb),.6),rgba(var(--oat-rgb),.6)),repeating-linear-gradient(to right, rgba(var(--oat-rgb),.6) 0 1px, transparent 1px 100%);
+  background-size:1px 6px,calc((100% + var(--gut)) / 12) 6px;background-position:100% 0,0 0;background-repeat:no-repeat,repeat-x}
 
 /* the mark: pb monogram by default, wordmark with ?mark=word */
 .mark{position:absolute;left:var(--m);top:12.5cqh;font-weight:430;line-height:1}
@@ -160,7 +166,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   font-size:min(2.6cqh,1.55cqw);font-weight:380;letter-spacing:-.005em;line-height:1;
   font-variation-settings:"opsz" 24;
 }
-.dateline .rule{flex:1;height:1px;background:var(--sea);margin:0 1.1em;transform-origin:left center;opacity:.8}
+.dateline .rule{flex:1;height:1px;background:var(--oat);margin:0 1.1em;transform-origin:left center;opacity:.8}
 .dateline b{font-weight:600}
 .dateline > span:first-child,.dateline b{text-box:trim-both cap alphabetic}
 .dl-sub{
@@ -176,7 +182,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .thesis .t1{font-weight:620}
 .thesis .t2{font-weight:330}
 .thesis .pen-u{position:relative;display:inline-block}
-.thesis .pen-u::after{content:"";position:absolute;left:-.12em;right:-.24em;top:88%;height:.4em;background:var(--sea);transform:scaleX(-1);
+.thesis .pen-u::after{content:"";position:absolute;left:-.12em;right:-.24em;top:88%;height:.4em;background:var(--oat);transform:scaleX(-1);
   -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat}
 
 /* ---------- hero objects: their own layer, never cloned into the blocks ---------- */
@@ -187,9 +193,10 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .shadow{filter:drop-shadow(0 1.6cqh 2cqh rgba(20,44,28,.34)) drop-shadow(0 .3cqh .4cqh rgba(20,44,28,.26))}
 .sun{position:absolute;left:calc(61cqw - min(38cqh,24cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) / 2);width:min(38cqh,24cqw);height:min(38cqh,24cqw)}
 .sun .jit{position:absolute;inset:0;will-change:transform}
-.sun img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0}
+.sun img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:translate(var(--dx,0%),var(--dy,0%)) scale(var(--k,1))}
 .sun img.on{opacity:1}
-.sun img.tongue{transform:scale(var(--k,1))}
+/* 11-13 (Ivy): every face is scaled and nudged so its round face sits the same size and in the same place as the first sun;
+   a swap changes the expression, never the sun's footprint */
 .peony{width:min(17cqh,11cqw);left:calc(61cqw - min(38cqh,24cqw) * .75 - min(17cqh,11cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) * .55 - min(17cqh,11cqw) / 2);transform:rotate(-14deg)}
 /* 11-12 (Ivy): the whole dahlia stays inside the hero, so it is never cut off as the blocks part */
 .dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:5cqh;transform:rotate(9deg)}
@@ -225,7 +232,8 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .band{position:relative;display:flex;align-items:center;gap:clamp(14px,1.4vw,28px);color:var(--sea);
   font-family:var(--mono);font-size:clamp(10px,.74vw,16px);letter-spacing:.08em;text-transform:uppercase;line-height:1.35}
 .band::before{content:"";position:absolute;left:0;right:0;top:calc(var(--b) * -.001);height:6px;border-top:1px solid rgba(177,217,220,.42);
-  background-image:repeating-linear-gradient(to right, rgba(177,217,220,.42) 0 1px, transparent 1px 100%);background-size:calc(100% / 8) 5px;background-repeat:repeat-x}
+  background-image:linear-gradient(rgba(177,217,220,.42),rgba(177,217,220,.42)),repeating-linear-gradient(to right, rgba(177,217,220,.42) 0 1px, transparent 1px 100%);
+  background-size:1px 5px,calc(100% / 8) 5px;background-position:100% 0,0 0;background-repeat:no-repeat,repeat-x}   /* 11-13 (Ivy): closed with a tick at the right end */
 .band dl{display:flex;flex:1;min-width:0}
 .band dl div{flex:1 1 0;min-width:0;padding:0 clamp(10px,1vw,20px);border-left:1px solid rgba(177,217,220,.28)}
 .band dl div:first-child{border-left:0;padding-left:0}
@@ -251,7 +259,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   clip-path:inset(0 100% 0 0);transition:clip-path .95s cubic-bezier(.6,0,.2,1) .15s}
 .inked .t-under{clip-path:inset(0 0 0 0)}
 /* the Beekeeper bee sits on the paper beside its title: small hops, a wing flicker */
-.cap-bee{position:absolute;left:calc(100% + .06em);bottom:.06em;transform:rotate(-16deg);width:1.15em;aspect-ratio:1;pointer-events:none;will-change:transform}
+.cap-bee{position:absolute;left:calc(100% + .06em);bottom:.06em;transform:rotate(-26deg);width:1.15em;aspect-ratio:1;pointer-events:none;will-change:transform}
 .cap-bee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 2px 2px rgba(40,34,20,.2))}
 .cap-bee img.flick{transform:scaleX(-1)}
 .cap-bee img.on{opacity:1}
@@ -265,8 +273,12 @@ html.boot .hero,html.boot .objs,html.boot .work,html.boot .blk.exit,html.boot .c
 html.boot .loader{display:grid;position:fixed;inset:0;z-index:50;place-items:center;pointer-events:none;background:var(--paper)}
 .loader-in{display:grid;justify-items:center;gap:16px}
 .loader-tree{display:none;width:clamp(120px,37vw,260px);height:auto;background:transparent}
-html.boot-static .loader-tree{display:block}
-html.boot-static .loader-in{margin-bottom:9vh}          /* the tree and its word sit a little above centre */
+html.boot-static .loader-tree,.motion .loader-tree{display:block}
+html.boot-static .loader-in,.motion .loader-in{margin-bottom:9vh}          /* the tree and its word sit a little above centre */
+/* 11-13 (Ivy): desktop gets the tree too, a touch smaller for the wide screen; as the first blocks glide in, the tree and
+   its word lift away the same way they do on the phone */
+.motion .loader-tree{width:clamp(110px,15vh,190px)}
+.motion .pin.sliding .loader-in{animation:treeOut .6s cubic-bezier(.33,0,.4,1) both}
 /* phones and the static layout, 11-13 (Ivy): one gesture from the loader into the hero. The tree and its word lift away
    while the green rises from below as one plain block over the paper (the phone's echo of the desktop blocks), and only
    once it has locked does the arrival begin on it: the logo, the sun, the flowers, the type */
@@ -293,6 +305,12 @@ html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
 .shade{display:none}
 .motion .shade{display:block;position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform,opacity;pointer-events:none;opacity:0;
   box-shadow:0 26px 50px -30px rgba(24,52,34,.42),0 4px 10px -6px rgba(24,52,34,.2)}
+/* 11-13 (Ivy): the cards' resting depth, a layered double shadow after the portfolio's work cards, warmed for paper.
+   Phones carry it on the frame; on desktop it is its own layer that fades in as each card reaches the rail */
+.card-rest{display:none}
+html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0 2px 6px -2px rgba(22,40,28,.26)}
+.motion .card-rest{display:block;position:absolute;inset:0;pointer-events:none;opacity:0;will-change:opacity;
+  box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0 2px 6px -2px rgba(22,40,28,.26)}
 .motion .slice{display:block;position:absolute;left:0;top:0;z-index:0;pointer-events:none;will-change:transform}
 .motion .slice .art{will-change:opacity}
 .motion .hero .art{will-change:opacity}
@@ -396,7 +414,22 @@ html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
 .cbee img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 4px 4px rgba(40,34,20,.22))}
 .cbee img.on{opacity:1}
 .contact a.mail{display:inline-block;font-size:clamp(40px,6vw,140px);font-weight:400;letter-spacing:-.03em;line-height:1;text-decoration:none;font-variation-settings:"opsz" 60;white-space:nowrap;margin-left:-.04em}
-.contact a.mail:hover{color:var(--green)}
+.contact a.mail{position:relative}
+/* 11-13 (Ivy): the address stays ink on hover; a pencil line draws in under it, calmly, and draws back out */
+.contact a.mail::after{content:"";position:absolute;left:.01em;right:.02em;top:99%;height:.15em;background:currentColor;opacity:.82;transform:scaleX(-1);
+  -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;
+  clip-path:inset(0 0 0 100%);transition:clip-path .55s cubic-bezier(.4,0,.2,1)}
+.contact a.mail:hover::after,.contact a.mail:focus-visible::after{clip-path:inset(0 0 0 0);transition:clip-path .85s cubic-bezier(.45,.05,.25,1)}
+/* a click copies the address: a pencil check and the word "copied" write themselves in beside it, then fade */
+.copied{position:absolute;left:calc(100% + .1em);bottom:.04em;width:1.8em;pointer-events:none;opacity:0;visibility:hidden;transform:rotate(-4deg);transform-origin:0 100%}
+.copied svg{display:block;width:100%;height:auto;overflow:visible}
+.copied path{fill:none;stroke:#26262a;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2;stroke-dashoffset:1}
+.copied.on{opacity:1;visibility:visible}
+.copied.on path{stroke-dashoffset:0}
+.copied.on .c-chk{transition:stroke-dashoffset .34s cubic-bezier(.5,0,.4,1)}
+.copied.on .c-word{transition:stroke-dashoffset 1.2s cubic-bezier(.35,.05,.55,.95) .4s}
+.copied.on .c-dot{transition:stroke-dashoffset .1s linear 1.68s}
+.copied.on.out{opacity:0;transition:opacity .7s ease,visibility 0s linear .7s}
 .home{--cw:clamp(250px,21.5vw,500px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * 1.4);position:relative}
 /* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
 .pot-tree{position:absolute;width:calc(var(--cw) * .2);height:auto;left:calc(var(--cw) * .045);bottom:calc(var(--cw) * .037);
@@ -405,17 +438,24 @@ html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
   filter:drop-shadow(0 18px 22px rgba(40,34,20,.24)) drop-shadow(0 3px 4px rgba(40,34,20,.2))}
 .floor{grid-column:1 / -1;position:relative}
 .floor .rule{height:9px;border-top:1px solid var(--ink);
-  background-image:repeating-linear-gradient(to right, var(--ink) 0 1px, transparent 1px 100%);
-  background-size:calc((100% + var(--gut)) / 12) 6px;background-repeat:repeat-x}
+  background-image:linear-gradient(var(--ink),var(--ink)),repeating-linear-gradient(to right, var(--ink) 0 1px, transparent 1px 100%);
+  background-size:1px 6px,calc(100% / 12) 6px;background-position:100% 0,0 0;background-repeat:no-repeat,repeat-x}   /* 11-13 (Ivy): thirteen ticks, evenly spaced, closed at the right end (no guides down here to align to) */
 .newt{position:absolute;left:0;top:0;z-index:5;width:var(--nw);height:auto;will-change:transform;visibility:hidden;pointer-events:none;
   filter:drop-shadow(0 6px 5px rgba(40,34,20,.22))}
-.newt.placed{visibility:visible}
+.newt{opacity:0;transition:opacity .45s ease,visibility 0s linear .45s}
+/* 11-13 (Ivy): fully hidden (not faint) until his card has finished its move and sits on the rail; then a calm fade in */
+.newt.placed.shown{visibility:visible;opacity:1;transition:opacity .6s cubic-bezier(.33,0,.2,1) .08s,visibility 0s}
 .trail{position:absolute;z-index:3;height:auto;pointer-events:none;will-change:transform,opacity;
   filter:drop-shadow(0 3px 3px rgba(40,34,20,.18))}
 .foot-wrap{padding:0 var(--m)}
 .foot{display:flex;justify-content:space-between;gap:20px;padding:24px 0 clamp(30px,4.6vh,52px);   /* 11-13 (Ivy): clear of the ruler's ticks; a short bottom margin */
   font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .foot span:last-child{margin-right:-.09em}
+/* 11-13 (Ivy): the promise in sentence case, set like "Don't be a stranger", never shouted */
+.foot .promise{font-family:var(--serif);font-size:clamp(15px,1.05vw,20px);font-weight:360;letter-spacing:-.005em;text-transform:none;color:var(--ink-2);margin-right:0;font-variation-settings:"opsz" 24}
+.foot{align-items:baseline}
+/* the mono face's tiny circled c reads as a smudge: the serif's, a touch larger, sitting on the same baseline */
+.foot span.copy{margin-right:0;font-family:var(--serif);font-size:1.32em;line-height:0;letter-spacing:0;font-weight:400;vertical-align:-.04em}
 
 a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 
@@ -429,6 +469,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .thesis{font-size:min(6.4cqh,8.6cqw)}
   .guides{grid-template-columns:repeat(4,1fr)}
   .guides span:nth-child(n+5){display:none}
+  .ruler{background-size:1px 6px,calc((100% + var(--gut)) / 4) 6px}   /* 11-13: ticks on the phone's four guides, closed at the end */
   .punch{display:none}
   .sun{left:calc(70cqw - 23cqh / 2);top:calc(45cqh - 23cqh / 2);width:23cqh;height:23cqh}
   .peony{width:12cqh;left:calc(70cqw - 23cqh * .1 - 6cqh);top:calc(45cqh - 23cqh * .86 - 6cqh)}
@@ -452,14 +493,22 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .flip.tiny{display:none}
   .dahlia-top{display:block;top:16px;left:calc(50% - 32vw + 4vw);width:64vw;rotate:-4deg}
   .closing{padding-top:calc(16px + 64vw * 1.047 + 44px)}
-  .studio{margin-bottom:60px}
-  .home{margin-top:40px;margin-bottom:120px}
-  .flip.big{left:calc(var(--m) + 12px);bottom:calc(129px + min(62vw,270px) * (1.032 - .19) - 15vw);width:30vw}
-  .flip.small{left:50vw;bottom:36px;width:16vw}
+  .studio{margin-bottom:40px}
+  .home{margin-top:30px;margin-bottom:116px}
+  /* 11-13 (Ivy): phones read top to bottom: the dahlia, the studio line, the garden, then the address and "Don't be a
+     stranger" just above the footer line. The flowers are anchored to the house: --below (set by the script) is the
+     distance from the house's foot to the bottom of the closing */
+  .contact{display:contents}
+  .studio{grid-column:1 / -1;order:1}
+  .home{order:2}
+  .contact a.mail{grid-column:1 / -1;order:3;justify-self:start}
+  .quiet{grid-column:1 / -1;order:4;margin-bottom:30px}
+  .floor{order:5}
+  .flip.big{left:calc(var(--m) + 12px);bottom:calc(var(--below,129px) + min(62vw,270px) * (1.032 - .19) - 15vw);width:30vw}
+  .flip.small{left:50vw;bottom:calc(var(--below,129px) - 93px);width:16vw}
   .contact a.mail{font-size:clamp(28px,9vw,44px)}
   .foot{flex-direction:column;gap:6px}
-  /* 11-13 (Ivy): the promise in sentence case on phones, set like "Don't be a stranger", never shouted */
-  .foot span:last-child{text-transform:none;letter-spacing:.02em;margin-right:0}
+  .foot .promise{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
@@ -473,7 +522,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       <div class="loader" aria-hidden="true"><div class="loader-in"><img class="loader-tree" id="loaderTree" src="img/orange-tree-poster.webp" width="342" height="616" alt=""><p>planetbased.io</p></div></div>
       <script>
       // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
-      (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot-static') || !document.documentElement.classList.contains('boot')) return;
+      (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot')) return;
         // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
         var a = new Image(); a.onload = function () { t.src = a.src; }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
@@ -495,7 +544,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
         <img class="obj dahlia shadow" src="img/dahlia-2.webp" alt="" width="843" height="883">
         <div class="sun shadow" id="sun">
           <div class="jit" id="sunJit">
-            <img src="img/sun-1.webp" alt="" class="on"><img src="img/sun-2.webp" alt=""><img src="img/sun-3.webp" alt=""><img src="img/sun-4.webp" alt=""><img src="img/sun-5.webp" alt=""><img src="img/sun-6.webp" alt=""><img src="img/sun-10.webp" alt="" class="tongue" style="--k:1.13">
+            <img src="img/sun-1.webp" alt="" class="on" decoding="sync"><img src="img/sun-2.webp" alt="" decoding="sync" style="--k:.9;--dx:2%;--dy:1.5%"><img src="img/sun-3.webp" alt="" decoding="sync" style="--k:.85;--dy:5.7%"><img src="img/sun-4.webp" alt="" decoding="sync" style="--k:.98;--dx:-2.8%;--dy:2.9%"><img src="img/sun-5.webp" alt="" decoding="sync" style="--k:.93;--dy:2%"><img src="img/sun-6.webp" alt="" decoding="sync" style="--k:.92;--dy:3%"><img src="img/sun-10.webp" alt="" class="tongue" decoding="sync" style="--k:1.13">
           </div>
         </div>
         <img class="obj peony shadow" src="img/peony-1.webp" alt="" width="858" height="902">
@@ -593,7 +642,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     </div>
     <div class="contact">
       <p class="studio">An independent studio by Ivy&nbsp;Grzybowski, a product designer who works in the terminal. She makes software and experiences you can <span class="pen"><span class="pw">hear<img class="u-hear" src="img/pencil-hear.webp" alt="" aria-hidden="true" width="176" height="24"></span> &amp;&nbsp;<span class="pw">feel<img class="u-feel" src="img/pencil-feel.webp" alt="" aria-hidden="true" width="130" height="17"></span></span>.</p>
-      <a class="mail" href="mailto:hi@planetbased.io">hi@planetbased.io</a>
+      <a class="mail" href="mailto:hi@planetbased.io" aria-describedby="mailHint">hi@planetbased.io<span class="copied" aria-hidden="true"><svg viewBox="-32 -4 182 70" focusable="false"><defs><filter id="pbPencil" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.4 0 0 0 -.62" result="g"/><feComposite in="d" in2="g" operator="in"/></filter></defs><g filter="url(#pbPencil)"><path class="c-chk" pathLength="1" d="M-28 28 C-25 31 -22 36 -20 40 C-16 29 -10 17 -1 6"/><path class="c-word" pathLength="1" d="M17 22 C14 17 6 18 6 30 C6 41 14 44 21 38 C24 34 26 18 34 18 C41 18 43 29 39 37 C36 44 28 43 28 36 C28 27 35 20 42 21 C46 22 49 21 53 19 C53 31 52 46 50 60 C51 48 52 36 55 27 C58 20 68 16 70 26 C72 37 63 45 55 40 C61 44 69 42 74 35 C77 30 79 24 80 19 C79 28 78 38 81 42 C84 46 89 41 92 37 C96 33 102 29 101 23 C100 16 92 18 91 27 C90 38 97 45 105 42 C112 43 127 37 127 22 C121 15 111 21 111 32 C111 43 122 45 128 35 C131 27 133 11 134 1 C133 13 131 32 132 40 C133 46 139 45 143 40"/><path class="c-dot" pathLength="1" d="M79.5 9.5 C80.5 9 81.5 9.1 82 10"/></g></svg></span></a><span class="sr" id="mailHint">Copies the address</span><span class="sr" role="status" aria-live="polite" id="mailStatus"></span>
       <p class="quiet">Don’t be a <span class="stranger" id="stranger">stranger</span>.</p>
     </div>
     <div class="home" id="home">
@@ -605,7 +654,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     </div>
   </section>
 </main>
-<footer class="foot-wrap"><div class="foot"><span>planetbased.io © 2026</span><span>Technology that gives energy back</span></div></footer>
+<footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back</span></div></footer>
 
 
 <script>
@@ -624,6 +673,10 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     tongue.src = 'img/sun-9.webp'; tongue.style.setProperty('--k', '1.3');
   }
   const tIdx = sunImgs.indexOf(tongue);
+  // 11-13 (Ivy): a face can only ever be shown once it is fully decoded, so a swap is never a blank frame or a face
+  // that pops in late on a cold load. The first face is the one already showing
+  const sunReady = new Set([0]);
+  sunImgs.forEach((im, i) => { const ok = () => sunReady.add(i); (im.decode ? im.decode() : Promise.resolve()).then(ok, () => { if (im.complete && im.naturalWidth) ok(); }); });
   const reduceQ = matchMedia('(prefers-reduced-motion: reduce)');
 
   // seeded random: irregular, but the same every load (filmable)
@@ -656,6 +709,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }));
   // a lift shadow per block, drawn once at full strength and scaled/faded on the compositor
   blocks.forEach(b => { const sh = document.createElement('div'); sh.className = 'shade'; sh.setAttribute('aria-hidden', 'true'); b.el.prepend(sh); b.shade = sh; });
+  // and a resting shadow for each card (not the blocks that leave)
+  blocks.forEach(b => { if (b.spec.exit) return; const r = document.createElement('div'); r.className = 'card-rest'; r.setAttribute('aria-hidden', 'true'); b.el.prepend(r); b.rest = r; });
   // write a style only when it changed: unchanged writes still cost style work every frame
   const put = (el, prop, v) => { const c = el.__pb || (el.__pb = {}); if (c[prop] !== v) { c[prop] = v; el.style[prop] = v; } };
   const heroArt = document.getElementById('art');
@@ -718,7 +773,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       b.shade.style.width = base.w + 'px'; b.shade.style.height = base.h + 'px';
       if (b.pc) { b.pc.style.width = base.w + 'px'; b.pc.style.height = base.h + 'px'; }
       if (b.cap) b.cap.style.width = base.w + 'px';
-      b.el.__pb = {}; b.shade.__pb = {}; b.slice.__pb = {}; b.art.__pb = {}; if (b.pc) b.pc.__pb = {}; if (b.cap) b.cap.__pb = {};
+      b.el.__pb = {}; b.shade.__pb = {}; b.slice.__pb = {}; if (b.rest) b.rest.__pb = {}; b.art.__pb = {}; if (b.pc) b.pc.__pb = {}; if (b.cap) b.cap.__pb = {};
     });
     heroArt.__pb = {}; objs.__pb = {};
   }
@@ -773,7 +828,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       if (b.pc) put(b.pc, 'opacity', c);
       if (b.cap) put(b.cap, 'opacity', c);
       if (b.cap && !b.inked && +c > .85) { b.inked = true; b.cap.classList.add('inked'); }
-      put(b.shade, 'opacity', (e * (1 - ti) * .6 + ti * .35).toFixed(3));
+      const ro = b.rest ? smooth(.55, 1, ti) : 0;
+      if (b.rest) put(b.rest, 'opacity', ro.toFixed(3));
+      put(b.shade, 'opacity', ((e * (1 - ti) * .6 + ti * .35) * (1 - ro)).toFixed(3));
       b.prevT = ti; b.ti = ti;
     });
 
@@ -800,7 +857,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       setBlock(b, b.hr.x, b.hr.y, b.hr.w, b.hr.h, b.hr.x, b.hr.y);
       // hand the art and the shadow back to the intro CSS; keep the plate content hidden
       b.art.style.opacity = ''; b.art.__pb.opacity = undefined; b.shade.style.opacity = ''; b.shade.__pb.opacity = undefined;
-      if (b.pc) put(b.pc, 'opacity', '0'); if (b.cap) put(b.cap, 'opacity', '0');
+      if (b.pc) put(b.pc, 'opacity', '0'); if (b.cap) put(b.cap, 'opacity', '0'); if (b.rest) put(b.rest, 'opacity', '0');
       b.prevT = 0;
     });
     heroArt.style.opacity = ''; heroArt.__pb.opacity = undefined; objs.style.opacity = ''; objs.style.transform = ''; objs.__pb = {};
@@ -843,6 +900,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     setTimeout(() => document.querySelectorAll('.closing img').forEach(im => { im.loading = 'eager'; if (im.decode) im.decode().catch(() => {}); }), 1200);
     pin.classList.remove('sliding');
     pin.classList.add('reveal');
+    const lt = document.getElementById('loaderTree'); if (lt && lt.getAttribute('src')) setTimeout(() => lt.removeAttribute('src'), 800);   // stop the tree's animation once it has gone
     playLogo();
     render();
     startSun(SUN_SETTLE);
@@ -938,15 +996,14 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     if (sunIdx === tIdx) { runLeft = 0; const d = 1600 + wrand() * 1000; fidget(d); return d; }
     if (runLeft <= 0) {
       const r = srand();
-      if (r < .3) { mode = 'hold'; runLeft = 1; }
-      else if (r < .45) { mode = 'rush'; runLeft = 2 + Math.floor(srand() * 3); }
-      else { mode = 'walk'; runLeft = 2 + Math.floor(srand() * 5); }
+      if (r < .62) { mode = 'hold'; runLeft = 1; }
+      else { mode = 'walk'; runLeft = 1 + Math.floor(srand() * 2); }
     }
     runLeft--;
-    // 11-13 (Ivy): the flips were glitchy-fast; every pace slowed so each face reads
-    if (mode === 'hold') { const d = 1100 + srand() * 1500; if (d > 1000) fidget(d); return d; }
-    if (mode === 'rush') return 170 + srand() * 90;
-    return 300 + srand() * 260;
+    // 11-13 (Ivy, round 2): the quick flips read as a glitch. No more rushes: the sun mostly holds a face for seconds,
+    // and when it does walk, it is one or two unhurried steps
+    if (mode === 'hold') { const d = 2600 + srand() * 2600; fidget(d); return d; }
+    return 900 + srand() * 500;
   }
   function sunFrame() {
     let n = sunIdx;
@@ -955,7 +1012,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     if (calmSeen.size < sunImgs.length - 1 || !introDone || performance.now() - (window.__heroSettled || 1e12) < 4000) { if (winkIn < 1) winkIn = 1; }
     if (tIdx >= 0 && --winkIn <= 0 && calmSeen.size >= sunImgs.length - 1 && introDone && performance.now() - (window.__heroSettled || 1e12) >= 4000) { n = tIdx; winkIn = untilWink(); calmSeen.clear(); }
     else while (n === sunIdx || n === tIdx) n = Math.floor(srand() * sunImgs.length);
-    sunImgs[sunIdx].classList.remove('on'); sunImgs[n].classList.add('on'); sunIdx = n;
+    if (!sunReady.has(n)) { sunTimer = setTimeout(sunFrame, 900); return; }   // not decoded yet: keep the face we have
+    // one face at a time, always: the old one goes in the same frame the new one comes
+    sunImgs.forEach((im, i) => { if (i !== n && im.classList.contains('on')) im.classList.remove('on'); }); sunImgs[n].classList.add('on'); sunIdx = n;
     if (n !== tIdx && introDone && window.__heroSettled && performance.now() - window.__heroSettled >= 4000) calmSeen.add(n);
     const rot = (srand() - .5) * 2.6, sc = 1 + (srand() - .5) * .028, jx = (srand() - .5) * 3, jy = (srand() - .5) * 3;
     sunJit.style.transform = `translate(${jx}px,${jy}px) rotate(${rot}deg) scale(${sc})`;
@@ -1010,6 +1069,23 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   }
   mail.addEventListener('pointerenter', onAddress);
   mail.addEventListener('focus', onAddress);
+  // 11-13 (Ivy): a click copies the address instead of opening a mail app. The mailto stays as the fallback: modified
+  // clicks, no clipboard, or a refused copy all go to it
+  const ADDRESS = 'hi@planetbased.io', copiedMark = mail.querySelector('.copied'), mailStatus = document.getElementById('mailStatus');
+  let copyTimers = [];
+  function showCopied() {
+    copyTimers.forEach(clearTimeout); copyTimers = [];
+    copiedMark.classList.remove('on', 'out'); void copiedMark.offsetWidth; copiedMark.classList.add('on');
+    mailStatus.textContent = ''; copyTimers.push(setTimeout(() => { mailStatus.textContent = 'Email address copied'; }, 40));
+    copyTimers.push(setTimeout(() => copiedMark.classList.add('out'), 3800));
+    copyTimers.push(setTimeout(() => { copiedMark.classList.remove('on', 'out'); mailStatus.textContent = ''; }, 4600));
+  }
+  mail.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    e.preventDefault();
+    navigator.clipboard.writeText(ADDRESS).then(showCopied, () => { location.href = mail.href; });
+  });
 
   // ---------- a paper bee drifts through now and then: in from the right, a visit to the peony, out over the top. Seeded ----------
   const beeFly = document.getElementById('beeFly');
@@ -1106,8 +1182,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     beeTimer = setTimeout(flyBee, ms || 20000 + brand() * 20000);
   }
 
-  // on arrival the sun fades in at 1.6 s for .9 s; the first swap waits until it has sat still a beat after that
-  const SUN_SETTLE = 3400;
+  // on arrival the sun fades in at 1.6 s for .9 s (whole by 2.5 s); the first swap waits a long, still beat after that
+  const SUN_SETTLE = 7000;
   function startSun(first) {
     stopSun();
     if (reduceQ.matches) { // one calm sun, never the wink
@@ -1115,8 +1191,10 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       return;
     }
     if (document.hidden) return;
-    if (first) { mode = 'walk'; runLeft = 2; }          // a calm walk first, never a rush
-    sunTimer = setTimeout(sunFrame, first || 420);
+    if (first) { mode = 'hold'; runLeft = 0; sunImgs.forEach((im, i) => im.classList.toggle('on', i === 0)); sunIdx = 0; sunJit.style.transform = ''; }   // arrive on the first face, still
+    // 11-13 (Ivy, round 2): every start is a long, still hold. The old 420 ms restart (after a tab switch, or a site opened
+    // in a background tab and then shown) is what flicked the sun through several faces just as it came in
+    sunTimer = setTimeout(sunFrame, first || 3600 + srand() * 1800);
     // the first flight is the last beat of the arrival, 3.2 s after the blocks lock, so it is seen before anyone scrolls
     if (!beeTimer && !beeFlying) { scheduleBee(beeFirst ? 3200 + brand() * 200 : 7000 + brand() * 4000); beeFirst = false; }
   }
@@ -1124,7 +1202,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     clearTimeout(sunTimer); sunTimer = null; fTimers.forEach(clearTimeout); fTimers = [];
     clearTimeout(beeTimer); beeTimer = null; beeFlying = false; beeFly.classList.remove('flying');
   }
-  document.addEventListener('visibilitychange', () => document.hidden ? stopSun() : (introRunning || startSun()));
+  // 11-13: only once the arrival has run; a tab shown during the loader must not start the sun early behind it
+  document.addEventListener('visibilitychange', () => document.hidden ? stopSun() : (introRunning || !introDone || startSun()));
 
   // ---------- shared bits for the critters ----------
   const closing = document.querySelector('.closing');
@@ -1155,8 +1234,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     const r = mulberry32(606);
     const capEl = bee.closest('.cap');
     let x = 0, face = 1, t = null, on = false;
-    // 11-13 (Ivy): closer to the word, and slanted nose-up
-    const draw = (y) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y || 0).toFixed(1)}px) rotate(${-16 * face}deg) scaleX(${face})`; };
+    // 11-13 (Ivy): closer to the word, and slanted nose-up (round 2: a little more)
+    const draw = (y) => { bee.style.transform = `translate(${x.toFixed(1)}px,${(y || 0).toFixed(1)}px) rotate(${-26 * face}deg) scaleX(${face})`; };
     function tick() {
       t = null;
       if (!on || reduceQ.matches || (motion && +(capEl.style.opacity || 1) < .5)) { t = setTimeout(tick, 900); return; }
@@ -1226,6 +1305,17 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       tiny.style.top = y + 'px';
     };
     put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
+  })();
+  // phones: the garden flowers hang off the house, wherever the house lands now the address sits below it
+  (function anchorGarden() {
+    const home = document.getElementById('home');
+    const put = () => {
+      if (innerWidth >= 760) { closing.style.removeProperty('--below'); return; }
+      const v = closing.getBoundingClientRect().bottom - home.getBoundingClientRect().bottom;
+      closing.style.setProperty('--below', v.toFixed(1) + 'px');
+    };
+    put(); addEventListener('resize', put, { passive: true }); document.fonts && document.fonts.ready.then(put);
+    cottage.addEventListener('load', put);
   })();
 
   // the bee on the big flower: crawls and hops in small steps around the centre (the nectar), turns, flickers its wings
@@ -1362,7 +1452,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   if (new URLSearchParams(location.search).get('newt') === '2') { newt.src = 'img/newt-2.webp'; newt.width = 851; newt.height = 322; }
   else { newt.src = 'img/newt-1.webp'; newt.width = 849; newt.height = 454; }
   bioB.el.appendChild(newt);
-  const NEWT_IN = .96, newtFade = () => smooth(NEWT_IN, 1, bioB.ti || 0).toFixed(3);
+  // 11-13 (Ivy): never on the blocks while they part or travel; he appears only once his card has fully arrived
+  const newtShow = () => NS.surf !== 'bio' || !motion || (bioB.ti || 0) >= .999;
+  const NOSE_UP = 22;                                  // his pose when you first meet him: tilted up, not vertical
   const TILT = 16, SIN = Math.sin(TILT * Math.PI / 180);
   // 11-13 (Ivy): on the Bioindicators card it climbs: up and down the card, not just along it
   const tiltNow = () => NS.surf === 'bio' ? 58 : TILT;
@@ -1376,14 +1468,17 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     const pw = motion ? bioB.base.w : host.offsetWidth, ph = motion ? bioB.base.h : host.offsetHeight;
     const capY = motion ? bioB.base.h : 0;
     const inCap = el => { const q = offIn(el, bioB.cap); const c = motion ? { l: 0, t: capY } : { l: bioB.cap.offsetLeft, t: bioB.cap.offsetTop }; return { l: q.l + c.l, t: q.t + c.t, r: q.r + c.l, b: q.b + c.t }; };
-    const avoid = [
-      offIn(host.querySelector('.media.face span'), host),
-      offIn(host.querySelector('.band'), host),
-      inCap(bioB.cap.querySelector('.tt')), inCap(bioB.cap.querySelector('p'))
-    ].map(q => grow(q, pad));
+    const ink = titleInk(host);
+    const rest = [offIn(host.querySelector('.band'), host), inCap(bioB.cap.querySelector('.tt')), inCap(bioB.cap.querySelector('p'))].map(q => grow(q, pad));
+    // 11-13 (Ivy): he may rest on top of the "Bioindicators" title. While he is up there, only the lower body of the
+    // letters is out of bounds, so he can step on and off the word, never through it
+    const avoid = NS.perched && ink ? [...rest, { l: ink.l, t: Math.max(lerp(ink.t, ink.b, .5), ink.t + h * .32), r: ink.r, b: ink.b }] : [...rest, grow(ink || offIn(host.querySelector('.media.face span'), host), pad)];
     const bottom = motion ? H - L.rail.bio.y : (pin.getBoundingClientRect().bottom - host.getBoundingClientRect().top);
-    // room beside the plate on the paper (on the left, where the gap to the next plate is), so it can walk round the band
-    return { host, w, h, avoid, R: { l: -w * 1.7, r: pw + w * .3 - w, t: 4, b: bottom - h * .7 }, edge: bottom - h * .3 };
+    // room beside the plate on the paper (on the left, where the gap to the next plate is), so it can walk round the band.
+    // Fenced to the screen: on a phone there is no gap, so he never walks off the edge
+    const hr = host.getBoundingClientRect();
+    const roomL = motion ? L.rail.bio.x - L.RT : hr.left, roomR = motion ? W - (L.rail.bio.x - L.RT + pw) : innerWidth - hr.right;
+    return { host, w, h, avoid, ink, rest, R: { l: Math.max(-w * 1.7, -roomL + w * .14), r: Math.min(pw + w * .3, pw + roomR - w * .14) - w, t: 4, b: bottom - h * .7 }, edge: bottom - h * .3 };
   }
   function surfClose() {
     const w = newt.offsetWidth, h = newt.offsetHeight, pad = Math.max(12, w * .12);
@@ -1395,6 +1490,41 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     return { host: closing, w, h, avoid, R: { l: m, r: f.r - w, t: h * .4, b: f.t - h - w * SIN * .5 }, edge: -h * .3 };
   }
   const surf = () => NS.surf === 'bio' ? surfBio() : surfClose();
+  // the title's visible letters (cap tops to baseline), not its line box
+  function titleInk(host) {
+    const sp = host.querySelector('.media.face span'); if (!sp) return null;
+    const q = offIn(sp, host), cs = getComputedStyle(sp), fs = parseFloat(cs.fontSize);
+    const ctx = titleInk.c || (titleInk.c = document.createElement('canvas').getContext('2d'));
+    ctx.font = `${cs.fontWeight} ${fs}px ${cs.fontFamily}`;
+    const m = ctx.measureText(sp.textContent);
+    if (!m.fontBoundingBoxAscent) return q;
+    const top = q.t + (q.b - q.t - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2, base = top + m.fontBoundingBoxAscent;
+    return { l: q.l, r: q.r, t: base - m.actualBoundingBoxAscent, b: base + m.actualBoundingBoxDescent };
+  }
+  // a way up onto the title: a spot standing on top of it, level, feet on the letters. From below or beside the word he
+  // walks round its end first, so he never crosses through the letters
+  function perchRoute(n, from, near) {
+    const k = n.ink; if (!k) return null;
+    const was = NS.perched; NS.perched = true; const m = surfBio(); NS.perched = was;
+    const y = k.t - n.h * .66, pad = Math.max(10, n.w * .1);
+    // the last steps onto the word are checked in the level pose he lands in (his steep climbing tilt would read as
+    // touching the letters before he is on them)
+    const level = (s, a, b) => { const d = Math.hypot(b.x - a.x, b.y - a.y), K = Math.max(1, Math.ceil(d / 8)); for (let i = 0; i <= K; i++) if (!clearAt(s, lerp(a.x, b.x, i / K), lerp(a.y, b.y, i / K), 0, true)) return false; return true; };   // his feet sit at two thirds of the picture; the tail drapes over the letters
+    for (let i = 0; i < 60; i++) {
+      const x = near != null ? clamp(near + (nrand() < .5 ? -1 : 1) * n.w * (.5 + nrand() * .7), k.l - n.w * .25, k.r - n.w * .75) : lerp(k.l - n.w * .25, k.r - n.w * .75, nrand());
+      const to = { x, y, perch: true };
+      if (!clearAt(m, x, y, 0)) continue;
+      if (level(m, from, to)) return [to];
+      // round the nearer end of the word: a waypoint beside it, level with the perch
+      // (kept inside his fence: on a narrow phone card the waypoint may sit right at the word's end)
+      const sides = (Math.abs(from.x - k.l) < Math.abs(from.x - k.r) ? [k.l - n.w - pad, k.r + pad] : [k.r + pad, k.l - n.w - pad]).map(v => clamp(v, n.R.l, n.R.r));
+      for (const sx of sides) {
+        const wp = { x: sx, y: y - n.h * .05 };
+        if (clearAt(m, wp.x, wp.y, 0) && lineClear(m, from, wp, true) && level(m, wp, to)) return [wp, to];
+      }
+    }
+    return null;
+  }
   function clearAt(n, x, y, rot, loose) {
     const lift = n.w * Math.sin(Math.abs(rot) * Math.PI / 180) * .5;
     const l = x + n.w * .04, r = x + n.w * .96, t = y + n.h * .06 - lift, b = y + n.h * .94 + lift;
@@ -1455,20 +1585,22 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   function headingRot(dx, dy) { const T = tiltNow(); return clamp(Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI, -T, T) * (dx > 0 ? 1 : -1); }
   function drawNewt(wob) {
     newt.style.transform = `translate(${NS.x.toFixed(1)}px,${NS.y.toFixed(1)}px) rotate(${(NS.rot + (wob || 0)).toFixed(2)}deg) scaleX(${NS.dir > 0 ? -1 : 1})`;
-    // 11-13 (Ivy): never on the hero while the blocks part. He shows only once his card has all but reached the rail,
-    // which is off to the right by then, so he is simply there when the rail brings the card in
-    newt.style.opacity = NS.surf === 'bio' && motion ? newtFade() : '1';
+    showNewt();
   }
+  function showNewt() { const v = newtShow(); if (newt.classList.contains('shown') !== v) newt.classList.toggle('shown', v); }
   function placeNewt() {
     if (!newt.offsetWidth) return;
     if (NS.surf === 'close' && motion && !adjacent()) { /* leave it where it is in the closing */ }
     const n = surf();
     if (!nPlaced || !clearAt(n, NS.x, NS.y, 0)) {
       for (let i = 0; i < 400; i++) {
-        const x = lerp(n.R.l, n.R.r, nrand()), y = lerp(n.R.t, n.R.b, nrand());
-        if (clearAt(n, x, y, 16)) { NS.x = x; NS.y = y; break; }
+        // on his card he is first found just left of the title, nose up, as if about to climb onto it
+        const near = NS.surf === 'bio' && n.ink && i < 150;
+        const x = near ? lerp(n.ink.l - n.w * 1.7, n.ink.l - n.w * 1.15, nrand()) : lerp(n.R.l, n.R.r, nrand());
+        const y = near ? lerp(n.ink.t - n.h * .2, n.ink.b, nrand()) : lerp(n.R.t, n.R.b, nrand());
+        if (clearAt(n, x, y, NOSE_UP)) { NS.x = x; NS.y = y; if (near) NS.dir = 1; break; }   // facing the word
       }
-      NS.rot = 0; NS.target = null; NS.queue = []; nPlaced = true;
+      NS.rot = NOSE_UP * (NS.dir > 0 ? -1 : 1); NS.target = null; NS.queue = []; NS.perched = false; nPlaced = true;   // first seen nose-up
     }
     drawNewt(0); newt.classList.add('placed');
   }
@@ -1477,7 +1609,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     if (reduceQ.matches) return;
     const here = NS.surf === 'bio' ? bioB.el : closing;
     if (!vis.get(here) && !(NS.surf === 'bio' && !io)) return;
-    if (NS.surf === 'bio' && motion && (bioB.ti || 0) < NEWT_IN) { drawNewt(0); nTimer = setTimeout(newtStep, 500); return; }
+    if (!newtShow()) { drawNewt(0); nTimer = setTimeout(newtStep, 500); return; }
+    // first sight of him: hold the nose-up pose a moment before he moves
+    if (!NS.met) { NS.met = true; nTimer = setTimeout(newtStep, 1400 + nrand() * 900); return; }
     const n = surf();
     let wait;
     if (!NS.target) {
@@ -1495,6 +1629,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
             NS.wantCross = !!NS.target && nrand() < .9;
           }
         }
+        // on his card he likes the title: often (always, the first time) he climbs up and rests on the word
+        if (!NS.target && NS.surf === 'bio' && !NS.perched && nrand() < (NS.visited ? .3 : 1)) { const r = perchRoute(n, NS); if (r) { NS.target = r[0]; NS.queue = r.slice(1); NS.visited = true; } }
         if (!NS.target) NS.target = wanderTo(n, NS);
       }
       if (NS.target === 'cross') { NS.target = null; if (adjacent()) crossOver(); else NS.queue = []; nTimer = setTimeout(newtStep, 160); return; }
@@ -1508,9 +1644,15 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
     }
     const dx = NS.target.x - NS.x, dy = NS.target.y - NS.y, d = Math.hypot(dx, dy), stride = n.w * (.05 + nrand() * .09);
     if (d <= stride) {
-      NS.x = NS.target.x; NS.y = NS.target.y; NS.target = null;
+      const was = NS.target;
+      NS.x = was.x; NS.y = was.y; NS.target = null;
+      NS.perched = !!was.perch;
       const roll = nrand();
-      if (roll < .14 && !NS.queue.length) {                           // a look back the other way, then on
+      if (was.perch) {                                                // on the word: level, a long rest, a peek either way, maybe a stroll along it
+        NS.rot = 0; wait = 2400 + nrand() * 2800;
+        if (roll < .45) { NS.dir = -NS.dir; }
+        if (nrand() < .55 && !NS.queue.length) { const q = perchRoute(n, NS, NS.x); if (q && q.length === 1) NS.queue.push(q[0]); }
+      } else if (roll < .14 && !NS.queue.length) {                    // a look back the other way, then on
         NS.dir = -NS.dir; drawNewt(0); wait = 700 + nrand() * 900;
       } else wait = NS.queue.length ? 140 + nrand() * 160 : 500 + nrand() * 1400;
       drawNewt(0);
@@ -1525,7 +1667,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   watch(bioB.el, v => { if (v) wake(); });
   watch(closing, v => { if (v) wake(); });
   newt.addEventListener('load', placeNewt);
-  window.__pbNewt = () => { if (NS.surf === 'bio') { const o = motion ? newtFade() : '1'; if (newt.style.opacity !== o) newt.style.opacity = o; } };
+  window.__pbNewt = showNewt;
   if (/[?&]debug(&|$)/.test(location.search)) window.__bee = () => { clearTimeout(beeTimer); flyBee(); };
   if (/[?&]debug(&|$)/.test(location.search)) window.__newt = { surfBio, surfClose, NS, clearAt, wanderTo, doorFrom, adjacent, vis, closing, bio: bioB.el };
 
@@ -1662,7 +1804,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   // ---------- modes ----------
   function clearInline() {
     blocks.forEach(b => {
-      [b.el, b.shade, b.art, b.pc, b.cap].forEach(el => { if (el) { el.style.cssText = ''; el.__pb = {}; } });
+      [b.el, b.shade, b.rest, b.art, b.pc, b.cap].forEach(el => { if (el) { el.style.cssText = ''; el.__pb = {}; } });
       b.slice.style.transform = '';
     });
     heroArt.style.opacity = ''; heroArt.__pb = {};
@@ -1713,8 +1855,9 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
       document.fonts ? document.fonts.ready : Promise.resolve(),
       ...sunImgs.map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve())
     ]);
-    const beat = new Promise(r => setTimeout(r, Math.max(0, 1600 - performance.now())));  // the loader word holds, fully visible, for at least 1.6 s
-    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 2600))])]).then(() => {
+    // 11-13 (Ivy): the tree and its word hold for at least 1.7 s, and the blocks always begin by about 2.2 s
+    const beat = new Promise(r => setTimeout(r, Math.max(0, 1700 - performance.now())));
+    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, Math.max(0, 2050 - performance.now())))])]).then(() => {
       if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; window.__heroSettled = performance.now(); render(); startSun(); return; }
       runIntro(false);
     });
