@@ -235,7 +235,7 @@ html[data-page="dark"] .hs-cred{background:#232724;color:#ECEBDF}
 .wk .sun,.wk .sun .jit,.wk .sun img{will-change:auto}
 .wk .sun.hs-settled{animation:none!important;opacity:1;scale:1}
 /* phones: the (smaller) logo sits a little lower under the top line */
-@media (max-width:759px){.hs-b .mark,.hs-c .mark{margin-top:20px}}
+@media (max-width:759px){.hs-b .mark,.hs-c .mark{margin-top:14px}}
 /* 11-14 (Ivy): nothing highlights when it is tapped, clicked or dragged: no tap flash, no text selection on the art,
    no image drag ghost, no focus ring for a mouse or a finger (keyboard users keep a clear ring, :focus-visible) */
 html{-webkit-tap-highlight-color:transparent}
