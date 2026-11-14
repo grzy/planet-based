@@ -10,12 +10,16 @@
   // t0 (s), dur (s), win (share of each stroke shown at once), lag (s between strokes), dx/dy (drift over its life, px),
   // op, mw (mask width in study units), org ([x, y] px pivot, default the centre), alpha (darken the graphite, for small
   // sizes). Returns its element and animations
+  const SAFE = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent) || /iP(hone|ad|od)/.test(navigator.userAgent);
   window.pbScribble = function (host, key, o) {
     const st = P[key], id = 'pbs' + (++uid), w = st.w * o.k, h = st.h * o.k, anims = [];
     const svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('width', w.toFixed(1)); svg.setAttribute('height', h.toFixed(1));
     svg.setAttribute('viewBox', `0 0 ${st.w} ${st.h}`); svg.setAttribute('focusable', 'false'); svg.setAttribute('aria-hidden', 'true');
-    svg.innerHTML = `<defs><filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2"/></filter>`
+    // 11-14: iOS Safari painted a hot pink stripe where an SVG mask meets a blur filter, so WebKit (every iPhone browser)
+    // gets the plain pencil image that fades and drifts; the draw-on mask stays for Chromium and Firefox
+    if (SAFE) svg.innerHTML = `<image href="${SRC + st.src}" width="${st.w}" height="${st.h}" preserveAspectRatio="none"${o.alpha ? ` opacity="${Math.min(1, o.alpha)}"` : ''}/>`;
+    else svg.innerHTML = `<defs><filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2"/></filter>`
       + `<mask id="${id}" maskUnits="userSpaceOnUse" x="-40" y="-40" width="${st.w + 80}" height="${st.h + 80}"><g filter="url(#${id}f)" fill="none" stroke="#fff" stroke-width="${o.mw || 15}" stroke-linecap="round" stroke-linejoin="round">`
       + st.d.map(d => `<path pathLength="1" stroke-dasharray="${o.win} 3" stroke-dashoffset="${o.win}" d="${d}"/>`).join('')
       + `</g></mask>${o.alpha ? `<filter id="${id}a"><feComponentTransfer><feFuncA type="linear" slope="${o.alpha}"/></feComponentTransfer></filter>` : ''}</defs>`
@@ -26,7 +30,7 @@
     svg.style.transformOrigin = o.org ? `${o.org[0].toFixed(1)}px ${o.org[1].toFixed(1)}px` : `${(w / 2).toFixed(1)}px ${(h / 2).toFixed(1)}px`;
     svg.style.transform = at(0, 0);
     host.appendChild(svg);
-    const paths = svg.querySelectorAll('mask path'), life = o.dur + o.lag * (paths.length - 1);
+    const paths = SAFE ? [] : svg.querySelectorAll('mask path'), life = o.dur + o.lag * (st.d.length - 1);
     const ease = o.ease || 'cubic-bezier(.42,.06,.36,1)';
     paths.forEach((p, j) => anims.push(p.animate([{ strokeDashoffset: String(o.win) }, { strokeDashoffset: '-1' }],
       { duration: o.dur * 1000, delay: (o.t0 + j * o.lag) * 1000, easing: ease, fill: 'both' })));
