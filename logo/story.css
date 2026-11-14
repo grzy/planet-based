@@ -209,5 +209,18 @@ html[data-page="dark"] .loader .hs-ing-2{color:var(--hs-ink)}
 /* the loader's cut lines and its planetbased.io: soft graphite, lighter than the words (11-14, Ivy: not harsh) */
 .hs-lines i{background:color-mix(in srgb,var(--oat) var(--ink,0%),color-mix(in srgb,var(--hs-ink) 28%,transparent))}
 .loader .hs-word{opacity:.4}
-.hs-credit{font-family:var(--serif);font-size:12px;opacity:.6;margin-left:1.2em}
-.hs-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+/* the footer's sound item: "Sound: on · credits"; credits opens a quiet panel above it */
+.hs-foot-wrap{position:relative;display:inline-flex;align-items:baseline;gap:.45em;white-space:nowrap}
+.hs-foot-dot{font-family:var(--serif);font-size:13px;opacity:.55}
+.hs-cred{position:absolute;right:0;bottom:calc(100% + 12px);z-index:20;width:min(360px,calc(100vw - 32px));white-space:normal;
+  background:var(--paper,#F1F2E3);color:#26292a;padding:14px 16px 12px;border-radius:var(--radius-sm,6px);
+  box-shadow:0 10px 26px -12px rgba(14,17,18,.45),0 1px 3px rgba(14,17,18,.18);font-family:var(--serif);font-size:13px;line-height:1.45;text-align:left}
+.hs-cred[hidden]{display:none}
+.hs-cred-h{margin:0 0 6px;font-style:italic;opacity:.7}
+.hs-cred ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hs-cred .w{display:block;font-size:11.5px;opacity:.6}
+.hs-cred a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+.hs-cred a:focus-visible{outline:1.5px solid currentColor;outline-offset:2px;border-radius:2px}
+html[data-page="dark"] .hs-cred{background:#232724;color:#ECEBDF}
+@media (max-width:759px){.hs-cred{right:auto;left:0}}
+.hs-cred,.hs-cred *{text-transform:none;letter-spacing:0;font-family:var(--serif)}

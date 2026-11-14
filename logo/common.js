@@ -29,7 +29,7 @@
     },
     // phones (11-14, Ivy: the rest came in too slowly after the logo): the garden right after the logo lands, each on
     // its own beat, while the mark plays its open and close
-    phoneBeats(g) { return { sun: g + 520, peony: g + 820, dahlia: g + 1060, bee: g + 1420, text: g + 900 }; },
+    phoneBeats(g) { return { sun: g + 520, peony: g + 820, dahlia: g + 1060, bee: g + 1420, text: g + 300 }; },   // the type ~0.6 s sooner (11-14)
     // show or hide the hero mark (it stays hidden while the lines are travelling to it)
     markOn(on) { const m = document.querySelector('.hero .mark'); if (m) m.classList.toggle('hs-on', on); }
   };

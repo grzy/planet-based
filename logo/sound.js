@@ -5,12 +5,12 @@
 // THE VOICES (HeroSound.play(voice, step, opts); step = a degree of the shared tuning, so every voice agrees):
 //   g  STRINGS     the guide lines: a recorded nylon-string Spanish guitar (falls back to a plucked-string synth until the
 //                  samples load); a sweep rolls a chord of the Andalusian cadence, a lone pluck may bloom into a tremolo
-//   p  PEONY       a celesta / music-box tine: a bright sine with a glassy inharmonic partial, quick bloom, long ring
-//   d  DAHLIA      a felt-piano / soft marimba: a warm mallet, the felt taking the edge off the attack
-//   s  SUN         a soft, short, warm chime per step as the sun moves on its string (no sustain)
-//   b  WORD        the logo's bars and the letters of planetbased.io: a vibraphone (soft mallet, long ring, slow tremolo)
-//   f  FLOURISH    the logo opening (rising) or folding (falling): four vibraphone notes up or down the tuning
-//   t  BRASS       a rare, soft flugelhorn-ish call after a big strum (a filtered saw, a slow bloom)
+//   p  PEONY       a requinto (a small high guitar, the nylon samples an octave up): a delicate p-a-m-i tremolo
+//   d  DAHLIA      cello pizzicato, low and warm, each note rolled up to its octave (VSCO-2 CE, CC0)
+//   s  SUN         castanets: a tap is a short roll, a drag clicks per step, the tongue face a little ta-ka-ta
+//   b  WORD        the logo's bars and the letters of planetbased.io: natural guitar harmonics, one per letter
+//   f  FLOURISH    the logo opening (rising) or folding (falling): four harmonics up or down the tuning
+//   t  PALMAS      very soft hand claps, rarely, after a big full sweep
 //   z  BEE         a bee's buzz, harmonized (two quiet, wavering voices a fifth apart)
 // No sustained layer: every note is one strike with its own natural release (the old drone and heartbeat are gone).
 // Everything stops at once on blur, a hidden page, or when the hero leaves the screen.
@@ -51,7 +51,7 @@
         // iPhone Safari: a silent buffer started inside the tap unlocks output
         const sil = ctx.createBufferSource(); sil.buffer = ctx.createBuffer(1, 1, sr); sil.connect(ctx.destination); sil.start(0);
         // warm the string buffers in small idle slices, so the first touch never waits on them
-        build.init(); decodeGuitar();
+        build.init(); decodeGuitar(); decodeVoices();
         let k = 0; const warmUp = () => { if (k < TUNING.length) { pluckBuffer(hz(k), .4985); pluckBuffer(hz(k), .4975); k++; if (window.requestIdleCallback) requestIdleCallback(warmUp, { timeout: 200 }); else setTimeout(warmUp, 30); } };
         warmUp();
       }
@@ -125,8 +125,27 @@
   const GDIR = (() => { try { const src = document.currentScript && document.currentScript.src; return src ? src.replace(/[^/]*$/, '') + 'guitar/' : 'guitar/'; } catch (e) { return 'guitar/'; } })();
   const gRaw = new Map(), gBuf = new Map();   // midi -> ArrayBuffer, midi -> AudioBuffer
   let gFetching = false;
+  // the rest of the Spanish band (shared/voices/, logo/voices/ at the root), loaded with the guitar:
+  //   cast-*  castanets (the sun)            hrm-<m>  natural guitar harmonics (the word and the logo)
+  //   pizz-<m> cello pizzicato (the dahlia)   clap     one hand clap, layered into soft palmas
+  const VDIR = GDIR.replace(/guitar\/$/, 'voices/');
+  const HRM = [52, 57, 62, 64, 67, 69, 74, 78, 79, 83], PIZZ = [40, 43, 47, 50, 53, 57, 60, 64, 67, 71];
+  const VFILES = ['cast-click', 'cast-takata', 'cast-roll', 'clap', ...HRM.map(m => 'hrm-' + m), ...PIZZ.map(m => 'pizz-' + m)];
+  const vRaw = new Map(), vBuf = new Map();
+  function decodeVoices() { if (!ctx) return; vRaw.forEach((ab, k) => { vRaw.delete(k); ctx.decodeAudioData(ab).then(b => vBuf.set(k, b)).catch(() => {}); }); }
+  const nearestIn = (list, pre, m, reach = 4) => { let best = null, d = 1e9; list.forEach(k => { if (!vBuf.has(pre + k)) return; const dd = Math.abs(k - m); if (dd < d) { d = dd; best = k; } }); return best != null && d <= reach ? best : null; };
+  // one recorded sample: its own decay, shaped by a ramped envelope so it can always be silenced
+  function sample(name, t, { rate = 1, gain = .3, pan = 0, dur, lp } = {}) {
+    const b = vBuf.get(name); if (!b) return false;
+    const src = ctx.createBufferSource(), g = ctx.createGain(), out = panner(pan); src.buffer = b; src.playbackRate.value = rate;
+    const len = Math.min(dur || b.duration / rate, b.duration / rate);
+    env(g, t, gain, .003, len);
+    let node = src; if (lp) { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; src.connect(f); node = f; }
+    node.connect(g); g.connect(out); src.start(t); src.stop(t + len + .05); return true;
+  }
   function loadGuitar() {
     if (gFetching || !GUITAR.length) return; gFetching = true;
+    VFILES.forEach(n => fetch(VDIR + n + '.m4a').then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { vRaw.set(n, ab); decodeVoices(); } }).catch(() => {}));
     GUITAR.forEach(([m, file]) => fetch(GDIR + file).then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { gRaw.set(m, ab); decodeGuitar(); } }).catch(() => {}));
   }
   function decodeGuitar() {
@@ -159,53 +178,47 @@
       src.connect(body); body.connect(tone); tone.connect(g); g.connect(out); src.start(t); src.stop(t + 2.7);
       if (k == null) { const sq = Math.random() < .25; noise(t, .05, sq ? 2600 + Math.random() * 900 : 4200, sq ? 7 : 1.2, (sq ? .04 : .02) * vel, out); }   // the synth's finger noise (the recording has real ones)
     },
-    p(step, o) {                                    // PEONY: celesta / music-box tine
-      const t = when(.006), f = hz(step + 3), out = panner(o.pan || 0), vel = .7 + Math.random() * .25;
-      [[1, .1, 2.2], [1.002, .04, 2.0], [4.07, .03, .5], [9.6, .008, .18]].forEach(([r, a, d]) => {
-        const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a * vel, .003, d);
-        os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05);
-      });
+    p(step, o) {                                    // PEONY: a requinto (a small, high Spanish guitar), a delicate tremolo
+      const m = midi(step + 3) + 12, k = nearestGuitar(m), out = panner(o.pan || 0);
+      if (k == null) {                                // until the guitar loads: the old music-box tine
+        const t = when(.006), f = mhz(m - 12), vel = .7;
+        [[1, .1, 2.2], [4.07, .03, .5]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a * vel, .003, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
+        return;
+      }
+      const t0 = when(.004), rate = Math.pow(2, (m - k) / 12), n = o.short ? 3 : 5;
+      for (let i = 0; i < n; i++) {                   // p-a-m-i: the same note, quick and soft, fading
+        const t = t0 + i * .068, src = ctx.createBufferSource(), g = ctx.createGain(), hp = ctx.createBiquadFilter();
+        src.buffer = gBuf.get(k); src.playbackRate.value = rate;
+        hp.type = 'highpass'; hp.frequency.value = 380;
+        env(g, t, (.16 - i * .022) * (i ? .8 : 1), .002, i === n - 1 ? 1.6 : .22);
+        src.connect(hp); hp.connect(g); g.connect(out); src.start(t); src.stop(t + 1.7);
+      }
     },
-    d(step, o) {                                    // DAHLIA: felt piano / soft marimba
-      const t = when(.008), f = hz(step), out = panner(o.pan || 0), vel = .7 + Math.random() * .25;
-      const felt = ctx.createBiquadFilter(); felt.type = 'lowpass'; felt.frequency.setValueAtTime(2400, t); felt.frequency.exponentialRampToValueAtTime(700, t + .25); felt.connect(out);
-      [[1, .2, 1.4], [2, .04, .6], [4, .03, .25]].forEach(([r, a, d]) => {
-        const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a * vel, .013, d);
-        os.connect(g); g.connect(felt); os.start(t); os.stop(t + d + .05);
-      });
-      noise(t, .03, 900, 1, .02 * vel, out);        // the felt hammer
+    d(step, o) {                                    // DAHLIA: cello pizzicato, low and warm, a slow rolled bass note
+      const m = midi(step) - 12, k = nearestIn(PIZZ, 'pizz-', m), pan = o.pan || 0;
+      if (k == null) {                                // until it loads: the old felt piano
+        const t = when(.008), f = mhz(m + 12), out = panner(pan), felt = ctx.createBiquadFilter(); felt.type = 'lowpass'; felt.frequency.value = 900; felt.connect(out);
+        [[1, .2, 1.4], [2, .04, .6]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a, .013, d); os.connect(g); g.connect(felt); os.start(t); os.stop(t + d + .05); });
+        return;
+      }
+      const t = when(.008), rate = Math.pow(2, (m - k) / 12);
+      sample('pizz-' + k, t, { rate, gain: .42, pan, lp: 1800 });
+      // the roll: the octave above, a breath later and softer
+      const k2 = nearestIn(PIZZ, 'pizz-', m + 12); if (k2 != null) sample('pizz-' + k2, t + .11, { rate: Math.pow(2, (m + 12 - k2) / 12), gain: .2, pan: pan + .1, lp: 2200 });
     },
-    b(step, o) {                                    // WORD: a vibraphone (11-14, Ivy: its own instrument, far from the strings)
-      // soft mallet on a tuned bar: the fundamental with the bar's 4x and 10x partials (they die fast), a long ring,
-      // and the vibraphone's slow motor tremolo
-      const t = when(.008), vel = (.6 + Math.random() * .25) * (o.amp || 1), f = hz(step + 2, o.down), out = panner(o.pan || 0);
-      const trem = ctx.createGain(); trem.gain.value = .8;
-      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = .2; lfo.connect(lg); lg.connect(trem.gain);
-      const g = ctx.createGain(); env(g, t, .17 * vel, .005, 3.2); track('b' + step, g, t);
-      trem.connect(g); g.connect(out);
-      [[1, 1, 3.2], [4, .22, .55], [10, .05, .16]].forEach(([r, a, d]) => {
-        const os = ctx.createOscillator(), og = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r;
-        og.gain.setValueAtTime(a, t); og.gain.exponentialRampToValueAtTime(.0001, t + d);
-        os.connect(og); og.connect(trem); os.start(t); os.stop(t + d + .05);
-      });
-      lfo.start(t); lfo.stop(t + 3.3);
-      noise(t, .02, 2400, 2, .012 * vel, out);      // the mallet's soft tick
+    b(step, o) {                                    // WORD + LOGO: natural guitar harmonics (glassy, bell-like, still a guitar)
+      const m = midi(step + 2, o.down) + 12, k = nearestIn(HRM, 'hrm-', m, 5), pan = o.pan || 0;
+      const t = when(.006), vel = (.7 + Math.random() * .2) * (o.amp || 1);
+      if (k != null) { sample('hrm-' + k, t, { rate: Math.pow(2, (m - k) / 12), gain: .34 * vel, pan, dur: 3 }); return; }
+      // until they load: a pure, quiet sine bell
+      const out = panner(pan); [[1, .09, 2.4], [2, .02, .8]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = mhz(m) * r; env(g, t, a * vel, .004, d); os.connect(g); g.connect(out); os.start(t); os.stop(t + d + .05); });
     },
-    f(step, o) {                                    // FLOURISH: four vibraphone notes up (opening) or down (folding)
+    f(step, o) {                                    // FLOURISH: four harmonics up (opening) or down (folding)
       const up = (o.dir || 1) > 0, base = up ? 2 : 7;
       [0, 1, 2, 3].forEach((k, i) => setTimeout(() => live() && V.b(base + (up ? k : -k), { amp: .8, pan: (k - 1.5) * .2 }), i * 85));
     },
-    t(step, o) {                                    // BRASS: a soft flugelhorn-ish call (three notes rising)
-      [[2, 0], [4, .22], [8, .44]].forEach(([n, dt]) => {
-        const t = ctx.currentTime + .02 + dt, f = hz(n, false) / (n === 8 ? 2 : 1), out = panner(0);   // D4, A4, D5
-        const os = ctx.createOscillator(), os2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-        os.type = 'sawtooth'; os2.type = 'sawtooth'; os.frequency.value = f; os2.frequency.value = f * 1.004;
-        lp.type = 'lowpass'; lp.frequency.setValueAtTime(300, t); lp.frequency.linearRampToValueAtTime(900, t + .18); lp.frequency.linearRampToValueAtTime(600, t + .7);
-        const tri = ctx.createOscillator(), triG = ctx.createGain(); tri.type = 'triangle'; tri.frequency.value = f; triG.gain.value = .5; tri.connect(triG); triG.connect(lp); tri.start(t); tri.stop(t + 1.15);
-        noise(t, .08, 1200, .8, .012, out);   // a breath on the onset
-        g.gain.setValueAtTime(.00001, t); g.gain.exponentialRampToValueAtTime(.05, t + .12); g.gain.setValueAtTime(.05, t + .4); g.gain.exponentialRampToValueAtTime(.00001, t + 1.1);
-        os.connect(lp); os2.connect(lp); lp.connect(g); g.connect(out); os.start(t); os2.start(t); os.stop(t + 1.15); os2.stop(t + 1.15);
-      });
+    t(step, o) {                                    // PALMAS: very soft hand claps, two hands a breath apart, twice
+      [[0, 1, .14], [.016, 1.06, .1], [.27, .97, .11], [.287, 1.03, .08]].forEach(([dt, r, g], i) => sample('clap', ctx.currentTime + .02 + dt, { rate: r, gain: g, pan: i % 2 ? .25 : -.2, lp: 5200 }));
     },
     z(step, o) {                                    // BEE: a buzz, harmonized a fifth apart
       const t = ctx.currentTime + .02, out = panner(o.pan || .5), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(out);
@@ -216,10 +229,14 @@
         os.connect(g); g.connect(lp); os.start(t); tr.start(t); os.stop(t + 1.65); tr.stop(t + 1.65);
       });
     },
-    s(step, o) {                                    // SUN: a soft, short, warm chime (no sustain)
-      const t = when(.006), f = hz(step + 2), out = panner(o.pan || 0), vel = .7 + Math.random() * .2;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.connect(out);
-      [[1, .07, 1.3], [3.01, .012, .5]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a * vel, .012, d); os.connect(g); g.connect(lp); os.start(t); os.stop(t + d + .05); });
+    s(step, o) {                                    // SUN: castanets (cheeky, like its tongue)
+      const t = when(.004), pan = o.pan || 0;
+      if (o.tongue) { if (sample('cast-takata', t, { gain: .3, pan })) return; }
+      else if (o.tap) { if (sample('cast-roll', t, { gain: .26, pan, rate: .97 + Math.random() * .06 })) return; }
+      else if (sample('cast-click', t, { gain: .24, pan, rate: .9 + (step % 14) * .02 + Math.random() * .03 })) return;
+      // until they load: a soft, short chime
+      const f = hz(step + 2), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.connect(panner(pan));
+      [[1, .06, .9]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), g = ctx.createGain(); os.type = 'sine'; os.frequency.value = f * r; env(g, t, a, .012, d); os.connect(g); g.connect(lp); os.start(t); os.stop(t + d + .05); });
     }
   };
 
@@ -275,9 +292,8 @@
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));
     // 11-14 (Ivy, a stuck hum): no build layer any more (no drone, no heartbeat); every note is a single strike that
     // decays on its own
-    // a big strum now and then answers with a soft brass call
     const now = performance.now(); recent = recent.filter(x => now - x < 600); recent.push(now);
-    if (voice === 'g' && !o.replay && recent.length >= 9 && (bigStrums = now - lastBig > 1500 ? bigStrums + 1 : bigStrums, lastBig = now, bigStrums >= 2) && now - brassAt > 25000 && Math.random() < .15) { brassAt = now; setTimeout(() => play('t', 0, o.replay ? { replay: true } : {}), 220); }
+    if (voice === 'g' && !o.replay && recent.length >= 10 && now - brassAt > 20000 && Math.random() < .2) { brassAt = now; setTimeout(() => play('t', 0, {}), 260); }   // a big full sweep, now and then: soft palmas
     return true;
   }
   // the old single-voice API (guitar), kept for the strings and bars written against it
@@ -303,24 +319,44 @@
     return q;
   }
 
+  // ---------- sound credits (one place, easy to move to a credits page). CC BY sources need a credit; CC0 ones don't,
+  // but are listed for the record ----------
+  const CREDITS = [
+    { what: 'nylon guitar (the strings, the peony)', who: 'quartertone', title: 'ClassicalGuitar-multisampled', url: 'https://freesound.org/people/quartertone/packs/11573/', lic: 'CC BY 4.0' },
+    { what: 'guitar harmonics (the word, the logo)', who: 'quartertone', title: 'ClassicalGuitarHarmonics', url: 'https://freesound.org/people/quartertone/packs/11598/', lic: 'CC BY 4.0' },
+    { what: 'castanet clicks (the sun)', who: 'NoahBangs', title: 'Castanets, 4 Fast Clicks', url: 'https://freesound.org/people/NoahBangs/sounds/666766/', lic: 'CC BY 4.0' },
+    { what: 'castanet roll (the sun)', who: 'joshysqaushy', title: 'Castanet Roll (120bpm)', url: 'https://freesound.org/people/joshysqaushy/sounds/337136/', lic: 'CC0' },
+    { what: 'cello pizzicato (the dahlia)', who: 'Versilian Studios', title: 'VSCO 2 CE', url: 'https://github.com/sgossner/VSCO-2-CE', lic: 'CC0' },
+    { what: 'hand clap (palmas)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' }
+  ];
+
   // ---------- the footer's quiet way to change it ----------
   let footLink = null;
   function syncFooter() { if (footLink) footLink.textContent = answer === 'yes' ? 'Sound: on' : 'Sound: off'; }
   function footer() {
     const foot = document.querySelector('.foot');
     if (!foot || footLink) return;
+    // "Sound: on · credits" as one small item; "credits" opens a quiet panel listing every source (HeroSound.CREDITS)
+    const wrap = document.createElement('span'); wrap.className = 'hs-foot-wrap';
     footLink = document.createElement('button'); footLink.type = 'button'; footLink.className = 'hs-foot';
     footLink.addEventListener('click', () => set(answer === 'yes' ? 'no' : 'yes'));
-    foot.appendChild(footLink); syncFooter();
-    // the sound credits (CC BY 4.0 asks for the author, the source and the licence)
-    const cr = document.createElement('span'); cr.className = 'hs-credit';
-    cr.innerHTML = 'Guitar: <a href="https://freesound.org/people/quartertone/packs/11573/" target="_blank" rel="noopener">ClassicalGuitar-multisampled</a> by quartertone, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>';
-    foot.appendChild(cr);
+    const dot = document.createElement('span'); dot.className = 'hs-foot-dot'; dot.setAttribute('aria-hidden', 'true'); dot.textContent = '·';
+    const cb = document.createElement('button'); cb.type = 'button'; cb.className = 'hs-foot hs-cred-btn'; cb.textContent = 'credits';
+    cb.setAttribute('aria-expanded', 'false'); cb.setAttribute('aria-controls', 'hsCredits');
+    const pan = document.createElement('div'); pan.className = 'hs-cred'; pan.id = 'hsCredits'; pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-label', 'Sound credits'); pan.hidden = true;
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    pan.innerHTML = '<p class="hs-cred-h">Sounds</p><ul>' + CREDITS.map(c => `<li><span class="w">${esc(c.what)}</span> <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a> by ${esc(c.who)}, ${c.lic === 'CC0' ? 'CC0' : '<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">' + esc(c.lic) + '</a>'}</li>`).join('') + '</ul>';
+    const open = v => { pan.hidden = !v; cb.setAttribute('aria-expanded', String(v)); if (v) { const a = pan.querySelector('a'); if (a) a.focus({ preventScroll: true }); } };
+    cb.addEventListener('click', e => { e.stopPropagation(); open(pan.hidden); });
+    document.addEventListener('pointerdown', e => { if (!pan.hidden && !wrap.contains(e.target)) open(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pan.hidden) { open(false); cb.focus(); } });
+    wrap.append(footLink, dot, cb, pan);
+    foot.appendChild(wrap); syncFooter();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', footer); else footer();
 
   window.HeroSound = {
-    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, midiOf: (n, down) => midi(n, down),
+    ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, CREDITS, midiOf: (n, down) => midi(n, down),
     on: () => live(), answer: () => answer,
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)

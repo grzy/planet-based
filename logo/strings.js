@@ -145,7 +145,7 @@
   }
   function figure(sel, step, pan) {
     const v = VOICE[sel]; if (!window.HeroSound) return;
-    if (v === 's') { HeroSound.play('s', step, { pan }); return; }
+    if (v === 's') { HeroSound.play('s', step, { pan, tap: true }); return; }   // a tap on the sun: a short castanet roll
     FIG[v].forEach((k, n) => setTimeout(() => HeroSound.play(v, step + k, { pan }), n * 130));
   }
   function wire() {
@@ -221,7 +221,7 @@
         if (st !== drag.step) {
           const dir = Math.sign(st - drag.step), steps = [];
           for (let k = drag.step + dir; dir > 0 ? k <= st : k >= st; k += dir) steps.push(k);
-          steps.slice(-4).forEach((k, n) => setTimeout(() => voiceStep(s.sel, k, panOf(i)), n * 55));
+          steps.slice(-4).forEach((k, n, arr) => setTimeout(() => voiceStep(s.sel, k, panOf(i), { short: n < arr.length - 1 }), n * 70));
           drag.step = st; pluck(i, .8, false);
         }
       });

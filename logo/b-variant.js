@@ -51,7 +51,7 @@
       // 11-14 (Ivy): the garden comes out during the word's hold (the word stays out as long as before): the sun as the word
       // is fully open, then the peony and the dahlia, the bee as the logo settles
       const o = T.open[1], sun = Math.max(o - 80, T.reveal + 920);
-      return { sun, peony: sun + 260, dahlia: sun + 520, bee: T.close[1], text: sun + 820 };   // 11-14 (Ivy): the type, the top line and the slider right after the dahlia
+      return { sun, peony: sun + 260, dahlia: sun + 520, bee: T.close[1], text: sun + 180 };   // 11-14 (Ivy, again): the type overlaps the sun and the peony   // 11-14 (Ivy): the type, the top line and the slider right after the dahlia
     },
     frame(t, K, phone) {
       // 0. the last "-ing" word gives way and planetbased.io is written on in its place
