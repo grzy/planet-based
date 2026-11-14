@@ -176,6 +176,15 @@
   // a last guarantee: if the story never started (a script failed, a path skipped it), the loader still lets go
   setTimeout(() => { if (cleared || S.ctx) return; doc.classList.remove('boot', 'boot-out'); const pin = document.querySelector('.pin'); if (pin) pin.classList.remove('intro'); clearLoader(); }, 15000);
   HeroStory.clearLoader = clearLoader;
+  // 11-14 (Ivy, a tree left sitting on a finished hero): while the loader is up and the story hasn't begun, the page
+  // can't be scrolled away from the top (desktop). A scroll there used to make the page skip its entrance and show the
+  // hero with the tree and the "-ing" word still on it; now the loader always hands over to the story, the tree is cut
+  // and gone before any of the hero shows
+  const loaderUp = () => !S.ctx && !cleared && doc.classList.contains('motion') && (() => { const pin = document.querySelector('.pin'); return pin && pin.classList.contains('intro'); })();
+  addEventListener('wheel', e => { if (loaderUp()) e.preventDefault(); }, { passive: false });
+  addEventListener('touchmove', e => { if (loaderUp()) e.preventDefault(); }, { passive: false });
+  addEventListener('keydown', e => { if (loaderUp() && /^(ArrowDown|ArrowUp|PageDown|PageUp|Home|End| )$/.test(e.key)) e.preventDefault(); });
+  addEventListener('scroll', () => { if (loaderUp() && (window.scrollY || 0) > 0) scrollTo(0, 0); }, { passive: true });
 
   window.__introAt = ms => { cancelAnimationFrame(S.raf); S.raf = 0; frame(ms); seekCSS(ms); return 'frozen at ' + ms; };
   window.__introPlay = () => { S.t0 = performance.now() - S.t / S.rate; S.raf = requestAnimationFrame(tick); document.getAnimations().forEach(a => { if (a.playState === 'paused') a.play(); }); };

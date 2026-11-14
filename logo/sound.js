@@ -217,11 +217,11 @@
       const t = when(.004), pan = o.pan || 0;
       if (o.tongue) {                               // the lab's palmas: two hands a breath apart
         const k = pick('palmas', null); if (!k) return;
-        [[0, 1, .9], [.016, 1.06, .7]].forEach(([dt, r, g]) => sample(k.name, t + dt, { rate: r, gain: .3 * g, pan: dt ? .25 : -.2 }));
+        [[0, 1, .9], [.016, 1.06, .7]].forEach(([dt, r, g]) => sample(k.name, t + dt, { rate: r, gain: .3 * g * (o.lvl || 1), pan: dt ? .25 : -.2 }));
         return;
       }
       const k = pick('click', null);
-      if (k) sample(k.name, t, { rate: .97 + Math.random() * .06, gain: .3 * (o.tap ? 1 : .75), pan });
+      if (k) sample(k.name, t, { rate: .97 + Math.random() * .06, gain: .3 * (o.tap ? 1 : .75) * (o.lvl || 1), pan });
     }
   };
 
@@ -267,11 +267,12 @@
   // to part on desktop, where the hero stays pinned and so still "visible"), every hero sound stops (a fast fade) and
   // nothing plays again until the page is back at the top. A shared song's replay is the only exception
   const atRest = () => (window.scrollY || document.documentElement.scrollTop || 0) < 8;
-  addEventListener('scroll', () => { if (!atRest()) silence(); }, { passive: true });
+  let wasRest = true;
+  addEventListener('scroll', () => { const r = atRest(); if (wasRest && !r) silence(); wasRest = r; }, { passive: true });
   window.HeroAtRest = atRest;
   function play(voice, step = 0, o = {}) {
     if (!live() || !V[voice]) return false;
-    if (!o.replay && !atRest()) return false;
+    if (o.closing ? !closingSeen() : (!o.replay && !atRest())) return false;   // the closing has its own gate
     V[voice](step, o);
     window.__hsNotes = (window.__hsNotes || 0) + 1; if (!o.replay) window.__hsLastPlay = performance.now();
     if (voice !== 'z' && !o.replay) playListeners.forEach(f => f(voice, step, o));
@@ -344,6 +345,92 @@
       setTimeout(() => noteFor(tNow(), true), 0);
       clearTimeout(settleT); if (/^(Page|Home|End)/.test(e.key)) settleT = setTimeout(chord, 380);
     }, true);
+  })();
+
+  // ---------- the closing (footer scene) plays too (11-14, Ivy) ----------
+  // Quiet and sparse, only with sound on and only while the closing is in view (its own gate, independent of the hero's),
+  // nothing on scroll alone. It listens to the scene without changing its code: the breeze's pencil lines (pbScribble),
+  // the flowers' nods and the tree's sway (their animations), the smiley's wink and tongue (its strokes drawing on) and the
+  // email's pencil "copied" (pbCopied); taps and hovers on the flowers and the tree
+  let closingIn = false;
+  const closingSeen = () => closingIn;
+  (function closingSound() {
+    const later = (sec, f) => setTimeout(() => { if (live() && closingIn) f(); }, Math.max(0, sec * 1000));
+    const C = (v, st, o) => play(v, st, { ...o, closing: true });
+    // the voices, in the hero's palette
+    const gust = t0 => later(t0 + .35, () => { const ns = [76, 79, 83].slice(0, 2 + (Math.random() < .5 ? 1 : 0)); ns.forEach((m, i) => setTimeout(() => C('g', 0, { midi: m, amp: .38, pan: -.6 + i * .6 }), i * 240)); });   // a faint harmonic shimmer, left to right
+    const flower = (which, amp = 1) => { if (which === 'big') C('d', 4, { amp, pan: .3 }); else if (which === 'small') C('p', 6, { amp, pan: -.1 }); else C('b', 5, { amp, pan: 0 }); };   // big low, small high, the café dahlia mid
+    const roll = () => [0, 1, 2, 3].forEach((k, i) => setTimeout(() => { if (live() && closingIn) C('f', 0, { single: k, pan: .35 }); }, i * 70));   // the potted tree: a short balafon roll
+    let lastRoll = 0; const treeRoll = () => { const n = performance.now(); if (n - lastRoll < 1200) return; lastRoll = n; roll(); };
+    // the breeze's pencil lines: one shimmer per gust (lines drawn within a breath of each other are one gust); smoke
+    let gustAt = -1e9;
+    const hookScribble = () => {
+      const orig = window.pbScribble; if (!orig || orig.__hs) return;
+      const wrapped = function (layer, key, o = {}) {
+        const r = orig.apply(this, arguments);
+        try {
+          const at = performance.now() + (o.t0 || 0) * 1000;
+          if (/^W/.test(key) && at - gustAt > 900) { gustAt = at; gust(o.t0 || 0); }
+          if (key === 'S05' && at - (wrapped.smokeAt || 0) > 3000) { wrapped.smokeAt = at; later((o.t0 || 0) + .2, () => C('g', 0, { midi: 88, amp: .32, pan: .4 })); }   // chimney smoke: one long, soft harmonic
+        } catch (e) {}
+        return r;
+      };
+      wrapped.__hs = true; window.pbScribble = wrapped;
+    };
+    hookScribble();
+    // nods, the sway, the smiley's acts: read from the animations the scene starts
+    const proto = Element.prototype, anim = proto.animate;
+    if (anim && !anim.__hs) {
+      proto.animate = function (kf, opt) {
+        const a = anim.apply(this, arguments);
+        try {
+          const d = (opt && typeof opt === 'object' && opt.delay || 0) / 1000;
+          const id = this.id, cl = this.classList;
+          if ((id === 'flipBig' || id === 'flipSmall') && Array.isArray(kf) && kf.length > 3 && String(kf[1].transform || '').includes('rotate')) later(d + .3, () => flower(id === 'flipBig' ? 'big' : 'small', .5));   // the wind nods it: one soft note
+          else if (cl && cl.contains('pt-sway') && Array.isArray(kf) && kf.length > 4) later(d + .4, treeRoll);
+          else if (this.closest && this.closest('#smiley') && Array.isArray(kf) && kf[0] && kf[0].strokeDashoffset === '1') {
+            const paths = [...this.closest('svg').querySelectorAll('path')], i = paths.indexOf(this);   // eye, smile, tongue, wink
+            if (i === 3) later(d, () => C('s', 0, { lvl: .7 }));                        // the wink: one castanet click
+            else if (i === 2) later(d, () => C('s', 0, { tongue: true, lvl: .45 }));   // the tongue: a tiny palmas
+          }
+        } catch (e) {}
+        return a;
+      };
+      proto.animate.__hs = true;
+    }
+    // the email's "✓ copied": a click as the check lands, a gender note as "copied" finishes
+    const hookCopied = () => {
+      const orig = window.pbCopied; if (!orig || orig.__hs) return;
+      const w = function (host) { const r = orig.apply(this, arguments); if (host && host.closest && host.closest('.closing')) { later(.3, () => C('s', 0, { lvl: .8 })); later(1.9, () => C('b', 7, { amp: .7 })); } return r; };
+      w.__hs = true; window.pbCopied = w;
+    };
+    const wire = () => {
+      hookScribble(); hookCopied();
+      const closing = document.querySelector('.closing'); if (!closing || closing.__hs) return; closing.__hs = true;
+      if (window.IntersectionObserver) new IntersectionObserver(es => es.forEach(e => { closingIn = e.isIntersecting && e.intersectionRatio >= .2; }), { threshold: [0, .2, .5] }).observe(closing);
+      // taps and hovers: each flower its register, the tree its roll (a hover only once in a while)
+      // the flowers take no pointer events (the scene's own design), so a press or a hover is found by where it lands: inside
+      // the flower's round head (an ellipse of 40% of its box)
+      const FL = [['flipBig', 'big'], ['flipSmall', 'small'], ['dahliaTop', 'top']], hov = new Map(), inside = new Set();
+      const hit = (e, el) => { const r = el.getBoundingClientRect(); if (!r.width) return false; const dx = (e.clientX - (r.left + r.width / 2)) / (r.width * .4), dy = (e.clientY - (r.top + r.height / 2)) / (r.height * .4); return dx * dx + dy * dy < 1; };
+      addEventListener('pointerdown', e => {
+        if (!closingIn) return;
+        FL.forEach(([id, w]) => { const el = document.getElementById(id); if (el && hit(e, el) && performance.now() - (hov.get(id) || 0) > 400) C(w === 'big' ? 'd' : w === 'small' ? 'p' : 'b', w === 'big' ? 3 : w === 'small' ? 7 : 6, { amp: 1, pan: w === 'big' ? .3 : -.1 }); });
+      }, { passive: true });
+      addEventListener('pointermove', e => {
+        if (!closingIn || e.pointerType !== 'mouse' || (e.movementX === 0 && e.movementY === 0)) return;
+        FL.forEach(([id, w]) => {
+          const el = document.getElementById(id); if (!el) return;
+          const now = hit(e, el);
+          if (now && !inside.has(id)) { const n = performance.now(); if (n - (hov.get(id) || 0) > 900) { hov.set(id, n); flower(w, .8); } }
+          if (now) inside.add(id); else inside.delete(id);
+        });
+      }, { passive: true });
+      const tree = document.getElementById('potTree');
+      if (tree) { tree.addEventListener('pointerdown', treeRoll); tree.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') treeRoll(); }); }
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+    addEventListener('load', wire);
   })();
 
   // ---------- the footer's quiet way to change it ----------
