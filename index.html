@@ -587,6 +587,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 /* 11-13 (Ivy): one long hand-drawn pencil line, chained from the site's own pencil underlines */
 .floor .rule::before{content:"";position:absolute;left:-.4%;right:-.4%;top:calc(50% - clamp(9px,1.1vw,24px) / 2 - 4px);height:clamp(9px,1.1vw,24px);
   background:url(img/pencil-floor.webp) center/100% 100% no-repeat;opacity:.92}
+@media (min-width:760px){.floor .rule::before{top:calc(50% - clamp(9px,1.1vw,24px) / 2 - 1px)}}   /* 11-14 (Ivy): a micro bit lower on desktop */
 .newt{position:absolute;left:0;top:0;z-index:5;width:var(--nw);height:auto;will-change:transform;visibility:hidden;pointer-events:none;
   filter:drop-shadow(0 6px 5px rgba(40,34,20,.22))}
 @media (max-width:759px){.newt{width:78px}}   /* 11-14 (Ivy): the Bioindicators newt was too big on phones (110px floor); desktop unchanged */
@@ -663,8 +664,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=26">
-<link rel="stylesheet" href="logo/b-variant.css?v=26">
+<link rel="stylesheet" href="logo/story.css?v=27">
+<link rel="stylesheet" href="logo/b-variant.css?v=27">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -916,17 +917,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=26"></script>
-<script src="logo/pose.js?v=26"></script>
-<script src="logo/sound.js?v=26"></script>
-<script src="logo/bees.js?v=26"></script>
-<script src="logo/hero-logo.js?v=26"></script>
-<script src="logo/story.js?v=26"></script>
-<script src="logo/common.js?v=26"></script>
-<script src="logo/song.js?v=26"></script>
-<script src="logo/strings.js?v=26"></script>
-<script src="logo/preload.js?v=26"></script>
-<script src="logo/b-variant.js?v=26"></script>
+<script src="logo/hero-logo-data.js?v=27"></script>
+<script src="logo/pose.js?v=27"></script>
+<script src="logo/sound.js?v=27"></script>
+<script src="logo/bees.js?v=27"></script>
+<script src="logo/hero-logo.js?v=27"></script>
+<script src="logo/story.js?v=27"></script>
+<script src="logo/common.js?v=27"></script>
+<script src="logo/song.js?v=27"></script>
+<script src="logo/strings.js?v=27"></script>
+<script src="logo/preload.js?v=27"></script>
+<script src="logo/b-variant.js?v=27"></script>
 <script>
 (() => {
   'use strict';
