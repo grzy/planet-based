@@ -93,7 +93,17 @@
       if (S.V.afterEnd) S.V.afterEnd(K);
       if (window.HeroSound && HeroSound.loadGuitar) setTimeout(HeroSound.loadGuitar, 900);   // the real guitar, after the hero
       if (window.HeroUnder) HeroUnder.layout();
+      settleSun();
     }
+  }
+  // WebKit (html.wk): once the sun has landed, it lets go of its arrival animation and is repainted from scratch, so no
+  // stale copy of an earlier frame can stay painted behind it (11-14, Ivy's iPhone)
+  function settleSun() {
+    if (!document.documentElement.classList.contains('wk')) return;
+    const sun = document.querySelector('.objs .sun'); if (!sun) return;
+    const go = () => { sun.classList.add('hs-settled'); sun.style.display = 'none'; void sun.offsetWidth; sun.style.display = ''; };
+    const anims = sun.getAnimations ? sun.getAnimations() : [];
+    Promise.all(anims.map(a => a.finished.catch(() => {}))).then(() => setTimeout(go, 120));
   }
   function tick(now) {
     const t = (now - S.t0) * S.rate;

@@ -228,3 +228,11 @@ html[data-page="dark"] .hs-cred{background:#232724;color:#ECEBDF}
    opacity-0 face's tiles; a face that is not on is now truly hidden (visibility), and the one on is the only one painted */
 .sun img:not(.on){visibility:hidden}
 .sun img.on{visibility:inherit}   /* inherit, never visible: the sun must stay hidden while its parent is (loader, before its beat) */
+/* 11-14 (Ivy, iPhone, round 2): a static copy of a bigger sun kept showing round the live one, the same under every
+   face, so it is a stale WebKit layer (the sun's arrival animation and the face transforms leave an old backing store
+   behind). On WebKit the sun drops its arrival animation once it has landed (.hs-settled, set by story.js) and is
+   repainted from scratch once; nothing in it asks for its own layer */
+.wk .sun,.wk .sun .jit,.wk .sun img{will-change:auto}
+.wk .sun.hs-settled{animation:none!important;opacity:1;scale:1}
+/* phones: the (smaller) logo sits a little lower under the top line */
+@media (max-width:759px){.hs-b .mark,.hs-c .mark{margin-top:28px}}
