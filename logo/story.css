@@ -1,0 +1,153 @@
+/* logo-r5: the entrance, the playable mark, the question, the vertical slider. Everything takes the page's colours:
+   lines and marks are the hero type colour (--oat) on the green and the loader's ink on the paper */
+:root{--hs-ink:#356B47}
+html[data-page="dark"]{--hs-ink:#D9CDB7}
+
+/* the lines: one overlay above everything while the story runs */
+.hs-lines{position:fixed;inset:0;z-index:60;pointer-events:none;contain:strict}
+.hs-lines i{position:absolute;left:0;top:0;display:block;will-change:transform;background:color-mix(in srgb,var(--oat) var(--ink,0%),var(--hs-ink))}
+
+/* the loader's word: the wordmark, in the loader's ink */
+.loader .hs-word{display:block;fill:currentColor;color:var(--hs-ink);overflow:visible}
+.lcut .hs-word,.lcut .hs-ask{visibility:hidden}
+
+/* the mark: the static logo rests (two sizes, her proportions), the animated layer is the wordmark at its own size */
+.mark{--hl-fs:min(12.5cqh,7.1cqw);touch-action:pan-y}
+.hl-size1 .mark .mono-pb.pb-logo{height:min(22cqh,15cqw)}
+.hl-size2 .mark .mono-pb.pb-logo{height:min(30cqh,20cqw)}
+.mark .hl-layer{position:absolute;left:0;top:calc(6.5cqh - .33 * var(--hl-fs));width:calc(var(--hl-fs) * 5.6);height:calc(var(--hl-fs) * 1.3);overflow:visible;fill:currentColor;pointer-events:none}
+.mark.hl-open .hl-rest{visibility:hidden}
+.mark:not(.hl-open) .hl-layer{visibility:hidden}
+.mark:focus-visible{outline:1.5px solid var(--oat);outline-offset:8px;border-radius:2px}
+.hs-run .hero .mark:not(.hs-on){visibility:hidden}
+.hs .reveal .hero .mark,.hs .reveal .slice .mark{animation:none}
+
+/* the garden lands on the mark's beats (story.js writes the delays) */
+.hs .reveal .sun{animation-delay:var(--hs-sun,1.6s)}
+.hs .reveal .peony{animation-delay:var(--hs-peony,1.95s)}
+.hs .reveal .dahlia{animation-delay:var(--hs-dahlia,2.2s)}
+.hs .reveal .bee-rest{animation-delay:var(--hs-bee,2.8s)}
+.hs .reveal :is(.hero,.slice) .thesis{animation-delay:var(--hs-text,2.4s)}
+.hs .reveal :is(.hero,.slice) :is(.dateline,.dl-sub){animation-delay:calc(var(--hs-text,2.4s) + .15s)}
+.hs .reveal :is(.hero,.slice) .dateline .rule{animation-delay:calc(var(--hs-text,2.4s) + .2s)}
+.hs .reveal :is(.hero,.slice) .ruler{animation-delay:calc(var(--hs-text,2.4s) + .25s)}
+.hs .reveal :is(.hero,.slice) :is(.guides,.punch){animation-delay:calc(var(--hs-text,2.4s) + .3s)}
+.hs .reveal .hero .pbs{animation-delay:calc(var(--hs-text,2.4s) + .15s)}
+
+/* "Sound?" Yes / No: one quiet question in the page's serif, no strokes */
+.hs-ask{position:absolute;z-index:61;display:flex;align-items:baseline;gap:.9em;font-family:var(--serif);font-size:clamp(17px,1.25vw,22px);line-height:1;color:var(--hs-ink);
+  pointer-events:auto;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.3,1)}
+.hs-ask.in{opacity:1;transform:none}
+.hs-ask.done{opacity:0;transition:opacity .4s ease}
+.hs-ask-q{font-weight:420}
+.hs-ask button{all:unset;cursor:pointer;font-weight:380;padding:.55em .7em;margin:-.55em -.2em;border-radius:999px;background:color-mix(in srgb,currentColor 9%,transparent);transition:background .2s ease}
+.hs-ask button:hover{background:color-mix(in srgb,currentColor 18%,transparent)}
+.hs-ask button:focus-visible{outline:1.5px solid currentColor;outline-offset:2px}
+.loader .hs-ask{left:50%;bottom:14vh;translate:-50% 0}
+.hero .hs-ask{color:var(--oat);left:var(--m);top:calc(12.5cqh + min(30cqh,20cqw) + 28px)}
+@media (pointer:coarse){.hs-ask button{padding:.85em 1em;margin:-.85em -.3em}}
+/* the footer's quiet way to change it */
+.hs-foot{all:unset;cursor:pointer;font-family:var(--serif);font-size:13px;letter-spacing:0;text-transform:none;color:inherit;opacity:.8}
+.hs-foot:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}
+.hs-foot:focus-visible{outline:1.5px solid currentColor;outline-offset:3px}
+
+/* the colour slider, standing: right margin of the hero, up = night. Its sun becomes the moon as it rises
+   (img/moon.webp when it exists; until then a crescent cut from the sun, marked .ph) */
+.dateline .slot{display:none}
+.dateline .rule{visibility:inherit;background:rgba(var(--oat-rgb),.8)}
+.pbs.vert{left:calc(100% - var(--m) * .5 - 18px)!important;top:calc(50% - min(22cqh,190px))!important;width:36px;height:min(44cqh,380px);border-radius:999px}
+.pbs.vert .strip{left:50%;right:auto;top:0;bottom:0;width:8px;height:auto;margin:0 0 0 -4px}
+.pbs.vert .strip .o{-webkit-mask:linear-gradient(to top,transparent 22%,#000 42%);mask:linear-gradient(to top,transparent 22%,#000 42%)}
+.pbs.vert .strip .k{-webkit-mask:linear-gradient(to top,transparent 58%,#000 78%);mask:linear-gradient(to top,transparent 58%,#000 78%)}
+.pbs.vert .psun{left:50%;top:var(--y,50%)}
+.pbs .psun img{transition:opacity .2s linear}
+.pbs .psun img:not(.moon){opacity:calc(1 - var(--night,0))}
+.pbs .psun .moon{position:absolute;inset:0;opacity:var(--night,0)}
+.pbs .psun .moon.ph{filter:grayscale(1) brightness(1.35) contrast(.85);-webkit-mask:radial-gradient(circle at 68% 34%,transparent 41%,#000 43%);mask:radial-gradient(circle at 68% 34%,transparent 41%,#000 43%)}
+@media (max-width:759px){
+  .mark{--hl-fs:12cqw}
+  .hl-size1 .mark .mono-pb.pb-logo{height:min(18cqh,24cqw)}
+  .hl-size2 .mark .mono-pb.pb-logo{height:min(24cqh,30cqw)}
+  .mark .hl-layer{top:0}
+  /* phones: horizontal along the hero's foot, under the ruler (sun at the green end on the left, moon at the dark end) */
+  .pbs:not(.dial){left:calc(var(--m) + 10px)!important;top:auto!important;bottom:1.2cqh;width:min(170px,44cqw)}
+  .hero .hs-ask{top:calc(13cqh + min(24cqh,30cqw) + 24px);left:calc(var(--m) + 44px)}
+}
+/* the word opens across the top of the hero, so the peony sits below-left of the sun (the site's own wordmark layout) */
+.hs .peony{left:calc(61cqw - min(38cqh,24cqw) * .8 - min(17cqh,11cqw) / 2);top:calc(40cqh + min(38cqh,24cqw) * .5 - min(17cqh,11cqw) / 2)}
+@media (max-width:759px){.hs .peony{left:calc(70cqw + 23cqh * .32 - 6cqh);top:calc(45cqh - 23cqh * .76 - 6cqh)}}
+/* while the tree is in pieces, only the tree hides (the loader's word, when it lives beside the tree, stays) */
+.hs.motion .pin.cut .loader > .loader-in{visibility:visible}
+.hs-cutting .loader > .loader-in .loader-tree,.hs .pin.cut .loader > .loader-in .loader-tree{visibility:hidden}
+.hs .lcut .loader-tree{visibility:visible}
+/* phones: the sun sits centred on a guide line, the left edge of the third column (a little left of where it was), so
+   in the strings it hangs on its own guide */
+@media (max-width:759px){.hs .sun{left:calc(50cqw + var(--gut) / 2 - 23cqh / 2)}}
+/* the loader's question must be clickable over the (not yet arrived) cards */
+.hs .pin.intro .work{pointer-events:none}
+.hs .pin.intro .loader{z-index:3}
+/* the slider's sun and moon: both a touch bigger (42px), the moon drawn smaller than the sun (the sun's rays make the
+   moon look bigger at the same size; the moon is drawn at 90%), so their faces read at the same weight */
+.pbs:not(.dial) .psun{width:42px;height:42px;margin:-21px 0 0 -21px}
+.pbs .psun .moon{inset:5%;width:90%;height:90%}
+.pbs.vert{width:44px}
+@media (max-width:759px){.pbs:not(.dial){height:44px}}
+
+/* the preloader's words (shared/preload.js): ?words=1 terminal, ?words=2 pencil */
+.loader .hs-ing{min-height:1.4em;white-space:nowrap;color:var(--hs-ink);display:flex;align-items:baseline;gap:.55em;justify-content:center}
+.loader .hs-ing-1{font-family:var(--mono);font-size:12px;letter-spacing:.08em}
+.loader .hs-ing-1 .hs-orn{display:inline-block;width:1em;text-align:center;font-size:13px;opacity:.85}
+.loader .hs-ing-1 .hs-txt::after{content:"";display:inline-block;width:.55em;height:1.05em;margin-left:.12em;vertical-align:-.15em;background:currentColor;opacity:.55;animation:hsCaret 1s steps(1,end) infinite}
+@keyframes hsCaret{50%{opacity:0}}
+.loader .hs-ing-2{font-family:var(--serif);font-size:17px;font-style:italic;font-weight:360;letter-spacing:.01em;color:#4a4b46}
+html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
+.loader .hs-ing-2 .hs-txt{display:inline-block;clip-path:inset(-20% 100% -20% 0);transition:none}
+.loader .hs-ing-2.write .hs-txt{clip-path:inset(-20% -2% -20% 0);transition:clip-path var(--write,600ms) cubic-bezier(.35,.05,.45,.95)}
+.loader .hs-ing-2.shown .hs-txt{clip-path:none}
+.loader .hs-ing-2.smudge .hs-txt{clip-path:inset(-20% -2% -20% 0);filter:blur(2.2px);opacity:0;transform:translate(6px,-2px) skewX(-6deg);transition:filter .38s ease,opacity .4s ease,transform .42s ease}
+/* the resting bee sits at the dahlia's centre, on the pollen (not on its rim) */
+.hs .bee-rest{left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) / 2 - min(6.4cqh,4.1cqw) / 2);bottom:calc(5cqh + min(31cqh,20cqw) * .52 - min(6.4cqh,4.1cqw) / 2)}
+@media (max-width:759px){.hs .bee-rest{left:calc(108cqw - 9.5cqh - 2.3cqh);top:calc(58cqh + 9.95cqh - 2.3cqh);bottom:auto}}
+/* the hero's only buttons: Sound, Share (and Play / Play it back on a shared song). Their own treatment, apart from the
+   mark: small paper chips, ink type, a soft lift like the page's paper cut-outs, no strokes. Paper and ink are constant,
+   so they read the same at every point of the colour slider (ink on paper is about 17:1). They sit together at the hero's
+   top right, under the studio line (phones: at the hero's foot, right of the slider) */
+.hs-chips{position:absolute;z-index:8;right:var(--m);top:calc(7cqh + min(2.6cqh,1.55cqw) * 2.4 + 14px);display:flex;gap:10px;justify-content:flex-end;pointer-events:none}
+.hs-chip{all:unset;pointer-events:auto;cursor:pointer;position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;line-height:1;
+  color:#0E1112;background:#F1F2E3;padding:.78em 1.15em .72em;border-radius:999px;
+  box-shadow:0 6px 14px -6px rgba(14,17,18,.45),0 1px 2px rgba(14,17,18,.25);
+  opacity:0;transform:translateY(4px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.3,1),background .2s ease,color .2s ease,box-shadow .2s ease}
+.hs-chip.in{opacity:1;transform:none}
+.hs-chip::before{content:"";position:absolute;inset:-10px -5px}
+.hs-chip:hover{box-shadow:0 9px 18px -7px rgba(14,17,18,.5),0 1px 2px rgba(14,17,18,.25)}
+.hs-chip:active{transform:translateY(1px)}
+/* on or off, the chip is the same paper and ink on every ground; its word says what a tap does (Sound / Quiet) */
+.hs-chip.hs-play{font-weight:600}
+.hs-chip:focus-visible{outline:2px solid #F1F2E3;outline-offset:3px;box-shadow:0 0 0 5px #0E1112}
+.hs-chip .copied{position:absolute;left:auto;right:calc(100% + .4em);top:50%;bottom:auto;transform:translateY(-50%) rotate(-4deg);width:4.4em}
+.hs-chip .copied path{stroke:var(--oat)}
+@media (max-width:759px){
+  .hs-chips{top:auto;bottom:calc(1.2cqh + 2px);right:var(--m)}
+  .hs-chip{font-size:11px;padding:1.05em 1.25em .98em}
+}
+/* one line per x: the blocks draw no edge line of their own during the story (their paper seam would sit beside a
+   string or a guide and read as a doubled or kinked line); the lines are the only verticals */
+.hs.motion .pin .frame,.hs.motion .pin.intro .frame,.hs.motion .pin.intro.sealed .frame{--seam:0}
+/* the pencil "copied" (c/breeze copied.js) writes itself just above the Share chip */
+.hs-chip .hs-copied{position:absolute;left:50%;bottom:calc(100% + .35em);width:5.2em;transform:translateX(-50%) rotate(-3deg);pointer-events:none}
+
+/* ---------- b and c: the hero's foot (11-14, Ivy). "Technology that / gives energy back." moves up; the colour slider runs
+   under its last line, exactly as long as that line's ink; the chips sit at the bottom right with their words on the
+   same baseline (shared/song.js HeroUnder places both from the line's measured ink and baseline) ---------- */
+.hs-b .thesis,.hs-c .thesis{bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .62 + 58px)}
+.hs-b .hs-chips,.hs-c .hs-chips{top:auto;bottom:auto;flex-direction:row-reverse;align-items:flex-end}
+.hs-b .hs-chips.stack,.hs-c .hs-chips.stack{flex-direction:column-reverse;align-items:flex-end;gap:8px}
+@media (max-width:759px){.hs-b .hs-chip,.hs-c .hs-chip{padding:.95em 1.2em .9em}}
+/* the logo: as wide as one column of the guides (the distance between two neighbouring strings), and a touch lower under
+   the top line on desktop */
+.hs-b .mark .mono-pb.pb-logo,.hs-c .mark .mono-pb.pb-logo{height:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 * 5.95 / 3)}
+@media (min-width:760px){.hs-b .mark,.hs-c .mark{margin-top:1.6cqh}}
+@media (max-width:759px){.hs-b .mark .mono-pb.pb-logo,.hs-c .mark .mono-pb.pb-logo{height:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 * 5.95 / 3)}}
+/* WebKit (html.wk, set by c/): no filters or masks on anything that moves; the pencil word just fades and drifts */
+.wk .loader .hs-ing-2.smudge .hs-txt{filter:none;transition:opacity .4s ease,transform .42s ease}
+.wk .pbs .psun .moon.ph{filter:none;-webkit-mask:none;mask:none}

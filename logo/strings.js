@@ -1,0 +1,219 @@
+// HeroStrings (option c): the hero's faint guide lines are strings. Sweep the pointer across them and each one you
+// cross is plucked (it shivers, and with sound on it sounds, pitched low on the left to high on the right). The sun and
+// the two flowers each hang on a string of their own: grab one and slide it up or down its string, and it plays as it
+// travels (higher up, higher note). The logo's bars and the barcode share the same voice: one instrument.
+//   HeroStrings.positions()       the strings' x (viewport px): the guides' edges, then the sun's, peony's, dahlia's
+//   HeroStrings.mount(opacity)    put the strings into the hero (they replace the drawn guides)
+//   HeroStrings.pluck(i, amp)     shiver string i
+(function () {
+  let hero = null, layer = null, els = [], xs = [], objs = [], live = false;
+  const OBJ = ['.sun', '.peony', '.dahlia'];
+  function positions() {
+    hero = document.querySelector('.hero');
+    const hr = hero.getBoundingClientRect(), out = [];
+    hero.querySelectorAll('.guides span').forEach(sp => {
+      if (getComputedStyle(sp).display === 'none') return;
+      const r = sp.getBoundingClientRect(); out.push(r.left + .5, r.right - .5);
+    });
+    const g = out.map(x => ({ x, kind: 'guide' }));
+    OBJ.forEach(sel => { const o = document.querySelector('.objs ' + sel); if (!o) return; const r = o.getBoundingClientRect(); g.push({ x: r.left + r.width / 2, kind: 'obj', sel, top: r.top, bottom: r.bottom }); });
+    // an object that already hangs on a guide (the sun on phones) shares that string instead of doubling it
+    // and one within a gutter's width of a guide moves onto that guide (a nudge sideways), so no two lines ever run
+    // side by side
+    const near = Math.max(16, (hero.clientWidth || innerWidth) * .012);
+    for (let k = g.length - 1; k >= 0; k--) if (g[k].kind === 'obj') {
+      let on = null, best = near; g.forEach(s => { if (s.kind === 'guide' && Math.abs(s.x - g[k].x) < best) { best = Math.abs(s.x - g[k].x); on = s; } });
+      if (on) {
+        const o = document.querySelector('.objs ' + g[k].sel), dx = on.x - g[k].x;
+        if (o && Math.abs(dx) >= .5) { o.style.marginLeft = ((parseFloat(o.style.marginLeft) || 0) + dx).toFixed(2) + 'px'; if (g[k].sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) r.style.marginLeft = o.style.marginLeft; } }
+        Object.assign(on, { kind: 'obj', sel: g[k].sel, top: g[k].top, bottom: g[k].bottom }); g.splice(k, 1);
+      }
+    }
+    xs = g.map(s => ({ ...s, x: s.x - hr.left }));
+    return g;
+  }
+  function mount(opacity = .1) {
+    if (!hero) positions();
+    if (layer) layer.remove();
+    layer = document.createElement('div'); layer.className = 'hs-strings'; layer.setAttribute('aria-hidden', 'true');
+    hero.insertBefore(layer, hero.querySelector('.art'));   // under the type and the logo: a string never crosses the mark
+    els = xs.map((s, i) => { const d = document.createElement('i'); d.style.left = s.x.toFixed(2) + 'px'; d.style.opacity = (s.kind === 'obj' ? opacity * 1.6 : opacity).toFixed(3); layer.appendChild(d); return d; });
+    pencilLayer();
+    if (!live) wire();
+    live = true;
+  }
+  // each string's step in the shared tuning: low on the left, high on the right
+  const rankOf = i => xs.map((s, k) => [s.x, k]).sort((a, b) => a[0] - b[0]).findIndex(a => a[1] === i);
+  // more strings than notes (the guide edges come in pairs): a string that would repeat its neighbour's note plays it an
+  // octave lower and softer, like a thumb on the bass between fingers, so a sweep never flams the same pitch twice
+  const stepOf = i => Math.round(rankOf(i) * 13 / Math.max(1, xs.length - 1));
+  const thumb = i => { const r = rankOf(i); return r > 0 && Math.round((r - 1) * 13 / Math.max(1, xs.length - 1)) === stepOf(i); };
+  const stringFor = step => { let k = 0, best = 1e9; xs.forEach((s, i) => { const d = Math.abs(stepOf(i) - step); if (d < best) { best = d; k = i; } }); return k; };
+  const panOf = i => (xs[i].x / hero.clientWidth) * 1.6 - .8;
+  const note = (i, amp = 1) => { if (!window.HeroSound) return; const th = thumb(i); HeroSound.play('g', stepOf(i), { amp: th ? amp * .6 : amp, down: th, pan: panOf(i), bright: th ? .2 : .3 + .3 * amp }); };
+  // ---------- the pencil vibration (11-14, Ivy): a plucked, strummed or dragged string shivers as the same loose pencil
+  // scribble the strings fell in as, and settles back into its clean line. Drawn in the strings' own layer (under the
+  // type and the logo), one loop for every string in motion; a string plucked again takes the larger swing
+  const NS = 'http://www.w3.org/2000/svg', DUR = 720, active = new Map();
+  let svg = null, loop = 0;
+  // one pencil stroke down a string at x: the wobble the falling strings use (c/variant.js draws with this too)
+  function scribblePath(x, L, amp, i, q, t, k) {
+    let d = '';
+    for (let y = 0; y <= L + 1; y += 18) {
+      const yy = Math.min(y, L), ph = i * 1.7 + q * 2.1;
+      const xx = x + amp * (Math.sin(yy / 41 + ph + t / 260) * .65 + Math.sin(yy / 11 + ph * 1.3) * .35) + (q ? (1 - k) * 1.8 : 0);
+      d += (y ? 'L' : 'M') + xx.toFixed(2) + ' ' + yy.toFixed(1);
+    }
+    return d;
+  }
+  function pencilLayer() {
+    svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'hs-strum'); svg.setAttribute('aria-hidden', 'true');
+    layer.appendChild(svg);
+  }
+  function step(now) {
+    loop = 0;
+    const H = hero.clientHeight;
+    active.forEach((v, i) => {
+      const d = els[i], k = Math.min(1, (now - v.t0) / DUR);
+      if (k >= 1 || !d) { if (d) d.style.visibility = ''; v.p.forEach(p => p.remove()); active.delete(i); return; }
+      d.style.visibility = 'hidden';
+      const base = parseFloat(d.style.opacity) || .1, e = Math.pow(1 - k, 1.7), A = v.amp * e;
+      v.p.forEach((p, q) => {
+        p.setAttribute('d', scribblePath(xs[i].x, H, A, i, q, now, k));
+        p.setAttribute('stroke-width', q ? (1.1 * e).toFixed(2) : lerp(1.3, 1, k).toFixed(2));
+        p.setAttribute('opacity', (q ? (base + .35 * v.peak) * .6 * e : base + (.35 * v.peak) * e).toFixed(3));
+      });
+    });
+    if (active.size) loop = requestAnimationFrame(step);
+  }
+  const lerp = (a, b, k) => a + (b - a) * k;
+  function pluck(i, amp = 1, sound = true) {
+    const d = els[i]; if (!d) return;
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches && svg) {
+      const now = performance.now(), A = 3 + 3.2 * Math.min(1.4, amp), cur = active.get(i);
+      const left = cur ? cur.amp * Math.pow(1 - Math.min(1, (now - cur.t0) / DUR), 1.7) : 0;
+      const p = cur ? cur.p : [0, 1].map(() => { const n = document.createElementNS(NS, 'path'); n.setAttribute('fill', 'none'); n.setAttribute('stroke-linecap', 'round'); n.setAttribute('stroke-linejoin', 'round'); svg.appendChild(n); return n; });
+      active.set(i, { amp: Math.max(A, left), peak: Math.min(1, amp), t0: now, p });
+      if (!loop) loop = requestAnimationFrame(step);
+    }
+    if (sound) note(i, amp);
+  }
+  // the flowers' and the sun's voices
+  const VOICE = { '.peony': 'p', '.dahlia': 'd', '.sun': 's' };
+  const FIG = { p: [0, 2, 1], d: [0, 1] };                 // a tap: a little figure (the peony three notes, the dahlia two)
+  const limOf = () => hero.clientHeight * .22;
+  const stepAt = m => Math.round(10 - (m / limOf()) * 7);   // higher up the string, higher in the tuning
+  function voiceStep(sel, step, pan, o = {}) {
+    if (!window.HeroSound) return;
+    HeroSound.play(VOICE[sel], step, { pan, ...o });   // the sun: a soft chime per step
+  }
+  function figure(sel, step, pan) {
+    const v = VOICE[sel]; if (!window.HeroSound) return;
+    if (v === 's') { HeroSound.play('s', step, { pan }); return; }
+    FIG[v].forEach((k, n) => setTimeout(() => HeroSound.play(v, step + k, { pan }), n * 130));
+  }
+  function wire() {
+    // sweeping across the strings plucks every one you cross
+    // sweeping anywhere across the hero strums: every string you cross sounds (listened for on the window, so the sun
+    // and the flowers, which sit above the hero, never swallow the sweep)
+    let lastX = null;
+    addEventListener('pointermove', e => {
+      if (drag) return;
+      const hr = hero.getBoundingClientRect();
+      if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
+      const x = e.clientX - hr.left;
+      if (lastX != null) xs.forEach((s, i) => { if ((lastX - s.x) * (x - s.x) < 0) pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); });
+      lastX = x;
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => { lastX = null; });
+    // the sun and the flowers slide along their strings
+    let drag = null;
+    // a flower's (or the sun's) string can be taken anywhere along it, not only at the flower: a press within reach of
+    // the string moves its object
+    addEventListener('pointerdown', e => {
+      if (drag || e.button > 0) return;
+      const hr = hero.getBoundingClientRect(); if (e.clientY < hr.top || e.clientY > hr.bottom) return;
+      if (e.target.closest && e.target.closest('a,button,.pbs,.mark,.hs-ask,.hs-grab,.thesis,.dateline,.dl-sub')) return;
+      const x = e.clientX - hr.left, reach = e.pointerType === 'mouse' ? 9 : 16;
+      let k = -1, best = 1e9;
+      // two strings close together (the phone's peony and dahlia): the one whose flower is nearer the press, up or down
+      xs.forEach((s, i) => {
+        if (s.kind !== 'obj' || Math.abs(s.x - x) >= reach) return;
+        const r = document.querySelector('.objs ' + s.sel).getBoundingClientRect(), dy = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+        const score = Math.abs(s.x - x) + dy * .25; if (score < best + 1e3 && (k < 0 || score < best)) { best = score; k = i; }
+      });
+      if (k < 0) return;
+      const o = document.querySelector('.objs ' + xs[k].sel); if (!o) return;
+      e.preventDefault();
+      begin(o, k, e);
+    }, { capture: true });
+    function begin(o, i, e) {
+      try { o.setPointerCapture(e.pointerId); } catch (er) {}
+      const m = parseFloat(o.style.marginTop) || 0;
+      o.style.transition = ''; const br = document.querySelector('.objs .bee-rest'); if (br) br.style.transition = '';
+      drag = { o, i, y0: e.clientY, m0: m, last: e.clientY, step: stepAt(m), moved: false, sel: xs[i].sel };
+      o.classList.add('hs-held');
+
+    }
+    xs.forEach((s, i) => {
+      if (s.kind !== 'obj') return;
+      const o = document.querySelector('.objs ' + s.sel); if (!o) return;
+      o.classList.add('hs-grab'); objs.push(o);
+      o.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation();
+        begin(o, i, e);
+      });
+      o.addEventListener('pointermove', e => {
+        if (!drag || drag.o !== o) return;
+        const hr = hero.getBoundingClientRect(), orr = o.getBoundingClientRect(), m0 = parseFloat(o.style.marginTop) || 0, lim = hero.clientHeight * .22;
+        // up only as far as clears the top line, down only as far as stays inside the hero
+        const top = Math.min(lim, Math.max(0, orr.top - m0 - hr.top - hero.clientHeight * .14)), bot = Math.min(lim, Math.max(0, hr.bottom - (orr.top - m0 + orr.height * .55)));   // down until about half of it has slipped under the hero's edge
+        const m = Math.max(-top, Math.min(bot, drag.m0 + e.clientY - drag.y0));   // up only as far as clears the top line
+        o.style.marginTop = m.toFixed(1) + 'px';
+        // the resting bee rides its flower: it moves with the dahlia, so it is never left on empty air
+        if (s.sel === '.dahlia') { const r = document.querySelector('.objs .bee-rest'); if (r) r.style.marginTop = m.toFixed(1) + 'px'; }
+        if (Math.abs(e.clientY - drag.y0) > 4) drag.moved = true;
+        // a melodic run: every step of the tuning the flower passes sounds, in order (a sun drag moves its choir)
+        const st = stepAt(m);
+        if (st !== drag.step) {
+          const dir = Math.sign(st - drag.step), steps = [];
+          for (let k = drag.step + dir; dir > 0 ? k <= st : k >= st; k += dir) steps.push(k);
+          steps.slice(-4).forEach((k, n) => setTimeout(() => voiceStep(s.sel, k, panOf(i)), n * 55));
+          drag.step = st; pluck(i, .8, false);
+        }
+      });
+      const end = () => {
+        if (!(drag && drag.o === o)) return;
+        o.classList.remove('hs-held');
+        if (!drag.moved) figure(drag.sel, drag.step, panOf(drag.i));   // a tap: its little figure
+        drag = null;
+      };
+      o.addEventListener('pointerup', end); o.addEventListener('pointercancel', end); o.addEventListener('lostpointercapture', end);
+      // a press taken on the string (begin from the window) moves here too: pointer capture sends its moves to the object
+    });
+  }
+  // the number row plays the strings, 1 low to 0 high (not while typing, not with modifiers)
+  addEventListener('keydown', e => {
+    if (!live || e.metaKey || e.ctrlKey || e.altKey || e.repeat || /input|textarea|select/i.test(e.target.tagName) || (e.target.isContentEditable)) return;
+    const k = '1234567890'.indexOf(e.key); if (k < 0) return;
+    const order = xs.map((s, i) => [s.x, i]).sort((a, b) => a[0] - b[0]).map(a => a[1]);
+    pluck(order[Math.round(k * (order.length - 1) / 9)], 1);
+  });
+  // a shared song moves things: a flower or the sun to the place on its string that gives a step
+  function setObj(sel, step, ms = 360) {
+    const o = document.querySelector('.objs ' + sel); if (!o) return;
+    const m = (10 - step) / 7 * limOf(), hr = hero.getBoundingClientRect(), r = o.getBoundingClientRect(), m0 = parseFloat(o.style.marginTop) || 0;
+    const top = Math.max(0, r.top - m0 - hr.top - hero.clientHeight * .14), bot = Math.max(0, hr.bottom - (r.bottom - m0) - 6), mm = Math.max(-top, Math.min(bot, m));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    [o, sel === '.dahlia' && document.querySelector('.objs .bee-rest')].forEach(el => { if (!el) return; el.style.transition = reduce ? '' : `margin-top ${ms}ms cubic-bezier(.65,0,.35,1)`; el.style.marginTop = mm.toFixed(1) + 'px'; });
+  }
+  let rz = 0;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!layer) return; const keep = live; positions(); live = keep; const op = parseFloat(els[0] && els[0].style.opacity) || .1; layer.remove(); layer = null; mountLines(op); }, 150); });
+  function mountLines(opacity) {
+    layer = document.createElement('div'); layer.className = 'hs-strings'; layer.setAttribute('aria-hidden', 'true');
+    hero.insertBefore(layer, hero.querySelector('.art'));   // under the type and the logo: a string never crosses the mark
+    els = xs.map(s => { const d = document.createElement('i'); d.style.left = s.x.toFixed(2) + 'px'; d.style.opacity = (s.kind === 'obj' ? opacity * 1.6 : opacity).toFixed(3); layer.appendChild(d); return d; });
+    active.forEach(v => v.p.forEach(p => p.remove())); active.clear(); pencilLayer();
+  }
+  window.HeroStrings = { positions, mount, pluck, scribblePath, stringFor, setObj, VOICE, get xs() { return xs; } };
+})();

@@ -14,6 +14,7 @@
 <meta property="og:image:height" content="1256">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://planetbased.io/img/share.jpg?v=1">
+<script>(function(){var d=document.documentElement,m=location.search.match(/[?&]size=([12])/);d.classList.add('hs','hs-c','hl-size'+(m?m[1]:'2'));})();</script>
 <script>
 // ?mark=word swaps the pb monogram for the wordmark; ?mark=pb2 / pb3 try other faces. Set before anything is drawn or cloned
 (function () {
@@ -662,6 +663,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
+<link rel="stylesheet" href="logo/story.css?v=1">
+<link rel="stylesheet" href="logo/c-variant.css?v=1">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -776,7 +779,7 @@ html.boot .pbs{visibility:hidden}
 <main>
   <section class="stage" id="stage" aria-label="planetbased.io">
     <div class="pin" id="pin">
-      <div class="loader" aria-hidden="true"><div class="loader-in"><img class="loader-tree" id="loaderTree" src="img/orange-tree-poster.webp" width="342" height="616" alt=""><p>planetbased.io</p></div></div>
+      <div class="loader" aria-hidden="true"><div class="loader-in"><img class="loader-tree" id="loaderTree" src="img/orange-tree-poster.webp" width="342" height="616" alt=""></div></div>
       <script>
       // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
       (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot')) return;
@@ -913,6 +916,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
+<script src="logo/hero-logo-data.js?v=1"></script>
+<script src="logo/pose.js?v=1"></script>
+<script src="logo/sound.js?v=1"></script>
+<script src="logo/bees.js?v=1"></script>
+<script src="logo/hero-logo.js?v=1"></script>
+<script src="logo/story.js?v=1"></script>
+<script src="logo/common.js?v=1"></script>
+<script src="logo/song.js?v=1"></script>
+<script src="logo/strings.js?v=1"></script>
+<script src="logo/preload.js?v=1"></script>
+<script src="logo/c-variant.js?v=1"></script>
 <script>
 (() => {
   'use strict';
@@ -1105,56 +1119,17 @@ html.boot .pbs{visibility:hidden}
   function runIntro(replay) {
     introRunning = true; introDone = false; hurried = false;
     stopSun();
-    pin.classList.remove('reveal', 'sealed', 'split', 'logo-run', 'logo-morph', 'logo-fade');
-    pin.classList.add('intro', 'sliding');
-    const loader = pin.querySelector('.loader'), tree = loader && loader.querySelector('.loader-in');
-    if (loader) loader.querySelectorAll('.lcut').forEach(n => n.remove());
-    if (tree) pin.classList.add('cut');
-    const order = ['wall', 'uni', 'top', 'bee', 'bio', 'low'];
-    const delays = [0, 110, 230, 320, 470, 580].map(d => d + (replay ? 80 : 120));
-    const durs = [700, 740, 660, 720, 760, 680];
+    pin.classList.remove('reveal', 'sealed', 'split');
+    pin.classList.add('intro');
     blocks.forEach(b => {
       setBlock(b, b.hr.x, b.hr.y, b.hr.w, b.hr.h, b.hr.x, b.hr.y);
-      // hand the art and the shadow back to the intro CSS; keep the plate content hidden
       b.art.style.opacity = ''; b.art.__pb.opacity = undefined; b.shade.style.opacity = ''; b.shade.__pb.opacity = undefined;
       if (b.pc) put(b.pc, 'opacity', '0'); if (b.cap) put(b.cap, 'opacity', '0'); if (b.rest) put(b.rest, 'opacity', '0');
       b.prevT = 0;
     });
     heroArt.style.opacity = ''; heroArt.__pb.opacity = undefined; objs.style.opacity = ''; objs.style.transform = ''; objs.__pb = {};
-    let lastLock = 0, lastIdx = 0;
-    order.forEach((k, i) => { const at = delays[i] + durs[i]; if (at > lastLock) { lastLock = at; lastIdx = i; } });
-    let end = 0;
-    order.forEach((k, i) => {
-      const b = blocks.find(x => x.k === k), hr = b.hr;
-      let ox = 0, oy = 0;
-      if (b.spec.from === 'left') ox = -(hr.x + hr.w + 60);
-      if (b.spec.from === 'right') ox = W - hr.x + 60;
-      if (b.spec.from === 'top') oy = -(hr.y + hr.h + 60);
-      if (b.spec.from === 'bottom') oy = H - hr.y + 60;
-      const at = (dx, dy) => `translate3d(${hr.x + dx}px,${hr.y + dy}px,0)`;
-      put(b.el, 'transform', at(ox, oy));
-      if (tree) {                                  // this block's piece of the tree, pushed the way the block travels
-        const pc = document.createElement('div'); pc.className = 'lcut'; pc.setAttribute('aria-hidden', 'true');
-        pc.appendChild(tree.cloneNode(true)); pc.firstChild.removeAttribute('id'); pc.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
-        pc.style.clipPath = `inset(${hr.y}px ${W - hr.x - hr.w}px ${H - hr.y - hr.h}px ${hr.x}px)`;
-        loader.appendChild(pc);
-        const px = -Math.sign(ox) * W * .035, py = -Math.sign(oy) * H * .05;
-        introAnims.push(pc.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`, opacity: 0 }],
-          { duration: durs[i] * .9, delay: delays[i], fill: 'forwards', easing: 'cubic-bezier(.65,0,.35,1)' }));
-      }
-      // the same in-out curve the scroll uses, no overshoot: each block glides in and settles
-      const a = b.el.animate([{ transform: at(ox, oy) }, { transform: at(0, 0) }],
-        { duration: durs[i], delay: delays[i], fill: 'forwards', easing: 'cubic-bezier(.65,0,.35,1)' });
-      introAnims.push(a);
-      introTimers.push(setTimeout(() => b.el.classList.add('moving'), delays[i]));
-      const lockAt = delays[i] + durs[i] * .8;     // the lift starts settling as the block arrives
-      introTimers.push(setTimeout(() => {
-        b.el.classList.remove('moving');
-        if (i === lastIdx) pin.classList.add('sealed');
-      }, lockAt));
-      end = Math.max(end, delays[i] + durs[i]);
-    });
-    introTimers.push(setTimeout(finishIntro, Math.max(end, lastLock) + 260));
+    // logo-r5: the whole entrance runs on one clock (shared/story.js, this page's variant.js)
+    HeroStory.runDesktop({ pin, blocks, put, loader: pin.querySelector('.loader'), finish: () => { pin.classList.add('sealed'); finishIntro(); } });
   }
   function finishIntro() {
     if (!introRunning) return;
@@ -1173,84 +1148,11 @@ html.boot .pbs{visibility:hidden}
     const lt = document.getElementById('loaderTree'); if (lt && lt.getAttribute('src')) setTimeout(() => lt.removeAttribute('src'), 800);   // stop the tree's animation once it has gone
     playLogo();
     render();
-    startSun(SUN_SETTLE);
+    startSun(window.HeroStory ? HeroStory.SUN_SETTLE : SUN_SETTLE);
   }
-  // the logo: two plain strokes, a held beat, then the letters grow out of them. L (or ?logo=replay) plays it again
-  const glyph = document.querySelector('.hero .mark .pb-glyph');
-  const LOGO_DEFAULT = 'morph';
-  const logoMode = (location.search.match(/[?&]logo=(morph|fade)(&|$)/) || [])[1] || LOGO_DEFAULT;
-  let logoDone = null, morphRaf = 0, morph = null;
-  // morph pieces: each letter's outline is its own closed shapes (stem with its serifs, the foot, the bowl). Every piece
-  // starts as part of the bar (the stem pieces ARE the bars, the foot and bowl start as slivers inside them) and grows
-  // into its outline. Separate solid paths, same fill: no winding tricks, no masks, nothing translucent
-  function buildMorph() {
-    if (morph || !glyph || !window.flubber) return morph;
-    const subs = glyph.getAttribute('d').match(/M[^M]+/g);   // foot, p stem, p bowl, b stem, b bowl
-    if (!subs || subs.length !== 5) return null;
-    const R = (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
-    const plan = [
-      { l: 'p', from: R(77, 445, 70, 885), to: subs[1] },      // the p bar becomes the p's stem and spur
-      { l: 'p', from: R(77, 1296, 70, 34), to: subs[0] },      // the foot spreads out of the bar's bottom
-      { l: 'p', from: R(139, 470, 8, 420), to: subs[2] },      // the bowl swells out of the bar's right side
-      { l: 'b', from: R(587, 4, 71, 908), to: subs[3] },       // the b bar becomes the b's stem, flag and spur
-      { l: 'b', from: R(650, 450, 8, 450), to: subs[4] }       // the bowl swells out of the bar's right side
-    ];
-    const layer = glyph.parentNode.querySelector('.pb-morph');
-    layer.textContent = '';
-    morph = plan.map(q => {
-      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      el.setAttribute('d', q.from); layer.appendChild(el);
-      return { l: q.l, el, f: flubber.interpolate(q.from, q.to, { maxSegmentLength: 6 }) };
-    });
-    return morph;
-  }
-  if (logoMode === 'morph') {
-    const sc = document.createElement('script');
-    sc.src = 'https://cdn.jsdelivr.net/npm/flubber@0.4.2/build/flubber.min.js';
-    sc.onload = () => (window.requestIdleCallback || setTimeout)(buildMorph);
-    document.head.appendChild(sc);
-  }
-  const smootherstep = t => t * t * t * (t * (t * 6 - 15) + 10);
-  function endLogo() {
-    cancelAnimationFrame(morphRaf); clearTimeout(logoDone);
-    pin.classList.remove('logo-run', 'logo-morph', 'logo-fade');   // back to the one pure outlined path
-  }
-  function playLogo() {
-    if (reduceQ.matches || !glyph) return;
-    endLogo();
-    const mode = logoMode === 'morph' && buildMorph() ? 'morph' : 'fade';
-    void pin.offsetWidth;
-    pin.classList.add('logo-run', 'logo-' + mode);
-    if (mode === 'fade') { logoDone = setTimeout(endLogo, 1700); return; }
-    // morph: the bars hold for a beat, then the p grows, the b follows a third of the way in. One smooth curve each
-    morph.forEach(m => m.el.setAttribute('d', m.f(0)));
-    const t0 = performance.now() + 800, D = 1100, LAG = 350;
-    const step = now => {
-      const tp = clamp((now - t0) / D), tb = clamp((now - t0 - LAG) / D);
-      const ep = smootherstep(tp), eb = smootherstep(tb);
-      morph.forEach(m => { const e = m.l === 'p' ? ep : eb; if (m.e !== e) { m.e = e; m.el.setAttribute('d', m.f(e)); } });
-      if (tb < 1) morphRaf = requestAnimationFrame(step); else endLogo();
-    };
-    morphRaf = requestAnimationFrame(step);
-  }
-  addEventListener('keydown', e => { if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey && !/input|textarea/i.test(e.target.tagName)) playLogo(); });
-  // review hook: ?debug freezes the morph at a given progress, __logoAt(p, b)
-  if (/[?&]debug(&|$)/.test(location.search)) window.__logoAt = (tp, tb) => { endLogo(); if (!buildMorph()) return 'no morph'; pin.classList.add('logo-run', 'logo-morph'); morph.forEach(m => m.el.setAttribute('d', m.f(smootherstep(clamp(m.l === 'p' ? tp : tb))))); return 'ok'; };
-  if (/[?&](logo=replay|replay)(&|$)/.test(location.search)) setInterval(() => { if (window.scrollY < 4) playLogo(); }, 6500);
+  function playLogo() {}   // logo-r5: the mark is the story's (shared/hero-logo.js)
   // a scroll or key during the intro fast-forwards it (every block finishes its glide within ~0.3 s) instead of snapping
-  function hurryIntro() {
-    if (!introRunning || hurried) return;
-    hurried = true;
-    introTimers.forEach(clearTimeout); introTimers = [];
-    let left = 0;
-    introAnims.forEach(a => {
-      const rem = Math.max(0, a.effect.getComputedTiming().endTime - (a.currentTime || 0)), rate = Math.max(1, rem / 300);
-      a.updatePlaybackRate(rate); left = Math.max(left, rem / rate);
-    });
-    blocks.forEach(b => b.el.classList.remove('moving'));
-    pin.classList.add('sealed');
-    introTimers.push(setTimeout(finishIntro, left + 60));
-  }
+  function hurryIntro(e) { if (window.HeroStory && !(e && e.target && e.target.closest && e.target.closest('.hs-ask, .pbs'))) HeroStory.hurry(); }
   ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, hurryIntro, { passive: true }));
 
   // ---------- stop-motion sun: irregular, seeded ----------
@@ -1383,7 +1285,7 @@ html.boot .pbs{visibility:hidden}
     const pr = objs.querySelector('.peony').getBoundingClientRect();
     const j = k => (brand() - .5) * k;
     // the visit is the peony's centre, where the nectar is
-    const visit = { x: (pr.left + pr.right) / 2 - o.left + j(bw * .15), y: (pr.top + pr.bottom) / 2 - o.top - bw * .15 + j(bw * .12) };
+    const visit = { x: (pr.left + pr.right) / 2 - o.left, y: (pr.top + pr.bottom) / 2 - o.top };   // logo-r5: the centre, where the pollen is
     const pts = [
       { x: Wd + bw * 2, y: Hd * (.2 + brand() * .06) },
       { x: Wd + bw, y: Hd * (.2 + brand() * .05) },
@@ -1412,7 +1314,7 @@ html.boot .pbs{visibility:hidden}
     for (let i = 1; i < line.length; i++) { acc += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y); L.push(acc); }
     // where the visit is on the line: the point closest to it
     let vi = 0, best = 1e9; line.forEach((q, i) => { const d = Math.hypot(q.x - visit.x, q.y - visit.y); if (d < best) { best = d; vi = i; } });
-    return { line, L, total: acc, visitAt: L[vi], bw };
+    return { line, L, total: acc, visitAt: L[vi], bw, pc0: [(pr.left + pr.right) / 2 - o.left, (pr.top + pr.bottom) / 2 - o.top] };
   }
   function beeAt(P, d) {
     let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
@@ -1425,6 +1327,9 @@ html.boot .pbs{visibility:hidden}
     const P = beePath();
     let d = 0, frame = 0, visited = false, bob = 0;
     beeFlying = true; beeFly.classList.add('flying');
+    // where the peony is now, against where it was when the flight was planned
+    const off = w => { const o = objs.getBoundingClientRect(), pr = objs.querySelector('.peony').getBoundingClientRect(); return [((pr.left + pr.right) / 2 - o.left - P.pc0[0]) * w, ((pr.top + pr.bottom) / 2 - o.top - P.pc0[1]) * w]; };
+    const near = () => clamp(1 - Math.abs(d - P.visitAt) / (P.total * .35));
     const step = () => {
       // brisk on the way to the flower, lazier after the nectar
       const stride = P.bw * (visited ? .1 + brand() * .12 : .22 + brand() * .14);
@@ -1436,10 +1341,10 @@ html.boot .pbs{visibility:hidden}
           if (k++ >= n) { beeTimer = setTimeout(step, 300); return; }
           frame ^= (brand() < .35 ? 1 : 0); beeImgs.forEach((im, i) => im.classList.toggle('on', i === frame));
           const jx = (brand() - .5) * P.bw * .08, jy = (brand() - .5) * P.bw * .06, rr = (brand() - .5) * 12;
-          beeFly.style.transform = `translate(${(q0.x - P.bw / 2 + jx).toFixed(1)}px,${(q0.y - P.bw / 2 + jy).toFixed(1)}px) rotate(${rr.toFixed(1)}deg) scaleX(${brand() < .5 ? 1 : -1})`;
+          const f = off(1); beeFly.style.transform = `translate(${(q0.x + f[0] - P.bw / 2 + jx).toFixed(1)}px,${(q0.y + f[1] - P.bw / 2 + jy).toFixed(1)}px) rotate(${rr.toFixed(1)}deg) scaleX(${brand() < .5 ? 1 : -1})`;
           beeTimer = setTimeout(shuffle, 240 + brand() * 220);
         };
-        beeFly.style.transform = `translate(${(q0.x - P.bw / 2).toFixed(1)}px,${(q0.y - P.bw / 2).toFixed(1)}px) scaleX(${q0.dx > 0 ? -1 : 1})`;
+        const f0 = off(1); beeFly.style.transform = `translate(${(q0.x + f0[0] - P.bw / 2).toFixed(1)}px,${(q0.y + f0[1] - P.bw / 2).toFixed(1)}px) scaleX(${q0.dx > 0 ? -1 : 1})`;
         beeTimer = setTimeout(shuffle, 260);
         return;
       }
@@ -1449,7 +1354,7 @@ html.boot .pbs{visibility:hidden}
       bob = (brand() - .5) * P.bw * .08;
       const face = q.dx > 0 ? -1 : 1;                                          // both flying bees face left in the art
       const tilt = clamp(Math.atan2(q.dy, Math.abs(q.dx) + 1e-6) * 180 / Math.PI * .5, -12, 12) * (q.dx > 0 ? 1 : -1);
-      beeFly.style.transform = `translate(${(q.x - P.bw / 2).toFixed(1)}px,${(q.y - P.bw / 2 + bob).toFixed(1)}px) rotate(${tilt.toFixed(1)}deg) scaleX(${face})`;
+      const fq = off(near()); beeFly.style.transform = `translate(${(q.x + fq[0] - P.bw / 2).toFixed(1)}px,${(q.y + fq[1] - P.bw / 2 + bob).toFixed(1)}px) rotate(${tilt.toFixed(1)}deg) scaleX(${face})`;
       if (d >= P.total) { beeFlying = false; beeFly.classList.remove('flying'); scheduleBee(); return; }
       beeTimer = setTimeout(step, wait);
     };
@@ -1475,7 +1380,7 @@ html.boot .pbs{visibility:hidden}
     // in a background tab and then shown) is what flicked the sun through several faces just as it came in
     sunTimer = setTimeout(sunFrame, first || 3600 + srand() * 1800);
     // the first flight is the last beat of the arrival, 3.2 s after the blocks lock, so it is seen before anyone scrolls
-    if (!beeTimer && !beeFlying) { scheduleBee(beeFirst ? 3200 + brand() * 200 : 7000 + brand() * 4000); beeFirst = false; }
+    if (!beeTimer && !beeFlying) { scheduleBee(beeFirst ? (window.HeroStory ? HeroStory.BEE_FIRST : 3200) + brand() * 200 : 7000 + brand() * 4000); beeFirst = false; }
   }
   function stopSun() {
     clearTimeout(sunTimer); sunTimer = null; fTimers.forEach(clearTimeout); fTimers = [];
@@ -1495,6 +1400,26 @@ html.boot .pbs{visibility:hidden}
   function watch(el, f) { (el.__onVis || (el.__onVis = [])).push(f); if (io) io.observe(el); else f(true); }
   const relTo = (el, host) => { const r = el.getBoundingClientRect(), h = host.getBoundingClientRect(); return { l: r.left - h.left, t: r.top - h.top, r: r.right - h.left, b: r.bottom - h.top }; };
   const grow = (q, p, pb) => ({ l: q.l - p, t: q.t - p, r: q.r + p, b: q.b + (pb == null ? p : pb) });
+  // 11-14 (Ivy): bees never fly over or rest on type. A flight's arc is lifted until no point of it touches a text box
+  // the boxes are the type's own line boxes (a Range's rects), not the paragraphs' blocks, which reach under the flowers
+  const closingType = pad => {
+    const h = closing.getBoundingClientRect(), out = [], rg = document.createRange();
+    document.querySelectorAll('.closing .studio, .closing .contact a.mail, .closing .quiet, .foot span').forEach(e => {
+      rg.selectNodeContents(e);
+      [...rg.getClientRects()].forEach(q => { if (q.width > 1) out.push(grow({ l: q.left - h.left, t: q.top - h.top, r: q.right - h.left, b: q.bottom - h.top }, pad)); });
+    });
+    return out;
+  };
+  function clearArc(a, b, c, w) {
+    const boxes = closingType(w * .55), hit = (x, y) => boxes.some(q => x + w / 2 > q.l && x + w / 2 < q.r && y + w / 2 > q.t && y + w / 2 < q.b);
+    for (let n = 0; n < 12; n++) {
+      let bad = false;
+      for (let i = 1; i < 24 && !bad; i++) { const t = i / 24, u = 1 - t; if (hit(u * u * a.x + 2 * u * t * c.x + t * t * b.x, u * u * a.y + 2 * u * t * c.y + t * t * b.y)) bad = true; }
+      if (!bad) break;
+      c = { x: c.x, y: c.y - w * 1.2 };
+    }
+    return c;
+  }
   // layout position inside a positioned host, ignoring transforms (the plates are scaled and slid on the compositor)
   function offIn(el, host) {
     let x = 0, y = 0, e = el;
@@ -1752,7 +1677,7 @@ html.boot .pbs{visibility:hidden}
     };
     // a gentle arc from a to b, always bowing upward (away from the type below the flower)
     function arc(a, b, then) {
-      const w = bee.offsetWidth, c = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - w * (1.2 + r() * 1.4) };
+      const w = bee.offsetWidth, c = clearArc(a, b, { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - w * (1.2 + r() * 1.4) }, w);
       const steps = Math.max(10, Math.round((Math.hypot(b.x - a.x, b.y - a.y) + w * 3) / (w * .34)));
       let i = 0;
       const step = () => {
@@ -1790,7 +1715,7 @@ html.boot .pbs{visibility:hidden}
     watch(fl, v => { on = v; if (on && !timer) { timer = setTimeout(visit, first ? 150 : 2500 + r() * 2500); } });
   })();
 
-  // ---------- the visiting bee: rests on the small flower, now and then flies to "stranger" and rests on the word ----------
+  // ---------- the visiting bee: lives on the small flower, now and then pays the big one a quick visit. Never on type ----------
   (() => {
     const bee = document.getElementById('cBee');
     const imgs = [...bee.querySelectorAll('img')], restImg = imgs[0], wings = imgs.slice(1);
@@ -1814,7 +1739,7 @@ html.boot .pbs{visibility:hidden}
     function place() { pos = spot(at); show(true); bee.classList.add('placed'); }
     function fly(to, then) {
       const a = { ...pos }, b = spot(to), w = bw();
-      const c = { x: (a.x + b.x) / 2 + (r() - .5) * w * 3, y: Math.min(a.y, b.y) - w * (1.5 + r() * 2) };
+      const c = clearArc(a, b, { x: (a.x + b.x) / 2 + (r() - .5) * w * 3, y: Math.min(a.y, b.y) - w * (1.5 + r() * 2) }, w);
       const len = Math.hypot(b.x - a.x, b.y - a.y) + w * 3, steps = Math.max(8, Math.round(len / (w * .32)));
       let i = 0;
       const step = () => {
@@ -1851,7 +1776,7 @@ html.boot .pbs{visibility:hidden}
       timer = null;
       if (!on || reduceQ.matches) return;
       if (at === 'small') {
-        const go = r() < .35 ? 'big' : 'word';
+        const go = 'big';   // 11-14 (Ivy): never onto the word "stranger" (no bee on type)
         fly(go, () => { timer = setTimeout(go === 'big' ? () => fly('small', () => work(6000 + r() * 6000, next)) : next, go === 'big' ? 500 + r() * 400 : 5000 + r() * 4000); });
       } else fly('small', () => work(7000 + r() * 7000, next));
     }
@@ -2250,17 +2175,16 @@ html.boot .pbs{visibility:hidden}
     ]);
     // 11-13 (Ivy): the tree twists, its pencil swirls come and go, and the page moves on as they finish (capped)
     const beat = Promise.race([window.pbSwirlsDone || new Promise(r => setTimeout(r, Math.max(0, 2200 - performance.now()))), new Promise(r => setTimeout(r, Math.max(0, 2700 - performance.now())))]);
-    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 3000))])]).then(() => {
-      // the tree lifts away and the green rises (CSS); when the green locks, the loader goes and the arrival starts on it
-      doc.classList.add('boot-out');
-      setTimeout(() => {
-        pin.classList.add('reveal');
-        doc.classList.remove('boot', 'boot-out');
-        introDone = true; window.__heroSettled = performance.now();
-        playLogo(); startSun(SUN_SETTLE);
-        const lt = document.getElementById('loaderTree'); if (lt) lt.removeAttribute('src');
-      }, 140 + 800 + 60);
-      // decode what lies further down while the hero arrives, so the first scroll on a phone never stalls on an image
+    (window.HeroPreload ? HeroPreload.done : Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, 3000))])])).then(() => {
+      // logo-r5: the phone's entrance runs on the same clock as the desktop's
+      HeroStory.runPhone({ pin, blocks: [], put, loader: document.querySelector('.loader'), greenUp: () => doc.classList.add('boot-out'),
+        finish: () => {
+          pin.classList.add('reveal');
+          doc.classList.remove('boot', 'boot-out');
+          introDone = true; window.__heroSettled = performance.now();
+          startSun(HeroStory.SUN_SETTLE);
+          const lt = document.getElementById('loaderTree'); if (lt) lt.removeAttribute('src');
+        } });
       setTimeout(() => document.querySelectorAll('.work img, .closing img').forEach(im => { im.loading = 'eager'; if (im.decode) im.decode().catch(() => {}); }), 3600);
     });
   }
@@ -2273,7 +2197,7 @@ html.boot .pbs{visibility:hidden}
     ]);
     // 11-13 (Ivy): the tree and its word hold for at least 1.7 s, and the blocks always begin by about 2.2 s
     const beat = Promise.race([window.pbSwirlsDone || new Promise(r => setTimeout(r, Math.max(0, 1700 - performance.now()))), new Promise(r => setTimeout(r, Math.max(0, 2500 - performance.now())))]);   // 11-13: waits for the tree's swirls (capped)
-    Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, Math.max(0, 2050 - performance.now())))])]).then(() => {
+    (window.HeroPreload ? HeroPreload.done : Promise.all([beat, Promise.race([ready, new Promise(r => setTimeout(r, Math.max(0, 2050 - performance.now())))])])).then(() => {
       if (window.scrollY > 4) { pin.classList.remove('intro'); introDone = true; window.__heroSettled = performance.now(); render(); startSun(); return; }
       runIntro(false);
     });
@@ -2313,27 +2237,35 @@ html.boot .pbs{visibility:hidden}
 
   // ---- the slider: in the hero's top line, over a slot the dateline keeps open for it. ?dial puts it on a small ring
   const dial = /[?&]dial(&|$)/.test(location.search);
+  // logo-r5: vertical on desktop (up = night), horizontal along the hero's foot on phones (right = night)
+  const under = /(^|\s)hs-[bc](\s|$)/.test(doc.className);   // b and c: the slider lies under the thesis (HeroUnder, shared/song.js)
+  const vertQ = matchMedia('(min-width: 760px)'); let vert = !dial && !under && vertQ.matches;
+  vertQ.addEventListener('change', () => { vert = !dial && !under && vertQ.matches; s.classList.toggle('vert', vert); place(); });
   const slot = hero.querySelector('.dateline .slot');
   if (dial) slot.classList.add('dial');
   const s = document.createElement('div');
-  s.className = 'pbs' + (dial ? ' dial' : ''); s.tabIndex = 0;
+  s.className = 'pbs' + (dial ? ' dial' : '') + (vert ? ' vert' : ''); s.tabIndex = 0;
   s.setAttribute('role', 'slider'); s.setAttribute('aria-label', 'Page colour'); s.setAttribute('aria-valuemin', '0'); s.setAttribute('aria-valuemax', '2');
-  s.innerHTML = '<span class="strip"><i class="g"></i><i class="o"></i><i class="k"></i></span><span class="psun"><img src="img/sun-thumb.webp" alt="" width="112" height="112" draggable="false"></span>';
+  s.innerHTML = '<span class="strip"><i class="g"></i><i class="o"></i><i class="k"></i></span><span class="psun"><img src="img/sun-thumb.webp" alt="" width="112" height="112" draggable="false"><img class="moon" src="img/moon.webp" alt="" width="112" height="112" draggable="false" onerror="this.onerror=null;this.classList.add(\'ph\');this.src=\'img/sun-thumb.webp\'"></span>';
   hero.appendChild(s);
   const ARC = 300;                                         // the ring's colours run round 300 degrees from the top
-  const geom = () => { const w = s.clientWidth, r = 16; return { w, x0: r * .55, x1: w - r * .55 }; };
+  const geom = () => { const w = s.clientWidth, r = under ? 38 : 16;   // b, c: the sun stays within the line's ink at both ends
+    return { w, x0: r * .55, x1: w - r * .55 }; };
   function draw(t) {
     if (dial) {
       const a = t / 2 * ARC * Math.PI / 180, R = s.clientWidth / 2 - 3.5, c = s.clientWidth / 2;
       s.style.setProperty('--x', (c + R * Math.sin(a)).toFixed(1) + 'px'); s.style.setProperty('--y', (c - R * Math.cos(a)).toFixed(1) + 'px');
       s.style.setProperty('--roll', (t / 2 * ARC).toFixed(1) + 'deg');
     } else {
+      const n = Math.min(1, Math.max(0, t - 1)); s.style.setProperty('--night', (n * n * (3 - 2 * n)).toFixed(3));   // logo-r5: toward night the sun turns to the moon
+      if (vert) { const h = s.clientHeight, y0 = h - 4, y1 = 4; s.style.setProperty('--y', (y0 + (y1 - y0) * t / 2).toFixed(1) + 'px'); }
       const g = geom(); s.style.setProperty('--x', (g.x0 + (g.x1 - g.x0) * t / 2).toFixed(1) + 'px');
-      s.style.setProperty('--roll', (t / 2 * 180).toFixed(1) + 'deg');   // it rolls as it goes: upside down at the far end
+      { const k = Math.min(1, Math.floor(t)), u = Math.min(1, Math.max(0, (t - k - .1) / .8)); s.style.setProperty('--roll', (360 * (k + u * u * (3 - 2 * u))).toFixed(1) + 'deg'); }   // logo-r5: a full turn between each mode, so the face is upright at green, oatmeal and dark
     }
     s.setAttribute('aria-valuenow', M.shown.toFixed(2)); s.setAttribute('aria-valuetext', M.valueText(M.shown));
   }
   function place() {
+    if (!dial && window.HeroUnder && HeroUnder.place(s)) { draw(M.shown); return; }   // logo-r5 b, c
     let x = 0, y = 0, e = slot;
     while (e && e !== hero) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
     s.style.left = x + 'px'; s.style.top = (y + slot.offsetHeight / 2 - s.offsetHeight / 2) + 'px';
@@ -2349,6 +2281,7 @@ html.boot .pbs{visibility:hidden}
       if (a > ARC) a = lastA != null && lastA > ARC / 2 ? ARC : (a > ARC + (360 - ARC) / 2 ? 0 : ARC);
       lastA = a; return a / ARC * 2;
     }
+    if (vert) { const y0 = r.height - 4, y1 = 4; return clamp((y0 - (e.clientY - r.top)) / (y0 - y1)) * 2; }
     const g = geom(); return clamp((e.clientX - r.left - g.x0) / (g.x1 - g.x0)) * 2;
   };
   let dragging = false;
@@ -2356,7 +2289,7 @@ html.boot .pbs{visibility:hidden}
   s.addEventListener('pointermove', e => { if (dragging) M.set(at(e), { tau: 40 }); });
   const end = () => {
     if (!dragging) return; dragging = false; s.classList.remove('drag');
-    const n = Math.round(M.t); if (Math.abs(M.t - n) < .08) M.set(n, { tau: 160 });   // a soft pull onto a mode
+    const n = Math.round(M.t); if (Math.abs(M.t - n) < .14 || (n !== 1 && Math.abs(M.t - n) < .22)) M.set(n, { tau: 160 });   // logo-r5: the ends pull in a little further   // a soft pull onto a mode
   };
   s.addEventListener('pointerup', end); s.addEventListener('pointercancel', end);
   s.addEventListener('keydown', e => {
