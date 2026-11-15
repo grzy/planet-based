@@ -351,7 +351,8 @@
     { what: 'Ghanaian marimba (the logo opening)', who: 'Sassaby', title: 'Ghanaian Marimba G1-mp', url: 'https://freesound.org/people/Sassaby/sounds/528065/', lic: 'CC0' },
     { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' },
     { what: 'tūī (the Living Walls card)', who: 'Ken George, Whakatāne, NZ', title: 'Tūī, XC1090728', url: 'https://xeno-canto.org/1090728', lic: 'CC BY-NC-SA 4.0', licUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
-    { what: 'a few honeybees passing (the Beekeeper card)', who: 'Natural History Museum, London, via BioAcoustica', title: 'Honeybee buzz', url: 'https://commons.wikimedia.org/wiki/File:BioAcoustica_898_4_Apis_mellifera_(Honey_Bee)_78.flac', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' }
+    { what: 'a few honeybees passing (the Beekeeper card)', who: 'Natural History Museum, London, via BioAcoustica', title: 'Honeybee buzz', url: 'https://commons.wikimedia.org/wiki/File:BioAcoustica_898_4_Apis_mellifera_(Honey_Bee)_78.flac', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' },
+    { what: 'Swainson\'s thrush (the Bioindicators card)', who: 'CVLTIV8R, Petrolia, California', title: 'Swainson\'s Thrush Birdsong Lost Coast Ambience of Petrolia, CA', url: 'https://freesound.org/people/CVLTIV8R/sounds/866963/', lic: 'CC0 1.0', licUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' }
   ];
 
   // ---------- the colour slider plays the gender (11-14, Ivy) ----------

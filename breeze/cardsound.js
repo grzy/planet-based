@@ -12,8 +12,8 @@
 //   Living Walls: a tūī phrase, Ken George, Whakatāne, xeno-canto XC1090728 (CC BY-NC-SA 4.0)
 //   Bioindicators: none for now.
 (() => {
-  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bee-buzz.mp3', wall: 'sounds/card-tui.mp3' };
-  const VOL = { uni: .2, bee: .12, wall: .14 }, IN = .4, OUT = .6;
+  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bees-long.mp3', wall: 'sounds/card-tui.mp3', bio: 'sounds/card-bio.mp3' };
+  const VOL = { uni: .2, bee: .12, wall: .14, bio: .16 }, IN = .4, OUT = .6;
   const soundOn = () => { const H = window.HeroSound; try { return !!H && typeof H.answer === 'function' && H.answer() === 'yes'; } catch (e) { return false; } };
   const ctxOf = () => { const H = window.HeroSound; if (!H) return null; try { return H.ctx || H.context || (typeof H.getContext === 'function' ? H.getContext() : null) || null; } catch (e) { return null; } };
   const touch = window.matchMedia && matchMedia('(hover: none)').matches;
@@ -57,7 +57,7 @@
   const plates = [...document.querySelectorAll('.plate')].filter(p => SND[p.dataset.k] && p.querySelector('.media'));
   if (!touch) plates.forEach(p => { const k = p.dataset.k, m = p.querySelector('.media'); m.addEventListener('pointerenter', () => start(k)); m.addEventListener('pointerleave', stop); });
   else if ('IntersectionObserver' in window) {
-    const ratio = new Map(), SETTLE = 200;   // 11-15 Ivy: sooner
+    const ratio = new Map(), SETTLE = 120;   // 11-15 Ivy: sooner
     let settleT = 0, uni = null, uniDone = false;
     // ---- Unicorn: a muted overlay video over the still, played once per stop ----
     const uniM = plates.find(p => p.dataset.k === 'uni') ? document.querySelector('.plate[data-k="uni"] .media') : null;
@@ -72,7 +72,7 @@
       return v;
     }
     function playUni() {
-      const v = uniVid(); if (!v || uniDone) return;
+      const v = uniVid(); if (!v || uniDone || !v.paused) return;
       try { v.currentTime = 0; } catch (e) {}
       const go = () => { v.classList.add('on'); if (!cur || cur.k !== 'uni') start('uni', { once: true, at: () => v.currentTime }); };
       v.addEventListener('playing', go, { once: true });
@@ -84,15 +84,21 @@
     }
     const reduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     // ---- settle: nothing plays while the page moves ----
+    const bestCard = () => { let best = null, br = .5; ratio.forEach((r, k) => { if (r >= br) { br = r; best = k; } }); return best; };
     const settle = () => {
       if (document.hidden) return;
-      let best = null, br = .5;
-      ratio.forEach((r, k) => { if (r >= br) { br = r; best = k; } });
+      const best = bestCard();
       if (best === 'uni') { if (!reduce()) playUni(); else start('uni', { once: true }); }
       else if (best) start(best);
     };
+    // 11-15 (Ivy): sooner. A card plays as the scroll glides to a stop (slow, with the card in view), not only once it's still
+    let lastY = scrollY, lastT = performance.now();
     const moving = () => {
+      const now = performance.now(), v = Math.abs(scrollY - lastY) / Math.max(1, now - lastT); lastY = scrollY; lastT = now;
       clearTimeout(settleT); settleT = setTimeout(settle, SETTLE);
+      const b = bestCard();
+      if (v < .25 && b) { if (!cur || cur.k !== b) settle(); return; }
+      if (cur && b && cur.k === b && v < .6) return;                              // easing on the same card: keep it
       stop();
       if (uni && !uni.paused) resetUni();                                         // playing: back to the still at once
     };
@@ -100,6 +106,7 @@
     const io = new IntersectionObserver(es => {
       es.forEach(e => {
         ratio.set(e.target.dataset.k, e.intersectionRatio);
+        if (e.intersectionRatio > 0) { const c = ctxOf(); if (c && c.decodeAudioData && soundOn()) buf(c, e.target.dataset.k).catch(() => {}); }
         if (e.target.dataset.k === 'uni' && e.intersectionRatio > 0) uniVid();   // 11-15: load it as it nears, so it starts at once
         if (e.target.dataset.k === 'uni' && e.intersectionRatio < .3) { uniDone = false; resetUni(); }   // left it: it replays next stop
       });
