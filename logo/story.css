@@ -276,7 +276,7 @@ img{-webkit-user-drag:none;user-drag:none}
 .hs-b .pbs:not(.dial) .psun,.hs-c .pbs:not(.dial) .psun{width:52px;height:52px;margin:-26px 0 0 -26px}
 .hs-b .pbs:not(.dial),.hs-c .pbs:not(.dial){height:52px}
 @media (min-width:760px){
-  .hs-b .pbs:not(.dial) .psun,.hs-c .pbs:not(.dial) .psun{width:44px;height:44px;margin:-22px 0 0 -22px}
+  .hs-b .pbs:not(.dial) .psun,.hs-c .pbs:not(.dial) .psun{width:50px;height:50px;margin:-25px 0 0 -25px}   /* 11-14: 44 to 50 (Ivy: a tiny bit bigger) */
   .hs-b .pbs:not(.dial),.hs-c .pbs:not(.dial){height:44px}
   .hs-b .thesis,.hs-c .thesis{bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .8 * .62 + 66px)}
 }
@@ -285,4 +285,8 @@ img{-webkit-user-drag:none;user-drag:none}
 @media (min-width:760px){
   .hs-b .pbs:not(.dial) .strip{height:calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3));margin-top:calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3) / -2)}
   .hs-b .pbs:not(.dial){height:max(44px, calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3) + 8px))}
+}
+/* 11-14 (Ivy): on phones too, the track is as thick as one bar of the (phone-sized, 70%) logo: bar = logo height / 5.95 */
+@media (max-width:759px){
+  .hs-b .pbs:not(.dial) .strip{height:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 / 3 * .7);margin-top:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 / 3 * .7 / -2)}
 }

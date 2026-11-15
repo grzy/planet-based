@@ -30,11 +30,15 @@
   if (!calm) document.documentElement.classList.add('boot');
   // the orange-tree loader (phones since 11-12, desktop too since 11-13): fetch its poster first, so the first paint already has it
   // 11-14 (Ivy): one vertical page at every width: the hero is a normal green section, the cards scroll down after it
+  var HERO_PH = 1.1; window.__heroPh = HERO_PH;
   document.documentElement.classList.add('boot-static');
   if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
   // settling can never resize the mark. It only changes when the width does (rotation)
-  document.documentElement.style.setProperty('--hero-h', Math.max(560, window.innerHeight) + 'px');
+  // 11-14 (Ivy): phones get a taller hero (the strings run longer, the objects spread out); desktop stays one screen
+  document.documentElement.style.setProperty('--hero-h', Math.max(560, Math.round(window.innerHeight * (window.innerWidth < 760 ? HERO_PH : 1))) + 'px');
+  document.documentElement.style.setProperty('--ph-lift', (window.innerWidth < 760 ? Math.max(0, Math.max(560, Math.round(window.innerHeight * HERO_PH)) - Math.max(560, window.innerHeight)) : 0) + 'px');   // the thesis + slider stay in the first screen
+  document.documentElement.style.setProperty('--ph-spread', (window.innerWidth < 760 ? Math.round(Math.max(560, window.innerHeight) * .04) : 0) + 'px');
 })();
 // font trial: ?font=fraunces (or the last pick, remembered) swaps every serif. Source Serif stays the default
 (function () {
@@ -314,6 +318,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* ---------- hero objects: their own layer, never cloned into the blocks ---------- */
 .pin{position:relative}
 .hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
+@media (max-width:759px){.hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--ph-spread,0px))}}   /* 11-14: the taller phone hero keeps its thesis and slider in the first screen */
 .objs{position:absolute;left:0;top:0;width:100%;height:100svh;min-height:560px;container-type:size;z-index:6;pointer-events:none;overflow:hidden}
 .obj{position:absolute;height:auto}
 .shadow{filter:drop-shadow(0 1.6cqh 2cqh rgba(20,44,28,.34)) drop-shadow(0 .3cqh .4cqh rgba(20,44,28,.26))}
@@ -434,6 +439,7 @@ html.boot.boot-out .hero .art{opacity:0}
 @keyframes treeOut{to{opacity:0;transform:translateY(-3vh) scale(.97)}}
 @keyframes greenUp{from{transform:translateY(100%)}to{transform:none}}
 html:not(.motion) .hero,html:not(.motion) .objs{height:var(--hero-h,100svh)}
+@media (max-width:759px){html:not(.motion) .objs{height:calc(var(--hero-h,100svh) - var(--ph-lift,0px) + var(--ph-spread,0px))}}   /* 11-14: phones: the objects spread a little; the hero and its strings run the full extra height below */
 
 /* ---------- motion mode: pinned stage, the blocks ---------- */
 .motion .stage{position:relative}
@@ -676,8 +682,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=35">
-<link rel="stylesheet" href="logo/b-variant.css?v=35">
+<link rel="stylesheet" href="logo/story.css?v=37">
+<link rel="stylesheet" href="logo/b-variant.css?v=37">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -929,17 +935,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=35"></script>
-<script src="logo/pose.js?v=35"></script>
-<script src="logo/sound.js?v=35"></script>
-<script src="logo/bees.js?v=35"></script>
-<script src="logo/hero-logo.js?v=35"></script>
-<script src="logo/story.js?v=35"></script>
-<script src="logo/common.js?v=35"></script>
-<script src="logo/song.js?v=35"></script>
-<script src="logo/strings.js?v=35"></script>
-<script src="logo/preload.js?v=35"></script>
-<script src="logo/b-variant.js?v=35"></script>
+<script src="logo/hero-logo-data.js?v=37"></script>
+<script src="logo/pose.js?v=37"></script>
+<script src="logo/sound.js?v=37"></script>
+<script src="logo/bees.js?v=37"></script>
+<script src="logo/hero-logo.js?v=37"></script>
+<script src="logo/story.js?v=37"></script>
+<script src="logo/common.js?v=37"></script>
+<script src="logo/song.js?v=37"></script>
+<script src="logo/strings.js?v=37"></script>
+<script src="logo/preload.js?v=37"></script>
+<script src="logo/b-variant.js?v=37"></script>
 <script>
 (() => {
   'use strict';
@@ -2041,7 +2047,7 @@ html.boot .pbs{visibility:hidden}
     if (!(videosOn || m.hasAttribute('data-ready'))) return;     // data-ready: the file is there (Unicorn)
     const img = m.querySelector('img');
     const v = document.createElement('video');
-    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'metadata';
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';   // 11-14: 'metadata' never reaches loadeddata on iPhone, so the still stayed
     v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('loop', '');
     v.poster = img.currentSrc || img.src;
     v.setAttribute('aria-hidden', 'true');
@@ -2227,7 +2233,7 @@ html.boot .pbs{visibility:hidden}
   let rt = 0;
   let lastW = innerWidth;
   addEventListener('resize', () => {
-    if (innerWidth !== lastW) { lastW = innerWidth; doc.style.setProperty('--hero-h', Math.max(560, innerHeight) + 'px'); }
+    if (innerWidth !== lastW) { lastW = innerWidth; const ph = innerWidth < 760 ? (window.__heroPh || 1) : 1, hh = Math.max(560, Math.round(innerHeight * ph)); doc.style.setProperty('--hero-h', hh + 'px'); doc.style.setProperty('--ph-lift', Math.max(0, hh - Math.max(560, innerHeight)) + 'px'); doc.style.setProperty('--ph-spread', (innerWidth < 760 ? Math.round(Math.max(560, innerHeight) * .04) : 0) + 'px'); }
     clearTimeout(rt); rt = setTimeout(() => setMode(false), 80);
   });
   reduceQ.addEventListener('change', () => { setMode(false); startSun(); });
@@ -2336,7 +2342,7 @@ html.boot .pbs{visibility:hidden}
 })();
 </script>
 <script src="breeze/copied.js?v=10"></script>
-<script src="breeze/cardsound.js?v=10"></script>
+<script src="breeze/cardsound.js?v=11"></script>
 <script src="breeze/breeze.js?v=10"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>

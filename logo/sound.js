@@ -294,7 +294,13 @@
   // 11-14 (Ivy): the instrument is live only while the hero is at rest. The moment the page scrolls (the blocks begin
   // to part on desktop, where the hero stays pinned and so still "visible"), every hero sound stops (a fast fade) and
   // nothing plays again until the page is back at the top. A shared song's replay is the only exception
-  const atRest = () => (window.scrollY || document.documentElement.scrollTop || 0) < 8;
+  // 11-14 (Ivy): on phones a small accidental scroll stopped the guitar. There the hero stays "at rest" until about half
+  // of it has scrolled away; desktop keeps the strict top-of-page gate (its hero is pinned)
+  const atRest = () => {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    if (innerWidth >= 760) return y < 8;
+    const h = document.querySelector('.hero'); return y < (h ? h.offsetHeight : innerHeight) * .45;
+  };
   let wasRest = true;
   // 11-14 (Ivy): leaving the hero no longer cuts the sound: what is already ringing finishes on its own decay (3 s at most);
   // only new hero notes are refused (the gate in play), and anything scheduled but not yet started is refused there too
@@ -345,8 +351,7 @@
     { what: 'Ghanaian marimba (the logo opening)', who: 'Sassaby', title: 'Ghanaian Marimba G1-mp', url: 'https://freesound.org/people/Sassaby/sounds/528065/', lic: 'CC0' },
     { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' },
     { what: 'tūī (the Living Walls card)', who: 'Ken George, Whakatāne, NZ', title: 'Tūī, XC1090728', url: 'https://xeno-canto.org/1090728', lic: 'CC BY-NC-SA 4.0', licUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
-    { what: 'honeybee swarm (the Beekeeper card)', who: 'YleArkisto, Finland, 1975', title: 'Honeybee swarm', url: 'https://commons.wikimedia.org/wiki/File:263673_ylearkisto_mehilainen-tarhamehilainen-parvi-bees-honeybees-a-swarm-of-bees-buzzing-among-the-flowers-apis-mellifera.wav', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' },
-    { what: 'honeybee buzz (the Beekeeper card)', who: 'Natural History Museum, London, via BioAcoustica', title: 'Honeybee buzz', url: 'https://commons.wikimedia.org/wiki/File:BioAcoustica_898_4_Apis_mellifera_(Honey_Bee)_78.flac', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' }
+    { what: 'a few honeybees passing (the Beekeeper card)', who: 'Natural History Museum, London, via BioAcoustica', title: 'Honeybee buzz', url: 'https://commons.wikimedia.org/wiki/File:BioAcoustica_898_4_Apis_mellifera_(Honey_Bee)_78.flac', lic: 'CC BY 3.0', licUrl: 'https://creativecommons.org/licenses/by/3.0/' }
   ];
 
   // ---------- the colour slider plays the gender (11-14, Ivy) ----------
@@ -499,6 +504,7 @@
   window.HeroSound = {
     ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, CREDITS, unlock: gestureUnlock, loaded: () => ({ guitar: gBuf.size, voices: vBuf.size, of: VFILES.length }), midiOf: (n, down) => midi(n, down),
     on: () => live(), answer: () => answer,
+    get ctx() { return ctx; },   // 11-14: the card sounds play through the same unlocked context (breeze/cardsound.js)
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)
     allowOnce() { once = true; return start(); },
