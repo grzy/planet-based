@@ -160,14 +160,16 @@
     mark.tabIndex = 0; mark.setAttribute('aria-label', 'planetbased.io: open the logo into its barcode and name');
     scheduleNudge();
   }
-  // ---------- the nudge (11-14, Ivy): once per visit, a moment after the hero has settled, and only if nobody has touched
-  // the logo yet, it opens on its own just a little (the bars part, the letters begin to show), holds, and folds back.
-  // Silent unless sound is already on (then its beats play softly). Never during interaction; reduced motion skips it ----------
-  let touched = false, nudging = false, nudgeT = 0;
+  // ---------- the roll-out (11-14, Ivy): the logo opens into planetbased.io on its own and folds back, as the hint that it
+  // opens: first ~7 s after the hero settles, then every 45-60 s while the logo is on screen, until the visitor plays with
+  // it. Silent until sound is on, then its own notes, softly. Never during interaction; reduced motion skips it. The first
+  // one finishing tells the hint under the slider to arrive (hs:logo-rolled, shared/song.js) ----------
+  let touched = false, nudging = false, nudgeT = 0, rolledOnce = false, queueRoll = null;
   function touch() {
     if (nudging) { nudging = false; clearTimeout(nudgeT); }
     if (!touched) { touched = true; dispatchEvent(new CustomEvent('hs:logo-touched')); }
   }
+  function rolled() { if (rolledOnce) return; rolledOnce = true; dispatchEvent(new CustomEvent('hs:logo-rolled')); }
   // the first time a visitor turns sound on (their first touch), the logo plays its open and fold once with its notes on
   // the beat, so the sound the preloader could not play is heard (11-14, Ivy). Not if they are touching the logo
   let replayed = false, replaying = false;
@@ -176,25 +178,28 @@
     const t0 = performance.now();
     const wait = () => {
       if (touched) return;
-      if (window.HeroSound && HeroSound.on()) { nudging = false; replaying = true; go(2); setTimeout(() => { if (!touched) go(0); setTimeout(() => { replaying = false; }, 1200); }, 1100 + 700); }
+      if (window.HeroSound && HeroSound.on()) { nudging = false; clearTimeout(nudgeT); replaying = true; go(2); setTimeout(() => { if (!touched) go(0); setTimeout(() => { replaying = false; rolled(); if (queueRoll && !touched) queueRoll(45000 + Math.random() * 15000); }, 1200); }, 1100 + 700); }   // (it counts as a roll-out)
       else if (performance.now() - t0 < 3000) setTimeout(wait, 60);   // (iOS: the audio starts as the finger lifts)
     };
     setTimeout(wait, 120);
   }
   function scheduleNudge() {
-    let seen = false; try { seen = sessionStorage.getItem('pb-logo-nudged') === '1'; } catch (e) {}
-    if (seen || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let quietSince = performance.now();
-    ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => addEventListener(t, () => { quietSince = performance.now(); }, { passive: true, capture: true }));
-    const tryNudge = () => {
-      if (touched || nudging) return;
-      const atTop = (window.scrollY || 0) < 8, quiet = performance.now() - quietSince > 1200;
-      if (!atTop || !quiet || document.hidden) { nudgeT = setTimeout(tryNudge, 1500); return; }
-      try { sessionStorage.setItem('pb-logo-nudged', '1'); } catch (e) {}
-      nudging = true; go(1.22);                                   // the bars part, the letters just begin
-      nudgeT = setTimeout(() => { if (nudging) go(0); nudgeT = setTimeout(() => { nudging = false; }, 1400); }, 680 + 600);   // reach it (~0.68 s), hold ~0.6 s, fold
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setTimeout(rolled, 1800); return; }
+    let quietSince = performance.now();   // a click, a key or a scroll holds it back a moment (pointer moves don't)
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => addEventListener(t, () => { quietSince = performance.now(); }, { passive: true, capture: true }));
+    const onScreen = () => { const r = logoSvg.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; };
+    const tryRoll = () => {
+      if (touched) return;
+      if (nudging || replaying || target > 0 || !onScreen() || performance.now() - quietSince < 900 || document.hidden) { nudgeT = setTimeout(tryRoll, 1500); return; }
+      nudging = true; go(2);                                      // opens all the way (~1.1 s), holds, folds (~1.1 s)
+      nudgeT = setTimeout(() => {
+        if (!nudging) return;
+        go(0);
+        nudgeT = setTimeout(() => { nudging = false; rolled(); queueRoll(45000 + Math.random() * 15000); }, 1150);
+      }, 1100 + 1400);
     };
-    nudgeT = setTimeout(tryNudge, 2600);
+    queueRoll = d => { clearTimeout(nudgeT); nudgeT = setTimeout(tryRoll, d); };
+    nudgeT = setTimeout(tryRoll, 7000);
   }
   window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();

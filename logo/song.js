@@ -162,13 +162,16 @@
     if (hintDone || !s) return;
     let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
     if (seenVisit) return;
-    try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {}
     let h = hero.querySelector('.hs-hint');
-    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); }
+    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); if (logoRolled) showHint(h); }
     const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;
     const ph = innerWidth < 760, th = s.querySelector('.psun'), low = Math.max(sr.bottom, th ? th.getBoundingClientRect().bottom : 0);   // 11-14 (Ivy): on phones clear the slider's sun and its rays, a hair to the right
     h.style.left = (st.left - hr.left + (ph ? 3 : 0)).toFixed(1) + 'px'; h.style.top = ((ph ? low : sr.bottom) - hr.top + (ph ? 6 : 14)).toFixed(1) + 'px';   // 11-14 (Ivy): a little lower on desktop
   }
+  // 11-14 (Ivy): the hint waits for the logo's first own roll-out (shared/hero-logo.js) and arrives as it folds back
+  let logoRolled = false;
+  function showHint(h) { h.classList.add('go'); try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {} }
+  addEventListener('hs:logo-rolled', () => { logoRolled = true; const h = !hintDone && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
   function dismissHint() {
     if (hintDone) return; hintDone = true; try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
     const h = document.querySelector('.hero .hs-hint'); if (!h) return;
