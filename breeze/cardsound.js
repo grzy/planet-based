@@ -1,7 +1,7 @@
 // Card sounds (11-14, Ivy): a project card's real sound plays softly, only when the visitor has turned the sound on
 // (window.HeroSound, the hero's sound switch). Desktop: hovering the picture, as before.
-// Phones (11-14, round 2): a tap always opens the card. A sound plays only once scrolling has STOPPED (420 ms with no scroll)
-// with a card mostly in view (60%); scrolling again fades it out at once. One card at a time, 0.4 s in, 0.6 s out.
+// Phones (11-14, round 2): a tap always opens the card. A sound plays only once scrolling has STOPPED (200 ms with no scroll)
+// with a card mostly in view (50%); scrolling again fades it out at once. One card at a time, 0.4 s in, 0.6 s out.
 // Unicorn on phones: stopping on it plays the welcome video once from the start, with its welcome sound, then rests on the
 // last frame; scrolling past shows the still; leaving it resets it, and stopping on it again replays it.
 // Sound path: decoded buffers through HeroSound's unlocked audio context (iOS lets that play without a fresh tap, which a
@@ -13,7 +13,7 @@
 //   Bioindicators: none for now.
 (() => {
   const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bee-buzz.mp3', wall: 'sounds/card-tui.mp3' };
-  const VOL = { uni: .2, bee: .12, wall: .22 }, IN = .4, OUT = .6;
+  const VOL = { uni: .2, bee: .12, wall: .14 }, IN = .4, OUT = .6;
   const soundOn = () => { const H = window.HeroSound; try { return !!H && typeof H.answer === 'function' && H.answer() === 'yes'; } catch (e) { return false; } };
   const ctxOf = () => { const H = window.HeroSound; if (!H) return null; try { return H.ctx || H.context || (typeof H.getContext === 'function' ? H.getContext() : null) || null; } catch (e) { return null; } };
   const touch = window.matchMedia && matchMedia('(hover: none)').matches;
@@ -57,7 +57,7 @@
   const plates = [...document.querySelectorAll('.plate')].filter(p => SND[p.dataset.k] && p.querySelector('.media'));
   if (!touch) plates.forEach(p => { const k = p.dataset.k, m = p.querySelector('.media'); m.addEventListener('pointerenter', () => start(k)); m.addEventListener('pointerleave', stop); });
   else if ('IntersectionObserver' in window) {
-    const ratio = new Map(), SETTLE = 420;
+    const ratio = new Map(), SETTLE = 200;   // 11-15 Ivy: sooner
     let settleT = 0, uni = null, uniDone = false;
     // ---- Unicorn: a muted overlay video over the still, played once per stop ----
     const uniM = plates.find(p => p.dataset.k === 'uni') ? document.querySelector('.plate[data-k="uni"] .media') : null;
@@ -86,7 +86,7 @@
     // ---- settle: nothing plays while the page moves ----
     const settle = () => {
       if (document.hidden) return;
-      let best = null, br = .6;
+      let best = null, br = .5;
       ratio.forEach((r, k) => { if (r >= br) { br = r; best = k; } });
       if (best === 'uni') { if (!reduce()) playUni(); else start('uni', { once: true }); }
       else if (best) start(best);
@@ -100,9 +100,10 @@
     const io = new IntersectionObserver(es => {
       es.forEach(e => {
         ratio.set(e.target.dataset.k, e.intersectionRatio);
+        if (e.target.dataset.k === 'uni' && e.intersectionRatio > 0) uniVid();   // 11-15: load it as it nears, so it starts at once
         if (e.target.dataset.k === 'uni' && e.intersectionRatio < .3) { uniDone = false; resetUni(); }   // left it: it replays next stop
       });
-    }, { threshold: [0, .3, .6, .8, 1] });
+    }, { threshold: [0, .3, .5, .6, .8, 1] });
     plates.forEach(p => { const m = p.querySelector('.media'); m.dataset.k = p.dataset.k; io.observe(m); });
     // sound just turned on (or a first touch) with a card already in view
     addEventListener('touchend', () => { clearTimeout(settleT); settleT = setTimeout(settle, SETTLE); }, { passive: true });
