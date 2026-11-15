@@ -9,7 +9,7 @@
 // HeroPreload.stop() ends the cycling (the word in view stays whole: in c it falls with the tree, in b it gives way to
 // planetbased.io).
 (function () {
-  const WORDS = ['Seeding', 'Branching', 'Pollinating', 'Unfurling', 'Sprouting', 'Rooting', 'Leafing out',   // 11-14, Ivy: set A
+  const WORDS = ['Rooting', 'Branching', 'Deploying', 'Unfurling', 'Sprouting', 'Leafing out',   // 11-14, Ivy: set A
     'Budding', 'Foraging', 'Ripening', 'Counting rings', 'Consulting the mycelium', 'Composting'];
   const MIN = 1900, MAX = 6500;
   const MODE = (location.search.match(/[?&]words=([12])/) || [, '1'])[1];
@@ -52,7 +52,7 @@
   // The words run Seeding, Branching, then Pollinating, which stays; the tree's pencil wind swirls (c/breeze)
   // are held back until it appears and then blow; the cut follows the wind. The swirls' own calls are caught here and
   // replayed at that moment, keeping their timing
-  const POLL = 'Pollinating';
+  const POLL = 'Deploying';   // 11-14, Ivy: Deploying (the wind sends it out) replaces Pollinating
   let windOn = false, windQ = [], windDoneFn; const windDone = new Promise(r => { windDoneFn = r; });
   const hookWind = () => {
     const orig = window.pbScribble; if (!orig || orig.__hsWind) return;
