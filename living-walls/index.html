@@ -144,9 +144,38 @@ body::after{
 .arm-sub .arm-hp,.arm-sub .arm-go{display:block}
 .arm-sub .arm-hp{font-size:11px;font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.72;margin-bottom:.9em}
 .arm-sub .arm-go{font-size:clamp(13px,1.25vw,16px);letter-spacing:.3em;padding-left:.3em}   /* the trailing letter-space, balanced so the visible ink is centred */
-/* 11-14 (Ivy): the note and the call sit ABOVE the title: headphones recommended, Click to begin, then Living Walls.
-   Once clicked, the hint goes back under it */
-.center:not(.hint) .arm-sub{order:-1;margin-bottom:6px}
+/* ═══ 11-14 (Ivy picked walls-type-r1 option C): the title stands alone in the dead center;
+   the note joins the top row (between planetbased.io and home/contact), the call joins the
+   footer row (where the place pill appears after). Proto: protos/walls-type-r1/c/
+   .center is a zero-size anchor at the middle of the screen; every line is placed from it with
+   em offsets measured from the fonts' real ink:
+   Cormorant 500: ascender top .725em, cap .625em, g tail .282em; line-height 1 puts the baseline .815em down.
+   Ubuntu Sans Mono: cap .709em, ascender .776em; line-height 1 puts the baseline .84em down. */
+.center{--T:clamp(40px,5vw,66px);
+  --top-base:calc(clamp(18px,2.6vh,28px) + 10.5px);    /* the brand / nav row baseline */
+  --foot-base:calc(clamp(18px,3vh,26px) + 3.5px);      /* the footer row baseline, from the bottom */
+  left:50%;top:50%;width:0;height:0;transform:none;display:block;gap:0}
+/* the title: the band from ascender top to baseline is centered on the anchor (the g tail hangs below = the optical lift) */
+.center .arm{position:absolute;left:0;top:0;font-size:var(--T);line-height:1;
+  padding:0 0 0 .016em;               /* balances the side bearings + trailing .006em tracking, so the INK is centered */
+  transform:translate(-50%,-.4525em)} /* .3625em (half the ascender band) - .815em (baseline in the box) */
+.arm-sub .arm-hp,.arm-sub .arm-go{position:absolute;white-space:nowrap;line-height:1;margin:0}
+.arm-sub .arm-hp{left:0;transform:translateX(-50%);
+  font-size:11px;letter-spacing:.05em;padding-left:.05em;   /* its own quiet voice, so it never reads as a nav link */
+  translate:0 .8px;                                         /* Chrome rounds the 11px mono's ascent; measured .8px high without this */
+  text-shadow:0 1px 3px #000,0 0 12px rgba(0,0,0,.85);      /* keeps its shape over bright flowers */
+  top:calc(-50vh + var(--top-base) - .84em)}
+.arm-sub .arm-go{left:0;transform:translateX(-50%);
+  font-size:13px;font-weight:500;letter-spacing:.3em;padding-left:.3em;translate:0 .6px;   /* outranks the footer links */
+  top:calc(50vh - var(--foot-base) - .84em)}
+@media (max-width:900px){.arm-sub .arm-go{letter-spacing:.2em;padding-left:.2em}}   /* keeps clear air from the footer links */
+/* the sequence: title alone, then the note, then the call once the intro ring has settled (JS adds the classes) */
+.arm-sub .arm-hp,.arm-sub .arm-go{opacity:0;transition:opacity 1.5s ease}
+.center.note-in .arm-hp{opacity:.8}
+.center.go-in .arm-go{opacity:1}
+/* after the click: the hint alone, its cap band dead center, trailing tracking balanced */
+.center.hint .arm-sub{position:absolute;left:0;top:-.4855em;line-height:1;white-space:nowrap;
+  padding-left:.34em;transform:translateX(-50%)}
 
 /* species card: a live sound-wave sitting above the credit, tight to the zone.
    no stroke -- matches the credits panel. the wave IS the bird's real voice. */
@@ -789,20 +818,44 @@ const armSub = document.getElementById('armSub');
 let introPhase = 'ripple';        /* ripple → wait → entering → place → done */
 
 /* on load: a beat to SEE the wall, one clean ring, THEN the invitation dissolves in */
+/* 11-14 (Ivy): a sequence. The title appears alone and holds (~3 beats), then the note fades in
+   (top row), then the call (footer row), but only once the intro ring has fully settled.
+   A click works at ANY point (arm() only needs introPhase 'wait'); reduced motion shows all three at once. */
+const NOTE_AFTER = 3000;    /* ms after the title starts to fade in */
+const GO_AFTER_NOTE = 1400; /* ms after the note, at the earliest */
+const GO_FALLBACK = 9000;   /* ms safety net, only if the ring's end signal never comes (stalled loop) */
+let onRippleSettled = null; /* fired by the main loop once the burst is over and the ring has faded to nothing */
 function beginIntro(){
-  setTimeout(() => { if (introPhase === 'ripple') rippleBurst(2.6); }, 650);
+  let noteShown = false, ringDone = reduced, goShown = false;
+  const showGo = () => {
+    if (goShown || introPhase !== 'wait' || !noteShown || !ringDone) return;
+    goShown = true; center.classList.add('go-in');
+  };
+  setTimeout(() => {
+    if (introPhase !== 'ripple') return;
+    rippleBurst(2.6);
+    onRippleSettled = () => { ringDone = true; showGo(); };
+  }, 650);
   setTimeout(() => {
     if (introPhase !== 'ripple') return;
     introPhase = 'wait';
-    center.classList.add('show');    /* the invitation fades in, over the settling ripple */
+    if (reduced){ center.classList.add('note-in', 'go-in'); center.classList.add('show'); return; }
+    center.classList.add('show');    /* the title fades in alone, over the settling ripple */
+    setTimeout(() => {
+      if (introPhase !== 'wait') return;
+      noteShown = true; center.classList.add('note-in');
+      setTimeout(showGo, GO_AFTER_NOTE);
+    }, NOTE_AFTER);
+    setTimeout(() => { ringDone = true; showGo(); }, GO_FALLBACK);
   }, 1700);
 }
 
 async function arm(){
-  if (introPhase !== 'wait') return;
+  if (introPhase !== 'wait' && introPhase !== 'ripple') return;   /* 11-14: a click works at any point, even before the title shows */
+  introPhase = 'entering';                        /* set BEFORE the await, so a second click can't run this twice */
   actx = new (window.AudioContext||window.webkitAudioContext)();
   await actx.resume();
-  armed = true; introPhase = 'entering';
+  armed = true;
   CAST.forEach(z => chain(z));                    /* start buffering */
   center.classList.remove('show');                /* the invitation dissolves out */
   rippleBurst(2.4);                               /* one ring carries you in */
@@ -1121,6 +1174,9 @@ function loop(){
     /* one clean ring per burst, then it settles */
     const rTarget = (t < rippleEnd && !reduced) ? 0.9 : 0;
     rippleLevel = lerp(rippleLevel, rTarget, 0.14);
+    if (onRippleSettled && t >= rippleEnd && rippleLevel < 0.01){   /* the intro ring is over: tell the sequence */
+      const cb = onRippleSettled; onRippleSettled = null; cb();
+    }
 
     /* directional travel pull -- out (scene leaves toward the arrow), then in (next slides from the other side) */
     if (travelPhase === 'wipe'){
