@@ -682,8 +682,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=39">
-<link rel="stylesheet" href="logo/b-variant.css?v=39">
+<link rel="stylesheet" href="logo/story.css?v=40">
+<link rel="stylesheet" href="logo/b-variant.css?v=40">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -935,17 +935,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=39"></script>
-<script src="logo/pose.js?v=39"></script>
-<script src="logo/sound.js?v=39"></script>
-<script src="logo/bees.js?v=39"></script>
-<script src="logo/hero-logo.js?v=39"></script>
-<script src="logo/story.js?v=39"></script>
-<script src="logo/common.js?v=39"></script>
-<script src="logo/song.js?v=39"></script>
-<script src="logo/strings.js?v=39"></script>
-<script src="logo/preload.js?v=39"></script>
-<script src="logo/b-variant.js?v=39"></script>
+<script src="logo/hero-logo-data.js?v=40"></script>
+<script src="logo/pose.js?v=40"></script>
+<script src="logo/sound.js?v=40"></script>
+<script src="logo/bees.js?v=40"></script>
+<script src="logo/hero-logo.js?v=40"></script>
+<script src="logo/story.js?v=40"></script>
+<script src="logo/common.js?v=40"></script>
+<script src="logo/song.js?v=40"></script>
+<script src="logo/strings.js?v=40"></script>
+<script src="logo/preload.js?v=40"></script>
+<script src="logo/b-variant.js?v=40"></script>
 <script>
 (() => {
   'use strict';
@@ -2045,6 +2045,7 @@ html.boot .pbs{visibility:hidden}
   })) : null;
   pin.querySelectorAll('.media[data-video]').forEach(m => {
     if (!(videosOn || m.hasAttribute('data-ready'))) return;     // data-ready: the file is there (Unicorn)
+    if (m.closest('.plate[data-k="uni"]') && matchMedia('(hover: none)').matches) return;   // phones: breeze/cardsound.js plays it once when you stop on it
     const img = m.querySelector('img');
     const v = document.createElement('video');
     v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';   // 11-14: 'metadata' never reaches loadeddata on iPhone, so the still stayed
@@ -2342,7 +2343,7 @@ html.boot .pbs{visibility:hidden}
 })();
 </script>
 <script src="breeze/copied.js?v=10"></script>
-<script src="breeze/cardsound.js?v=11"></script>
+<script src="breeze/cardsound.js?v=13"></script>
 <script src="breeze/breeze.js?v=10"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
