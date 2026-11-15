@@ -281,3 +281,8 @@ img{-webkit-user-drag:none;user-drag:none}
   .hs-b .thesis,.hs-c .thesis{bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .8 * .62 + 66px)}
 }
 @media (max-width:759px){.hs-b .thesis,.hs-c .thesis{bottom:calc(7cqh + min(6.4cqh,3.8cqw) * .62 + 74px)}}
+/* 11-14 (Ivy): on desktop the slider's track is as thick as one bar of the logo */
+@media (min-width:760px){
+  .hs-b .pbs:not(.dial) .strip{height:calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3));margin-top:calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3) / -2)}
+  .hs-b .pbs:not(.dial){height:max(44px, calc(((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3) + 8px))}
+}

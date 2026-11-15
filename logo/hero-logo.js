@@ -199,7 +199,7 @@
       }, 1100 + 1400);
     };
     queueRoll = d => { clearTimeout(nudgeT); nudgeT = setTimeout(tryRoll, d); };
-    nudgeT = setTimeout(tryRoll, 7000);
+    nudgeT = setTimeout(tryRoll, 3000);   // 11-14 (Ivy): sooner
   }
   window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();
