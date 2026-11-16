@@ -323,7 +323,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
      text left; the peony and sun up a touch (the dahlia and its bee stay: the bee's own moves use translate), so the same picture has
      more air */
   .hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--hero-h,100svh) * .040 - 4.5px)}   /* 11-15: down a hair (was .044), then 4.5 px more */
-  .hs-b .hero .mark{margin-top:calc(-38px - var(--hero-h,100svh) * .036)}   /* 11-15 (Ivy): a lot higher (was 14px); the rolled-out word still clears the studio line */
+  .hs-b .hero .mark{margin-top:calc(-35px - var(--hero-h,100svh) * .036)}   /* 11-15 (Ivy): a lot higher (was 14px); the rolled-out word still clears the studio line */
   .objs .peony{translate:0 calc(var(--hero-h,100svh) * -.022)}
   .objs .sun{translate:0 calc(var(--hero-h,100svh) * -.008)}
 }   /* 11-14: the taller phone hero keeps its thesis and slider in the first screen */
@@ -362,6 +362,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   .plate .cap{grid-column:9 / span 4;grid-row:1;grid-template-columns:1fr;row-gap:clamp(14px,1.6vw,26px);padding-top:0;align-self:center}
   .plate:nth-of-type(even) .frame{grid-column:5 / span 8}
   .plate:nth-of-type(even) .cap{grid-column:1 / span 4}
+  .plate:nth-of-type(odd) .cap{justify-self:end}   /* 11-15 (Ivy): Unicorn and Living Walls sat tight to their cards; their text now meets the page edge, mirroring Beekeeper and Bioindicators */
   .plate .cap p{max-width:34ch}
 }
 .frame{position:relative;overflow:hidden;z-index:1}
@@ -643,7 +644,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .mark .mono-pb{height:min(40cqh,48cqw)}
   .mark .mono-pb.pb-logo{height:min(24cqh,30cqw)}
   .mark .word{font-size:12cqw}
-  .dateline{font-size:12px;top:calc(4.45cqh - 20.5px)}   /* 11-15 (Ivy): the studio line rides centred in the air above the closed logo, clear of the word */
+  .dateline{font-size:12px;top:calc(4.45cqh - 19px)}   /* 11-15 (Ivy): the studio line rides centred in the air above the closed logo, clear of the word */
   .dl-sub{font-size:12px;top:calc(7cqh + 20px)}
   .thesis{font-size:min(6.4cqh,8.6cqw)}
   .guides{grid-template-columns:repeat(4,1fr)}
@@ -694,8 +695,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=47">
-<link rel="stylesheet" href="logo/b-variant.css?v=47">
+<link rel="stylesheet" href="logo/story.css?v=48">
+<link rel="stylesheet" href="logo/b-variant.css?v=48">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -858,7 +859,7 @@ html.boot .pbs{visibility:hidden}
               </div>
             </div>
           </div>
-          <div class="cap"><h2><span class="tt"><a class="go" href="https://ivygrzy.com/work/unicorn/" target="_blank" rel="noopener">Unicorn<span class="sr"> (opens in a new tab)</span></a><img class="t-under" src="img/pencil-under-8.webp" alt="" aria-hidden="true" width="171" height="24"></span></h2><p>A desktop app that sits beside your terminal. Your agents log each experiment as they work, so what you build is kept for you and your energy stays on the work itself.</p></div>
+          <div class="cap"><h2><span class="tt"><a class="go" href="https://ivygrzy.com/work/unicorn/" target="_blank" rel="noopener">Unicorn<span class="sr"> (opens in a new tab)</span></a><img class="t-under" src="img/pencil-under-8.webp" alt="" aria-hidden="true" width="171" height="24"></span></h2><p>A day of building with agents ends up buried in terminal scrollback, the context too big to carry forward. Unicorn surrounds your terminal and brings it forward: your MCP design files within reach, every experimental build to refer back to, commits you can hear, and a daily paper for inspiration. Your energy stays on the work&nbsp;itself.</p></div>
         </article>
 
         <article class="plate" data-k="bee">
@@ -894,7 +895,7 @@ html.boot .pbs{visibility:hidden}
               </div>
             </div>
           </div>
-          <div class="cap"><h2><span class="tt"><a class="go" href="/living-walls/">Living Walls</a><img class="t-under" src="img/pencil-under-4.webp" alt="" aria-hidden="true" width="148" height="25"></span></h2><p>Hover the walls and real recordings play from where each animal hides: mostly birds, plus a frog, a cougar and an orca. Every sound is a real recording, credited to the person who made it.</p></div>
+          <div class="cap"><h2><span class="tt"><a class="go" href="/living-walls/">Living Walls</a><img class="t-under" src="img/pencil-under-4.webp" alt="" aria-hidden="true" width="148" height="25"></span></h2><p>Real recordings play as you hover a living wall drawn in WebGL: mostly birds, plus a frog, a cougar and an orca. A ripple shader carries you across to the next&nbsp;ecosystem.</p></div>
         </article>
 
         <article class="plate" data-k="bio">
@@ -947,17 +948,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=47"></script>
-<script src="logo/pose.js?v=47"></script>
-<script src="logo/sound.js?v=47"></script>
-<script src="logo/bees.js?v=47"></script>
-<script src="logo/hero-logo.js?v=47"></script>
-<script src="logo/story.js?v=47"></script>
-<script src="logo/common.js?v=47"></script>
-<script src="logo/song.js?v=47"></script>
-<script src="logo/strings.js?v=47"></script>
-<script src="logo/preload.js?v=47"></script>
-<script src="logo/b-variant.js?v=47"></script>
+<script src="logo/hero-logo-data.js?v=48"></script>
+<script src="logo/pose.js?v=48"></script>
+<script src="logo/sound.js?v=48"></script>
+<script src="logo/bees.js?v=48"></script>
+<script src="logo/hero-logo.js?v=48"></script>
+<script src="logo/story.js?v=48"></script>
+<script src="logo/common.js?v=48"></script>
+<script src="logo/song.js?v=48"></script>
+<script src="logo/strings.js?v=48"></script>
+<script src="logo/preload.js?v=48"></script>
+<script src="logo/b-variant.js?v=48"></script>
 <script>
 (() => {
   'use strict';
