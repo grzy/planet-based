@@ -106,7 +106,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
 .loader .hs-ing-2.shown .hs-txt{clip-path:none}
 .loader .hs-ing-2.smudge .hs-txt{clip-path:inset(-20% -2% -20% 0);filter:blur(2.2px);opacity:0;transform:translate(6px,-2px) skewX(-6deg);transition:filter .38s ease,opacity .4s ease,transform .42s ease}
 /* the resting bee sits at the dahlia's centre, on the pollen (not on its rim) */
-.hs .bee-rest{left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) / 2 - min(6.4cqh,4.1cqw) / 2);bottom:calc(5cqh + min(31cqh,20cqw) * .52 - min(6.4cqh,4.1cqw) / 2)}
+.hs .bee-rest{left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) / 2 - min(6.4cqh,4.1cqw) / 2);bottom:calc(8cqh + min(31cqh,20cqw) * .52 - min(6.4cqh,4.1cqw) / 2)}
 @media (max-width:759px){.hs .bee-rest{left:calc(108cqw - 9.5cqh - 2.3cqh);top:calc(58cqh + 9.95cqh - 2.3cqh);bottom:auto}}
 /* the hero's only buttons: Sound, Share (and Play / Play it back on a shared song). Their own treatment, apart from the
    mark: small paper chips, ink type, a soft lift like the page's paper cut-outs, no strokes. Paper and ink are constant,
@@ -290,3 +290,7 @@ img{-webkit-user-drag:none;user-drag:none}
 @media (max-width:759px){
   .hs-b .pbs:not(.dial) .strip{height:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 / 3 * .7);margin-top:calc((100cqw - 2 * var(--m) - 3 * var(--gut)) / 4 / 3 * .7 / -2)}
 }
+/* 11-15 (Ivy): the top-left "planetbased.io" goes (the logo alone says it), and on phones its short line with it; the
+   studio line keeps its place on the right */
+.hero .dateline > span:first-child,.hero .dateline .rule{display:none}
+.hero .dateline b{margin-left:auto}

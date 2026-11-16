@@ -36,6 +36,17 @@
         Object.assign(on, { kind: 'obj', sel: g[k].sel, top: g[k].top, bottom: g[k].bottom }); g.splice(k, 1);
       }
     }
+    // 11-15 (Ivy): B on desktop. The sun's own string has no drawn guide under it (B mounts the strings at 0 over the
+    // drawn guides), so it only shows while it shivers: a small surprise she keeps. It hung at the sun's centre, a little
+    // left of the even spacing; it moves to the midpoint of its neighbours, as long as that stays under the sun
+    if (!snapOpt && innerWidth >= 760) {
+      const sun = g.find(t => t.sel === '.sun');
+      if (sun) {
+        const xsOther = g.filter(t => t !== sun).map(t => t.x), l = Math.max(-1e9, ...xsOther.filter(x => x < sun.x)), r = Math.min(1e9, ...xsOther.filter(x => x > sun.x));
+        const o = document.querySelector('.objs .sun'), b = o && o.getBoundingClientRect(), mid = (l + r) / 2;
+        if (b && isFinite(mid) && l > -1e9 && r < 1e9 && mid > b.left + b.width * .2 && mid < b.right - b.width * .2) sun.x = mid;
+      }
+    }
     xs = g.map(s => ({ ...s, x: s.x - hr.left }));
     return g;
   }

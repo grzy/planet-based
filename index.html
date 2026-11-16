@@ -30,7 +30,7 @@
   if (!calm) document.documentElement.classList.add('boot');
   // the orange-tree loader (phones since 11-12, desktop too since 11-13): fetch its poster first, so the first paint already has it
   // 11-14 (Ivy): one vertical page at every width: the hero is a normal green section, the cards scroll down after it
-  var HERO_PH = 1.1; window.__heroPh = HERO_PH;
+  var HERO_PH = 1.22;   // 11-15 (Ivy): taller again, more green below window.__heroPh = HERO_PH;
   document.documentElement.classList.add('boot-static');
   if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
@@ -318,7 +318,15 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 /* ---------- hero objects: their own layer, never cloned into the blocks ---------- */
 .pin{position:relative}
 .hero{position:relative;height:100svh;min-height:560px;overflow:hidden}
-@media (max-width:759px){.hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--ph-spread,0px))}}   /* 11-14: the taller phone hero keeps its thesis and slider in the first screen */
+@media (max-width:759px){
+  /* 11-15 (Ivy): the thesis and slider a little lower (still in the first screen); the logo up into the space the top-left
+     text left; the peony and sun up a touch (the dahlia and its bee stay: the bee's own moves use translate), so the same picture has
+     more air */
+  .hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--hero-h,100svh) * .044)}
+  .hs-b .hero .mark{margin-top:calc(-19px - var(--hero-h,100svh) * .036)}   /* 11-15 (Ivy): a lot higher (was 14px); the rolled-out word still clears the studio line */
+  .objs .peony{translate:0 calc(var(--hero-h,100svh) * -.022)}
+  .objs .sun{translate:0 calc(var(--hero-h,100svh) * -.008)}
+}   /* 11-14: the taller phone hero keeps its thesis and slider in the first screen */
 .objs{position:absolute;left:0;top:0;width:100%;height:100svh;min-height:560px;container-type:size;z-index:6;pointer-events:none;overflow:hidden}
 .obj{position:absolute;height:auto}
 .shadow{filter:drop-shadow(0 1.6cqh 2cqh rgba(20,44,28,.34)) drop-shadow(0 .3cqh .4cqh rgba(20,44,28,.26))}
@@ -330,7 +338,8 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
    a swap changes the expression, never the sun's footprint */
 .peony{width:min(17cqh,11cqw);left:calc(61cqw - min(38cqh,24cqw) * .75 - min(17cqh,11cqw) / 2);top:calc(40cqh - min(38cqh,24cqw) * .55 - min(17cqh,11cqw) / 2);transform:rotate(-14deg)}
 /* 11-12 (Ivy): the whole dahlia stays inside the hero, so it is never cut off as the blocks part */
-.dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:5cqh;transform:rotate(9deg)}
+.dahlia{width:min(31cqh,20cqw);right:calc(var(--m) + 4.5cqw);bottom:8cqh;   /* 11-15 (Ivy): up a touch (was 5cqh) */
+  transform:rotate(9deg)}
 /* paper bees: one resting on the dahlia, one that drifts through now and then */
 .bee-rest{width:min(6.4cqh,4.1cqw);left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) * .88);bottom:calc(max(-12cqh,-7.6cqw) + min(31cqh,20cqw) * .86);transform:rotate(-12deg)}
 .bee-fly{position:absolute;left:0;top:0;width:min(7cqh,4.5cqw);aspect-ratio:1;visibility:hidden;will-change:transform}
@@ -618,6 +627,8 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .foot{display:flex;justify-content:space-between;gap:20px;padding:9px 0 clamp(30px,4.6vh,52px);   /* 11-14 (Ivy): close under the footer line; a short bottom margin */
   font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .foot span:last-child{margin-right:-.09em}
+.foot .yr{margin-right:0}
+.foot>span:first-child{white-space:nowrap;flex:none}   /* 11-15 (Ivy): "© 2026" never drops to a second line (14-inch laptop) */
 /* 11-13 (Ivy): the promise in sentence case, set like "Don't be a stranger", never shouted */
 .foot .promise{font-family:var(--serif);font-size:clamp(15px,1.05vw,20px);font-weight:360;letter-spacing:-.005em;text-transform:none;color:var(--ink-2);margin-right:0;font-variation-settings:"opsz" 24}
 .foot{align-items:baseline}
@@ -677,13 +688,14 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .contact a.mail{font-size:clamp(28px,9vw,44px)}
   .foot{flex-direction:column;gap:6px}
   .foot .promise{font-size:16px}
+  .foot .promise{order:-1}.foot .yr{display:block;margin-top:6px}   /* 11-15 (Ivy): phones: the promise first, then planetbased.io, the © 2026 at the bottom */
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=41">
-<link rel="stylesheet" href="logo/b-variant.css?v=41">
+<link rel="stylesheet" href="logo/story.css?v=44">
+<link rel="stylesheet" href="logo/b-variant.css?v=44">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -792,7 +804,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=10">
+<link rel="stylesheet" href="breeze/breeze.css?v=11">
 </head>
 <body>
 <main>
@@ -806,7 +818,7 @@ html.boot .pbs{visibility:hidden}
         var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
       </script>
       <script src="breeze/paths.js?v=10"></script>
-      <script src="breeze/scribble.js?v=10"></script>
+      <script src="breeze/scribble.js?v=11"></script>
 
       <div class="hero tex" id="hero">
         <div class="art" id="art">
@@ -900,7 +912,7 @@ html.boot .pbs{visibility:hidden}
               </div>
             </div>
           </div>
-          <div class="cap"><h2><span class="tt">Bioindicators<img class="t-under" src="img/pencil-under-9.webp" alt="" aria-hidden="true" width="298" height="24"></span></h2><p>An iOS app for the trails you walk again and again. It keeps what you notice each day, so over time you start to understand what the trail is telling you.</p></div>
+          <div class="cap"><h2><span class="tt">Bioindicators<img class="t-under" src="img/pencil-under-9.webp" alt="" aria-hidden="true" width="298" height="24"></span></h2><p>An iOS app for the trails you walk again and again. It keeps what you notice each time, so you start to understand what the trail is telling&nbsp;you.</p></div>
         </article>
       </div>
 
@@ -932,20 +944,20 @@ html.boot .pbs{visibility:hidden}
     </div>
   </section>
 </main>
-<footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="copy">©</span> 2026</span><span class="promise">Technology that gives energy back.</span></div></footer>
+<footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=41"></script>
-<script src="logo/pose.js?v=41"></script>
-<script src="logo/sound.js?v=41"></script>
-<script src="logo/bees.js?v=41"></script>
-<script src="logo/hero-logo.js?v=41"></script>
-<script src="logo/story.js?v=41"></script>
-<script src="logo/common.js?v=41"></script>
-<script src="logo/song.js?v=41"></script>
-<script src="logo/strings.js?v=41"></script>
-<script src="logo/preload.js?v=41"></script>
-<script src="logo/b-variant.js?v=41"></script>
+<script src="logo/hero-logo-data.js?v=44"></script>
+<script src="logo/pose.js?v=44"></script>
+<script src="logo/sound.js?v=44"></script>
+<script src="logo/bees.js?v=44"></script>
+<script src="logo/hero-logo.js?v=44"></script>
+<script src="logo/story.js?v=44"></script>
+<script src="logo/common.js?v=44"></script>
+<script src="logo/song.js?v=44"></script>
+<script src="logo/strings.js?v=44"></script>
+<script src="logo/preload.js?v=44"></script>
+<script src="logo/b-variant.js?v=44"></script>
 <script>
 (() => {
   'use strict';
@@ -2343,8 +2355,8 @@ html.boot .pbs{visibility:hidden}
 })();
 </script>
 <script src="breeze/copied.js?v=10"></script>
-<script src="breeze/cardsound.js?v=15"></script>
-<script src="breeze/breeze.js?v=10"></script>
+<script src="breeze/cardsound.js?v=17"></script>
+<script src="breeze/breeze.js?v=11"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>

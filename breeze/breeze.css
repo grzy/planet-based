@@ -30,7 +30,7 @@
   color:#26292a;background:rgba(241,242,227,.9);padding:6px 8px;border-radius:6px;pointer-events:none}
 
 /* on the dark page the graphite turns to a pale pencil, so the lines read on black the way they read on paper */
-html[data-page="dark"] :is(.breeze,.loader-wind) svg{filter:invert(1) brightness(.95)}
+/* 11-15: the pale lines come from *-light.png copies chosen as each line is drawn (breeze/scribble.js), no filter */
 
 /* 11-14 (Ivy): no house newt on phones; the footer has enough going on */
 @media (max-width:759px){.bnewt{display:none!important}}
@@ -62,7 +62,6 @@ html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}
 .wk .closing .home::before{content:"";position:absolute;left:4%;right:-2%;bottom:-1%;height:9%;
   background:radial-gradient(closest-side,rgba(40,34,20,.26),rgba(40,34,20,.1) 55%,rgba(40,34,20,0))}
 .wk .closing .cottage{position:relative}
-html.wk[data-page="dark"] :is(.breeze,.loader-wind){display:none}   /* pale lines need a filter; on dark WebKit they rest */
 /* and the hero's moving cutouts (sun, flowers, bees, the slider's sun): no filters on WebKit either */
 .wk :is(.shadow,.bee-fly img,.cap-bee img,.reg,.pbs .psun){filter:none!important}
 .wk :is(.sun .jit,.bee-fly,.cap-bee,.newt){will-change:auto}

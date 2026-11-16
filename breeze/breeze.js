@@ -89,19 +89,46 @@
   }
 
   // ---------- the small gusts: every 6 to 12 s while the closing is in view ----------
-  let gTimer = null, gAnims = [], gEls = [], gLanes = 0;
+  let gTimer = null, gAnims = [], gEls = [], gLanes = 0, gSmoke = 0;
+  // is a cloud over this box (closing px)? The gusts and the smoke wait for a gap (11-15, phones)
+  function cloudIn(l, t, r, b) {
+    const h = closing.getBoundingClientRect();
+    return [...closing.querySelectorAll('.cloud')].some(c => { const q = c.getBoundingClientRect(); if (!q.width) return false; const L = q.left - h.left, T = q.top - h.top; return L < r && L + q.width > l && T < b && T + q.height > t; });
+  }
+  // a few pencil wisps from the chimney (her S05): shared by the full breeze and the phone gusts
+  function smoke(G, at, n, add) {
+    const H = G.H, k = G.k, chx = H.l + H.w * .768, chy = H.t + H.h * .03;
+    for (let i = 0; i < n; i++) {
+      const st = P.S05, s = R(.5, .7), fx = i === 2 && rng() < .5;
+      const ox = (fx ? st.w - 130 : 130) * k * s, oy = 404 * k * s;
+      add('S05', { x: chx - ox + R(-3, 3) * k, y: chy - oy, k: k * s, fx, fy: false, rot: R(6, 14), t0: at + i * R(.8, 1.1),
+        dur: R(2.3, 2.9), win: R(.34, .44), lag: .15, dx: R(18, 30) * k, dy: -R(18, 32) * k, op: R(.75, .95), mw: 13, org: [ox, oy], fade: .42 });
+    }
+  }
   function smallGust() {
     gTimer = null;
     if (!inView || reduce.matches || !isNaN(freezeAt)) return;
     if (running) { armGust(); return; }                          // the full breeze has its own gusts
     const G = geo(), lanes = [G.yTop, (G.yTop + G.yBot) / 2, G.yBot];
-    const lane = lanes[gLanes++ % 3] + R(-.12, .12) * (G.yBot - G.yTop);   // a different height each time
+    const lane = lanes[gLanes % 3] + R(-.12, .12) * (G.yBot - G.yTop);   // a different height each time
+    // 11-15 (Ivy, phones): the wind comes in the gaps: never while a cloud is passing through the gust's band
+    if (thinLines() && cloudIn(G.x0, lane - 35 * G.k, G.x1 + 60 * G.k, lane + 35 * G.k)) { clearTimeout(gTimer); gTimer = setTimeout(smallGust, 1200); return; }
+    gLanes++;
     const n = rng() < .3 ? 1 : (thinLines() ? (rng() < .6 ? 1 : 2) : 2 + (rng() < .4 ? 1 : 0));
     const anims = [], els = [];
     gustLines(G, .1, n, lane, R(-2, 3), (key, o) => { const r = window.pbScribble(layer, key, o); els.push(r.el); anims.push(...r.anims); });
     anims.push(...nudges(G, lane, .1, false));
+    if (thinLines()) {
+      // 11-15 (Ivy): phones lost too much wind. Every gust now gives the tree a gentle sway and hurries the clouds a little;
+      // now and then, once it has passed, the chimney breathes (only while no cloud is near it)
+      if (!busy(sway)) anims.push(...swayAnims(.45, .9));
+      const g0 = performance.now();
+      if (!running) window.__breezeGust = now => { const s = ((now || performance.now()) - g0) / 1000; if (s > 6) return 1; return 1 + .9 * Math.exp(-Math.pow((s - 1.6) / 1.3, 2)); };
+      if (++gSmoke % 3 === 0) { const H = G.H; if (!cloudIn(H.l + H.w * .6, H.t - 140 * G.k, H.l + H.w * .95, H.t + H.h * .2)) smoke(G, 3.2, 2, (key, o) => { const r = window.pbScribble(layer, key, o); els.push(r.el); anims.push(...r.anims); }); }
+    }
     gAnims.push(...anims); gEls.push(...els);
     Promise.all(anims.map(a => a.finished.catch(() => {}))).then(() => {
+      if (!running && window.__breezeGust && thinLines()) window.__breezeGust = null;
       els.forEach(e => e.remove()); gEls = gEls.filter(e => !els.includes(e)); gAnims = gAnims.filter(a => !anims.includes(a));
     });
     armGust();
@@ -188,14 +215,7 @@
     const smokeAt = 4 + life + .3;                      // the chimney breathes once he is in
 
     // the wind has passed: a few pencil wisps curl up from the chimney (her S05, flipped and varied) and fade
-    const chx = H.l + H.w * .768, chy = H.t + H.h * .03;
-    const wisps = 3;
-    for (let i = 0; i < wisps; i++) {
-      const st = P.S05, s = R(.5, .7), fx = i === 2 && rng() < .5;   // mostly as drawn, hook downwind
-      const ox = (fx ? st.w - 130 : 130) * k * s, oy = 404 * k * s;
-      scribble('S05', { x: chx - ox + R(-3, 3) * k, y: chy - oy, k: k * s, fx, fy: false, rot: R(6, 14), t0: smokeAt + i * R(.8, 1.1),
-        dur: R(2.3, 2.9), win: R(.34, .44), lag: .15, dx: R(18, 30) * k, dy: -R(18, 32) * k, op: R(.75, .95), mw: 13, org: [ox, oy], fade: .42 });   // 11-14 (Ivy): out of the chimney and gone, sooner
-    }
+    smoke(G, smokeAt, 3, scribble);   // 11-14 (Ivy): out of the chimney and gone, sooner
 
     // review clock
     if (review) {

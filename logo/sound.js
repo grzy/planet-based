@@ -361,7 +361,10 @@
   // gesture (green: E major, home; oatmeal: A minor; dark: F major). Arrow keys play a note per step. Same gate as
   // everything: sound on, hero at rest
   (function sliderUnlock() {
-    const hook = () => { const el = document.querySelector('.hero .pbs'); if (!el) return setTimeout(hook, 400); if (el.__hsU) return; el.__hsU = true; ['touchend', 'pointerup'].forEach(t => el.addEventListener(t, gestureUnlock, { passive: true })); };
+    const hook = () => { const el = document.querySelector('.hero .pbs'); if (!el) return setTimeout(hook, 400); if (el.__hsU) return; el.__hsU = true; ['touchend', 'pointerup'].forEach(t => el.addEventListener(t, sliderUp, { passive: true })); };
+    // 11-15 (Ivy: "the slider doesn't turn sound on"): lifting off the slider is itself the yes, inside the gesture, even
+    // if the hero's pointerdown listener missed the press (not yet installed, or another handler took it)
+    const sliderUp = () => { if (answer !== 'yes' && (window.scrollY || 0) < 8 && typeof set === 'function') set('yes'); gestureUnlock(); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook); else hook();
   })();
   (function slider() {

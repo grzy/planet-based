@@ -26,7 +26,7 @@
     let k = 0;
     // 11-14 (Ivy): quicker on, a shorter hold, so every word gets read and the words keep moving
     shownAt = 0;
-    const type = () => { txt.textContent = w.slice(0, ++k); if (k < w.length) later(type, 16 + Math.random() * 12); else { shownAt = performance.now(); if (w.startsWith(POLL)) return; later(erase, 430); } };
+    const type = () => { txt.textContent = w.slice(0, ++k); if (k < w.length) later(type, 16 + Math.random() * 12); else { shownAt = performance.now(); if (w.startsWith(POLL)) return; later(erase, HOLD); } };
     const erase = () => { shownAt = 0; k = Math.max(0, k - 3); txt.textContent = w.slice(0, k); if (k > 0) later(erase, 14); else later(typeWord, 80); };
     type();
   }
@@ -52,6 +52,9 @@
   // The words run Seeding, Branching, then Pollinating, which stays; the tree's pencil wind swirls (c/breeze)
   // are held back until it appears and then blow; the cut follows the wind. The swirls' own calls are caught here and
   // replayed at that moment, keeping their timing
+  // 11-15 (Ivy): Rooting, Branching and Deploying read for the same time. Rooting and Branching hold 555 ms (was 430);
+  // the 250 ms they gain comes off Deploying (the cut starts that much sooner after the wind), so the total is unchanged
+  const HOLD = 555, TRIM = 2 * (555 - 430);
   const POLL = 'Deploying';   // 11-14, Ivy: Deploying (the wind sends it out) replaces Pollinating
   let windOn = false, windQ = [], windDoneFn; const windDone = new Promise(r => { windDoneFn = r; });
   const hookWind = () => {
@@ -69,7 +72,7 @@
     const t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s); let end = 0;
     windQ.forEach(([self, layer, key, o]) => { const oo = Object.assign({}, o, { t0: ((o && o.t0) || 0) - base + .05 }); end = Math.max(end, oo.t0 + (oo.dur || 1)); window.pbScribble.call(self, layer, key, oo); });
     windQ = [];
-    setTimeout(windDoneFn, Math.max(600, (end - .35) * 1000));   // the cut begins as the last line lifts off
+    setTimeout(windDoneFn, Math.max(350, (end - .35) * 1000 - TRIM));   // the cut begins as the last line lifts off
   }
   // a safety: if Pollinating never comes (a very slow start), the wind and the cut still happen
   setTimeout(() => { if (!windOn) pollinate(); }, MAX);

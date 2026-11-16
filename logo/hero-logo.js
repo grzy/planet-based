@@ -184,7 +184,7 @@
     setTimeout(wait, 120);
   }
   function scheduleNudge() {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setTimeout(rolled, 1800); return; }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { dispatchEvent(new CustomEvent('hs:hero-settled')); setTimeout(rolled, 1800); return; }
     let quietSince = performance.now();   // a click, a key or a scroll holds it back a moment (pointer moves don't)
     ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => addEventListener(t, () => { quietSince = performance.now(); }, { passive: true, capture: true }));
     const onScreen = () => { const r = logoSvg.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; };
@@ -199,7 +199,11 @@
       }, 1100 + 1400);
     };
     queueRoll = d => { clearTimeout(nudgeT); nudgeT = setTimeout(tryRoll, d); };
-    nudgeT = setTimeout(tryRoll, 3000);   // 11-14 (Ivy): sooner
+    // 11-15 (Ivy): the hint first, then the roll-out about 3.5 s after it (shared/song.js); no hint this visit: 3 s as before
+    const HINT_GAP = 3500;
+    dispatchEvent(new CustomEvent('hs:hero-settled'));   // the hint arrives now (shared/song.js)
+    const H = window.__hsHint;
+    nudgeT = setTimeout(tryRoll, H && H.state !== 'none' ? HINT_GAP : 3000);
   }
   window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();

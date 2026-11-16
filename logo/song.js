@@ -163,14 +163,23 @@
     let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
     if (seenVisit) return;
     let h = hero.querySelector('.hs-hint');
-    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); if (logoRolled) showHint(h); }
+    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); if (logoRolled || (!hintWaits && heroSettled)) showHint(h); }
     const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;
     const ph = innerWidth < 760, th = s.querySelector('.psun'), low = Math.max(sr.bottom, th ? th.getBoundingClientRect().bottom : 0);   // 11-14 (Ivy): on phones clear the slider's sun and its rays, a hair to the right
     h.style.left = (st.left - hr.left + (ph ? 3 : 0)).toFixed(1) + 'px'; h.style.top = ((ph ? low : sr.bottom) - hr.top + (ph ? 6 : 14)).toFixed(1) + 'px';   // 11-14 (Ivy): a little lower on desktop
   }
-  // 11-14 (Ivy): the hint waits for the logo's first own roll-out (shared/hero-logo.js) and arrives as it folds back
+  // 11-15 (Ivy): the hint comes FIRST: it arrives as the hero settles and invites the tap; the logo's first own roll-out
+  // follows about 3.5 s later (shared/hero-logo.js reads window.__hsHint). Reduced motion keeps the old order: the hint
+  // waits for the (skipped) roll-out's signal
   let logoRolled = false;
-  function showHint(h) { h.classList.add('go'); try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {} }
+  const hintWaits = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let heroSettled = false;   // the entrance has landed (hs:hero-settled, shared/hero-logo.js)
+  addEventListener('hs:hero-settled', () => { heroSettled = true; const h = !hintDone && !hintWaits && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
+  window.__hsHint = { state: hintDone ? 'none' : (() => { try { return sessionStorage.getItem('pb-hint-shown') === '1' ? 'none' : 'pending'; } catch (e) { return 'pending'; } })(), at: 0 };
+  function showHint(h) {
+    h.classList.add('go'); try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {}
+    if (window.__hsHint.state !== 'shown') { window.__hsHint = { state: 'shown', at: performance.now() }; dispatchEvent(new CustomEvent('hs:hint-shown')); }
+  }
   addEventListener('hs:logo-rolled', () => { logoRolled = true; const h = !hintDone && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
   function dismissHint() {
     if (hintDone) return; hintDone = true; try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}

@@ -2,17 +2,17 @@
 // (window.HeroSound, the hero's sound switch). Desktop: hovering the picture, as before.
 // Phones (11-14, round 2): a tap always opens the card. A sound plays only once scrolling has STOPPED (200 ms with no scroll)
 // with a card mostly in view (50%); scrolling again fades it out at once. One card at a time, 0.4 s in, 0.6 s out.
-// Unicorn on phones: stopping on it plays the welcome video once from the start, with its welcome sound, then rests on the
+// Unicorn on phones: stopping on it plays the welcome video once from just before the typing (1.5 s), with its welcome sound, then rests on the
 // last frame; scrolling past shows the still; leaving it resets it, and stopping on it again replays it.
 // Sound path: decoded buffers through HeroSound's unlocked audio context (iOS lets that play without a fresh tap, which a
 // video's own unmuted audio does not), else a plain <audio>. The Unicorn video stays muted and its sound is a buffer started
 // at the video's own currentTime the moment it is actually playing, so the two stay together.
 //   Unicorn: the welcome clip's own launch sound (from the case study's welcome.mp4; the card video has no audio track)
-//   Beekeeper: Dan D's clean single buzzes
+//   Beekeeper: Dan D's clean single buzzes, soft-edged with a little room, a few bees drifting by (card-bees-drift.mp3)
 //   Living Walls: a tūī phrase, Ken George, Whakatāne, xeno-canto XC1090728 (CC BY-NC-SA 4.0)
-//   Bioindicators: none for now.
+//   Bioindicators: a Swainson's thrush (card-bio-thrush.mp3: the quiet lead-in trimmed, 11-15)
 (() => {
-  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bees-long.mp3', wall: 'sounds/card-tui.mp3', bio: 'sounds/card-bio.mp3' };
+  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bees-drift.mp3', wall: 'sounds/card-tui.mp3', bio: 'sounds/card-bio-thrush.mp3' };
   const VOL = { uni: .2, bee: .12, wall: .14, bio: .16 }, IN = .4, OUT = .6;
   const soundOn = () => { const H = window.HeroSound; try { return !!H && typeof H.answer === 'function' && H.answer() === 'yes'; } catch (e) { return false; } };
   const ctxOf = () => { const H = window.HeroSound; if (!H) return null; try { return H.ctx || H.context || (typeof H.getContext === 'function' ? H.getContext() : null) || null; } catch (e) { return null; } };
@@ -54,8 +54,22 @@
     if (me.g) { me.g.gain.setTargetAtTime(0, me.c.currentTime, OUT / 3); setTimeout(() => { try { me.s && me.s.stop(); } catch (e) {} me.g.disconnect(); }, OUT * 1000 + 300); }
     else ramp(me.a, 0, OUT * 1000, () => { me.a.pause(); me.a.removeAttribute('src'); me.a.load(); });
   }
+  const UNI_AT = 1.5;   // 11-15 (Ivy): the welcome clip's start point, just before "Unicorn" types (first letter 1.9 s, its sound 1.84 s)
   const plates = [...document.querySelectorAll('.plate')].filter(p => SND[p.dataset.k] && p.querySelector('.media'));
-  if (!touch) plates.forEach(p => { const k = p.dataset.k, m = p.querySelector('.media'); m.addEventListener('pointerenter', () => start(k)); m.addEventListener('pointerleave', stop); });
+  // desktop: hover. Unicorn's sound starts at the looping video's own time, so the welcome sound lands with the typing (11-15)
+  if (!touch) plates.forEach(p => {
+    const k = p.dataset.k, m = p.querySelector('.media'); let over = false;
+    m.addEventListener('pointerenter', () => {
+      over = true; const v = k === 'uni' && m.querySelector('video');
+      if (!v) { start(k); return; }
+      // 11-15 (Ivy): skip the empty field: on hover the welcome clip jumps to 1.5 s and its sound starts with it; leaving
+      // lets the muted loop carry on from there
+      const go = () => { if (over) start(k, { at: () => v.currentTime }); };
+      if (soundOn() && v.readyState >= 1) { try { v.currentTime = UNI_AT; } catch (e) {} v.addEventListener('seeked', go, { once: true }); v.play().catch(() => {}); }
+      else go();
+    });
+    m.addEventListener('pointerleave', () => { over = false; stop(); });
+  });
   else if ('IntersectionObserver' in window) {
     const ratio = new Map(), SETTLE = 120;   // 11-15 Ivy: sooner
     let settleT = 0, uni = null, uniDone = false;
@@ -67,20 +81,24 @@
       v.className = 'hover-vid'; v.muted = true; v.playsInline = true; v.preload = 'auto';
       v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true');
       v.src = 'video/unicorn-welcome.mp4'; uniM.appendChild(v);
+      v.addEventListener('loadedmetadata', () => { try { if (v.paused) v.currentTime = UNI_AT; } catch (e) {} }, { once: true });   // ready at the start point
       v.addEventListener('ended', () => { uniDone = true; });                  // rests on its last frame
       v.addEventListener('error', () => { v.remove(); uni = null; }, { once: true });
       return v;
     }
     function playUni() {
       const v = uniVid(); if (!v || uniDone || !v.paused) return;
-      try { v.currentTime = 0; } catch (e) {}
       const go = () => { v.classList.add('on'); if (!cur || cur.k !== 'uni') start('uni', { once: true, at: () => v.currentTime }); };
-      v.addEventListener('playing', go, { once: true });
-      v.play().catch(() => v.removeEventListener('playing', go));
+      const begin = () => {                                                    // a seek before metadata is dropped: wait for it
+        try { v.currentTime = UNI_AT; } catch (e) {}
+        v.addEventListener('playing', go, { once: true });
+        v.play().catch(() => v.removeEventListener('playing', go));
+      };
+      if (v.readyState >= 1) begin(); else v.addEventListener('loadedmetadata', begin, { once: true });
     }
     function resetUni() {
       if (!uni) return;
-      uni.pause(); uni.classList.remove('on'); setTimeout(() => { if (uni && uni.paused) try { uni.currentTime = 0; } catch (e) {} }, 400);
+      uni.pause(); uni.classList.remove('on'); setTimeout(() => { if (uni && uni.paused) try { uni.currentTime = UNI_AT; } catch (e) {} }, 400);
     }
     const reduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     // ---- settle: nothing plays while the page moves ----

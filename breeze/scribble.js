@@ -12,7 +12,10 @@
   // sizes). Returns its element and animations
   const SAFE = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent) || /iP(hone|ad|od)/.test(navigator.userAgent) || document.documentElement.classList.contains('wk');   // html.wk: set in the head (and by ?wk, for review)
   window.pbScribble = function (host, key, o) {
-    const st = P[key], id = 'pbs' + (++uid), w = st.w * o.k, h = st.h * o.k, anims = [];
+    // 11-15 (Ivy): on the dark page (the moon end of the slider: hero, loader and closing) the lines are drawn from pale
+    // copies of the studies (*-light.png), so they read on black everywhere, WebKit included, with no filter
+    const dark = document.documentElement.dataset.page === 'dark';
+    const st0 = P[key], st = dark && /^[ws]\d\d-/.test(st0.src) ? Object.assign({}, st0, { src: st0.src.replace(/\.png$/, '-light.png') }) : st0, id = 'pbs' + (++uid), w = st.w * o.k, h = st.h * o.k, anims = [];
     const svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('width', w.toFixed(1)); svg.setAttribute('height', h.toFixed(1));
     svg.setAttribute('viewBox', `0 0 ${st.w} ${st.h}`); svg.setAttribute('focusable', 'false'); svg.setAttribute('aria-hidden', 'true');
