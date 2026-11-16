@@ -107,7 +107,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
 .loader .hs-ing-2.smudge .hs-txt{clip-path:inset(-20% -2% -20% 0);filter:blur(2.2px);opacity:0;transform:translate(6px,-2px) skewX(-6deg);transition:filter .38s ease,opacity .4s ease,transform .42s ease}
 /* the resting bee sits at the dahlia's centre, on the pollen (not on its rim) */
 .hs .bee-rest{left:calc(100cqw - var(--m) - 4.5cqw - min(31cqh,20cqw) / 2 - min(6.4cqh,4.1cqw) / 2);bottom:calc(8cqh + min(31cqh,20cqw) * .52 - min(6.4cqh,4.1cqw) / 2)}
-@media (max-width:759px){.hs .bee-rest{left:calc(108cqw - 9.5cqh - 2.3cqh);top:calc(58cqh + 9.95cqh - 2.3cqh);bottom:auto}}
+@media (max-width:759px){.hs .bee-rest{left:calc(108cqw - 9.5cqh - 2.3cqh);top:calc(57cqh + 9.95cqh - 2.3cqh);bottom:auto}}
 /* the hero's only buttons: Sound, Share (and Play / Play it back on a shared song). Their own treatment, apart from the
    mark: small paper chips, ink type, a soft lift like the page's paper cut-outs, no strokes. Paper and ink are constant,
    so they read the same at every point of the colour slider (ink on paper is about 17:1). They sit together at the hero's
@@ -150,7 +150,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
    line itself is gone (the logo, strings and slider all stand vertical; one line across the top confused them). Phones
    keep theirs. ?logo=2 and ?logo=3 lift it to half a bar and a quarter bar of air, to compare */
 @media (min-width:760px){
-  .hs-b .mark,.hs-c .mark{margin-top:0;top:calc(7cqh + min(2.6cqh,1.55cqw) * .67 + (100cqw - 2 * var(--m) - 11 * var(--gut)) / 36)}
+  .hs-b .mark,.hs-c .mark{margin-top:0;top:7cqh}   /* 11-15 (Ivy): the logo's top lines up with the studio line's cap top */
   .hs-b.hs-logo2 .mark,.hs-c.hs-logo2 .mark{margin-top:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / -72)}
   .hs-b.hs-logo3 .mark,.hs-c.hs-logo3 .mark{margin-top:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / -48)}
   .hs .dateline .rule{visibility:hidden}

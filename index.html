@@ -322,7 +322,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   /* 11-15 (Ivy): the thesis and slider a little lower (still in the first screen); the logo up into the space the top-left
      text left; the peony and sun up a touch (the dahlia and its bee stay: the bee's own moves use translate), so the same picture has
      more air */
-  .hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--hero-h,100svh) * .044)}
+  .hero .thesis{margin-bottom:calc(var(--ph-lift,0px) - var(--hero-h,100svh) * .040)}   /* 11-15: down a hair (was .044) */
   .hs-b .hero .mark{margin-top:calc(-19px - var(--hero-h,100svh) * .036)}   /* 11-15 (Ivy): a lot higher (was 14px); the rolled-out word still clears the studio line */
   .objs .peony{translate:0 calc(var(--hero-h,100svh) * -.022)}
   .objs .sun{translate:0 calc(var(--hero-h,100svh) * -.008)}
@@ -643,7 +643,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .mark .mono-pb{height:min(40cqh,48cqw)}
   .mark .mono-pb.pb-logo{height:min(24cqh,30cqw)}
   .mark .word{font-size:12cqw}
-  .dateline{font-size:12px}
+  .dateline{font-size:12px;top:calc(4.45cqh - 13px)}   /* 11-15 (Ivy): the studio line rides centred in the air above the closed logo, clear of the word */
   .dl-sub{font-size:12px;top:calc(7cqh + 20px)}
   .thesis{font-size:min(6.4cqh,8.6cqw)}
   .guides{grid-template-columns:repeat(4,1fr)}
@@ -653,7 +653,7 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   /* 11-13 (Ivy): centred on the third guide line (50% + half a gutter), clear of the logo and the peony */
   .sun{left:calc(50cqw + var(--gut) / 2 - 23cqh / 2);top:calc(45cqh - 23cqh / 2);width:23cqh;height:23cqh}
   .peony{width:12cqh;left:calc(70cqw - 23cqh * .1 - 6cqh);top:calc(45cqh - 23cqh * .86 - 6cqh)}
-  .dahlia{width:19cqh;right:-8cqw;left:auto;top:58cqh;bottom:auto}
+  .dahlia{width:19cqh;right:-8cqw;left:auto;top:57cqh;bottom:auto}   /* 11-15: up a hair (was 58cqh) */
   .mark-word .peony{left:calc(70cqw + 23cqh * .32 - 6cqh);top:calc(45cqh - 23cqh * .76 - 6cqh)}
   .bee-rest{width:4.6cqh;left:calc(108cqw - 19cqh * .78);top:calc(58cqh - 4.6cqh * .55);bottom:auto}
   .bee-fly{width:6.4cqh}
@@ -688,14 +688,14 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .contact a.mail{font-size:clamp(28px,9vw,44px)}
   .foot{flex-direction:column;gap:6px}
   .foot .promise{font-size:16px}
-  .foot .promise{order:-1}.foot .yr{display:block;margin-top:6px}   /* 11-15 (Ivy): phones: the promise first, then planetbased.io, the © 2026 at the bottom */
+  .foot .promise{order:-1}   /* 11-15 (Ivy): © 2026 back on the planetbased.io line */   /* 11-15 (Ivy): phones: the promise first, then planetbased.io, the © 2026 at the bottom */
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=44">
-<link rel="stylesheet" href="logo/b-variant.css?v=44">
+<link rel="stylesheet" href="logo/story.css?v=45">
+<link rel="stylesheet" href="logo/b-variant.css?v=45">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -947,17 +947,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=44"></script>
-<script src="logo/pose.js?v=44"></script>
-<script src="logo/sound.js?v=44"></script>
-<script src="logo/bees.js?v=44"></script>
-<script src="logo/hero-logo.js?v=44"></script>
-<script src="logo/story.js?v=44"></script>
-<script src="logo/common.js?v=44"></script>
-<script src="logo/song.js?v=44"></script>
-<script src="logo/strings.js?v=44"></script>
-<script src="logo/preload.js?v=44"></script>
-<script src="logo/b-variant.js?v=44"></script>
+<script src="logo/hero-logo-data.js?v=45"></script>
+<script src="logo/pose.js?v=45"></script>
+<script src="logo/sound.js?v=45"></script>
+<script src="logo/bees.js?v=45"></script>
+<script src="logo/hero-logo.js?v=45"></script>
+<script src="logo/story.js?v=45"></script>
+<script src="logo/common.js?v=45"></script>
+<script src="logo/song.js?v=45"></script>
+<script src="logo/strings.js?v=45"></script>
+<script src="logo/preload.js?v=45"></script>
+<script src="logo/b-variant.js?v=45"></script>
 <script>
 (() => {
   'use strict';
