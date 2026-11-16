@@ -8,11 +8,11 @@
 // video's own unmuted audio does not), else a plain <audio>. The Unicorn video stays muted and its sound is a buffer started
 // at the video's own currentTime the moment it is actually playing, so the two stay together.
 //   Unicorn: the welcome clip's own launch sound (from the case study's welcome.mp4; the card video has no audio track)
-//   Beekeeper: Dan D's clean single buzzes, soft-edged with a little room, a few bees drifting by (card-bees-drift.mp3)
+//   Beekeeper: Dan D's clean single buzzes, soft-edged with a little room, a few bees drifting by (card-bees-meadow.mp3, a continuous meadow recording, 11-15)
 //   Living Walls: a tūī phrase, Ken George, Whakatāne, xeno-canto XC1090728 (CC BY-NC-SA 4.0)
 //   Bioindicators: a Swainson's thrush (card-bio-thrush.mp3: the quiet lead-in trimmed, 11-15)
 (() => {
-  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bees-drift.mp3', wall: 'sounds/card-tui.mp3', bio: 'sounds/card-bio-thrush.mp3' };
+  const SND = { uni: 'sounds/card-unicorn.mp3', bee: 'sounds/card-bees-meadow.mp3', wall: 'sounds/card-tui.mp3', bio: 'sounds/card-bio-thrush.mp3' };
   const VOL = { uni: .2, bee: .12, wall: .14, bio: .16 }, IN = .4, OUT = .6;
   const soundOn = () => { const H = window.HeroSound; try { return !!H && typeof H.answer === 'function' && H.answer() === 'yes'; } catch (e) { return false; } };
   const ctxOf = () => { const H = window.HeroSound; if (!H) return null; try { return H.ctx || H.context || (typeof H.getContext === 'function' ? H.getContext() : null) || null; } catch (e) { return null; } };
@@ -38,7 +38,9 @@
       buf(c, k).then(b => {
         if (cur !== me) return;
         const s = c.createBufferSource(); s.buffer = b; s.loop = loop; s.connect(me.g);
-        const off = Math.max(0, Math.min(b.duration - .05, o.at ? o.at() : 0)); s.start(0, off);   // o.at: the video's time, read now
+        // 11-15: an mp3 carries ~23 ms of encoder silence at its head; a loop skips it (no gap at the seam)
+        if (loop) { s.loopStart = .03; s.loopEnd = b.duration; }
+        const off = Math.max(loop ? .03 : 0, Math.min(b.duration - .05, o.at ? o.at() : 0)); s.start(0, off);   // o.at: the video's time, read now
         me.s = s; me.g.gain.setTargetAtTime(vol, c.currentTime, (o.once ? .12 : IN) / 3);
       }).catch(() => { if (cur === me) cur = null; });
       return;

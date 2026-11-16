@@ -159,6 +159,22 @@
     if (v === 's') { HeroSound.play('s', step, { pan, tap: true }); return; }   // a tap on the sun: a short castanet roll
     FIG[v].forEach((k, n) => setTimeout(() => HeroSound.play(v, step + k, { pan }), n * 130));
   }
+  // ---------- the strum lock (11-15, Ivy, phones): once a touch has played a string, the page holds still: no scroll, no
+  // overscroll or edge-swipe navigation where the browser allows it, so a strum is never lost mid-way. It lets go 2.5 s
+  // after the last string, or at once on a touch that starts outside the strings. While it holds, the guides glow faintly.
+  // iOS Safari: its left-edge back swipe cannot be blocked by a page; the strings keep 22 px clear of that edge ----------
+  let locked = false, lockT = 0;
+  const unlock = () => { clearTimeout(lockT); if (!locked) return; locked = false; document.documentElement.classList.remove('hs-lock'); };
+  function lock() {
+    clearTimeout(lockT); lockT = setTimeout(unlock, 2500);
+    if (locked) return; locked = true; document.documentElement.classList.add('hs-lock');
+  }
+  addEventListener('touchmove', e => { if (locked && e.cancelable) e.preventDefault(); }, { passive: false, capture: true });
+  addEventListener('touchstart', e => {
+    if (!locked) return;
+    const t = e.touches[0], hr = hero && hero.getBoundingClientRect();
+    if (!t || !hr || t.clientY < hr.top || t.clientY > hr.bottom || (e.target.closest && e.target.closest('a,button,.pbs,.work,.closing'))) unlock();
+  }, { passive: true, capture: true });
   function wire() {
     // sweeping across the strings plucks every one you cross
     // sweeping anywhere across the hero strums: every string you cross sounds (listened for on the window, so the sun
@@ -175,7 +191,8 @@
       if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
       if (e.target && e.target.closest && e.target.closest('.work, .closing, footer, .foot, a, button, .pbs')) { lastX = null; return; }
       const x = e.clientX - hr.left;
-      if (lastX != null) xs.forEach((s, i) => { if ((lastX - s.x) * (x - s.x) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); } });
+      const touchy = e.pointerType === 'touch', edge = touchy ? 22 - hr.left : -1e9;   // phones: no string within 22 px of the left edge (iOS back swipe)
+      if (lastX != null) xs.forEach((s, i) => { if (s.x > edge && (lastX - s.x) * (x - s.x) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); if (touchy) lock(); } });
       lastX = x;
     }, { passive: true });
     document.addEventListener('pointerleave', () => { lastX = null; });
