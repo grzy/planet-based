@@ -192,7 +192,9 @@
       if (e.target && e.target.closest && e.target.closest('.work, .closing, footer, .foot, a, button, .pbs')) { lastX = null; return; }
       const x = e.clientX - hr.left;
       const touchy = e.pointerType === 'touch', edge = touchy ? 22 - hr.left : -1e9;   // phones: no string within 22 px of the left edge (iOS back swipe)
-      if (lastX != null) xs.forEach((s, i) => { if (s.x > edge && (lastX - s.x) * (x - s.x) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); if (touchy) lock(); } });
+      // 11-16 (Ivy): the far-left string sits inside that edge, so on phones it plays a little to its right (where a thumb can reach); the line stays put
+      const hx = sx => touchy && sx <= edge ? edge + 12 : sx;
+      if (lastX != null) xs.forEach((s, i) => { const h = hx(s.x); if ((lastX - h) * (x - h) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); if (touchy) lock(); } });
       lastX = x;
     }, { passive: true });
     document.addEventListener('pointerleave', () => { lastX = null; });
