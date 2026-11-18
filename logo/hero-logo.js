@@ -205,5 +205,7 @@
     const H = window.__hsHint;
     nudgeT = setTimeout(tryRoll, H && H.state !== 'none' ? HINT_GAP : 3000);
   }
-  window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
+  // holdRoll(ms): push the next silent roll-out back (the tap-me options, protos/tapme-r1); nothing once she has played
+  const holdRoll = d => { if (queueRoll && !touched && !rolledOnce && !nudging && !replaying) queueRoll(d); };
+  window.HeroLogo = { word, mount, render, enable, go, flourish, replayOnce, holdRoll, get rolled() { return rolledOnce; }, get touched() { return touched; }, screenBars: (v, w) => (w || mount()).screen(v, (w || hw).logo || (w ? null : logoRects())), get s() { return s; }, bars: M.bars, M, logoRects: () => (mount(), logoRects()) };
 })();

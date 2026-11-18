@@ -604,7 +604,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 /* a click copies the address: a pencil check and the word "copied" write themselves in beside it, then fade */
 .copied{position:absolute;left:calc(100% + .22em);bottom:.04em;width:1.8em;pointer-events:none;opacity:0;visibility:hidden;transform:rotate(-4deg);transform-origin:0 100%}
 /* 11-14 (Ivy): the check and the word are hand-drawn pencil now (breeze/copied.js, styles in breeze/breeze.css) */
-.home{--cw:clamp(300px,27vw,640px);grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * .49);position:relative}   /* 11-16 (Ivy): bigger, standing on the address's baseline */
+.home{--cw:clamp(300px,27vw,640px);   /* 11-16 (Ivy): bigger (was clamp(250px,21.5vw,500px)) */grid-column:9 / -1;justify-self:end;margin-bottom:calc(var(--nw) * .49);position:relative}   /* 11-16 (Ivy): lower: the house stands on the address's baseline (was --nw * 1.4) */
 /* the potted orange tree belongs to the house: smaller than it, standing on the same ground, rustles from the pot */
 .pot-tree{position:absolute;width:calc(var(--cw) * .2);height:auto;left:calc(var(--cw) * .045);bottom:calc(var(--cw) * .037);
   z-index:2;transform-origin:50% 96%;filter:drop-shadow(0 12px 14px rgba(40,34,20,.22)) drop-shadow(0 2px 3px rgba(40,34,20,.18))}
@@ -695,8 +695,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=50">
-<link rel="stylesheet" href="logo/b-variant.css?v=50">
+<link rel="stylesheet" href="logo/story.css?v=53">
+<link rel="stylesheet" href="logo/b-variant.css?v=53">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -805,7 +805,7 @@ html.boot .pbs{visibility:hidden}
 @media (pointer:coarse){.pbs:not(.dial){height:44px}}
 @media (prefers-reduced-motion:reduce){.pbs .psun{transition:none!important}}
 </style>
-<link rel="stylesheet" href="breeze/breeze.css?v=11">
+<link rel="stylesheet" href="breeze/breeze.css?v=12">
 </head>
 <body>
 <main>
@@ -948,17 +948,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=50"></script>
-<script src="logo/pose.js?v=50"></script>
-<script src="logo/sound.js?v=50"></script>
-<script src="logo/bees.js?v=50"></script>
-<script src="logo/hero-logo.js?v=50"></script>
-<script src="logo/story.js?v=50"></script>
-<script src="logo/common.js?v=50"></script>
-<script src="logo/song.js?v=50"></script>
-<script src="logo/strings.js?v=50"></script>
-<script src="logo/preload.js?v=50"></script>
-<script src="logo/b-variant.js?v=50"></script>
+<script src="logo/hero-logo-data.js?v=53"></script>
+<script src="logo/pose.js?v=53"></script>
+<script src="logo/sound.js?v=53"></script>
+<script src="logo/bees.js?v=53"></script>
+<script src="logo/hero-logo.js?v=53"></script>
+<script src="logo/story.js?v=53"></script>
+<script src="logo/common.js?v=53"></script>
+<script src="logo/song.js?v=53"></script>
+<script src="logo/strings.js?v=53"></script>
+<script src="logo/preload.js?v=53"></script>
+<script src="logo/b-variant.js?v=53"></script>
 <script>
 (() => {
   'use strict';
@@ -1210,6 +1210,7 @@ html.boot .pbs{visibility:hidden}
     return 900 + srand() * 500;
   }
   function sunFrame() {
+    if (window.__sunHold) { sunTimer = setTimeout(sunFrame, 700); return; }   // 11-16: someone else holds a face (the tap-me options)
     let n = sunIdx;
     // 11-13 (Ivy): the tongue is the special one. Never on arrival: only once the hero has fully settled
     // (intro done, bees landed: ~4s after), and only after the sun has shown every calm face at least once since
@@ -2355,7 +2356,8 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/copied.js?v=10"></script>
+<script src="breeze/hand.js?v=13"></script>
+<script src="breeze/copied.js?v=12"></script>
 <script src="breeze/cardsound.js?v=19"></script>
 <script src="breeze/breeze.js?v=11"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"

@@ -76,7 +76,11 @@
   const CHORDS = [[9, 0, 4], [7, 11, 2], [5, 9, 0], [4, 8, 11]];   // Am G F E (pitch classes)
   let chordI = 0, inRow = 0, lastAt = 0, endT = 0, soloT = 0;
   const snap = (m, ch) => { for (const d of [0, -1, 1, -2, 2, -3, 3]) if (ch.includes(((m + d) % 12 + 12) % 12)) return m + d; return m; };
+  const SOUND_OLD = /[?&]sound=old\b/.test(location.search);
+  // new velocity (sound polish): the swipe's step in px (dx = (amp - .5) * 40) through a perceptual curve, .3 to .9
+  const velOf = amp => SOUND_OLD ? amp : Math.min(.9, .3 + .6 * (1 - Math.exp(-Math.max(0, (amp - .5) * 40) / 30)));
   const note = (i, amp = 1) => {
+    amp = velOf(amp);
     if (!window.HeroSound) return;
     const now = performance.now(), gap = now - lastAt; lastAt = now;
     if (gap > 6000) chordI = 0;
@@ -85,10 +89,10 @@
     const th = thumb(i), m0 = HeroSound.midiOf ? HeroSound.midiOf(stepOf(i), th) : null, pan = panOf(i);
     if (gap < 150 || inRow > 1) {                       // in a sweep: a tone of the chord
       clearTimeout(soloT);
-      HeroSound.play('g', stepOf(i), { midi: m0 != null ? snap(m0, CHORDS[chordI]) : undefined, amp: (th ? .5 : .72) * amp, down: th, pan, bright: .22 });
+      HeroSound.play('g', stepOf(i), { midi: m0 != null ? snap(m0, CHORDS[chordI]) : undefined, amp: (th ? .5 : .72) * amp, down: th, pan, bright: .22, key: 'g' + i });
       return;
     }
-    HeroSound.play('g', stepOf(i), { amp: th ? amp * .6 : amp, down: th, pan, bright: th ? .2 : .3 + .25 * amp });
+    HeroSound.play('g', stepOf(i), { amp: th ? amp * .6 : amp, down: th, pan, bright: th ? .2 : .3 + .25 * amp, key: 'g' + i });
     // a lone pluck (nothing follows within a beat): sometimes a little more
     clearTimeout(soloT);
     soloT = setTimeout(() => {
@@ -184,7 +188,16 @@
     // moves for it; those never strum. Only real pointer movement, over the hero while it is mostly on screen
     let scrolledAt = 0;
     addEventListener('scroll', () => { scrolledAt = performance.now(); lastX = null; }, { passive: true });
+    // 11-16 (sound polish): the moves are gathered and handled once per frame, with every coalesced sample, so a fast
+    // swipe never skips a string and the work never piles up mid-frame (?sound=old: each move at once, as before)
+    let moveQ = [], moveRaf = 0;
     addEventListener('pointermove', e => {
+      if (SOUND_OLD) { onMove(e); return; }
+      const list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+      (list && list.length ? list : [e]).forEach(c => moveQ.push({ clientX: c.clientX, clientY: c.clientY, movementX: c.movementX, movementY: c.movementY, pointerType: e.pointerType, target: e.target }));
+      if (!moveRaf) moveRaf = requestAnimationFrame(() => { moveRaf = 0; const q = moveQ; moveQ = []; q.forEach(onMove); });
+    }, { passive: true });
+    function onMove(e) {
       if (drag) return;
       const hr = hero.getBoundingClientRect();
       if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0) || hr.bottom < innerHeight * .6 || hr.top > innerHeight * .4) { lastX = null; return; }
@@ -196,7 +209,7 @@
       const hx = sx => touchy && sx <= edge ? edge + 12 : sx;
       if (lastX != null) xs.forEach((s, i) => { const h = hx(s.x); if ((lastX - h) * (x - h) < 0) { pluck(i, Math.min(1.4, .5 + Math.abs(x - lastX) / 40)); strumUnderSun(e); if (touchy) lock(); } });
       lastX = x;
-    }, { passive: true });
+    }
     document.addEventListener('pointerleave', () => { lastX = null; });
     // the sun and the flowers slide along their strings
     let drag = null;

@@ -21,7 +21,13 @@
   try { answer = localStorage.getItem(KEY); } catch (e) {}
   const listeners = [], playListeners = [];
   const allowed = () => answer === 'yes' || once;
-  let master, bus, roomSend, cache = new Map();
+  let master, bus, roomSend, outTap = null, pool = null, cache = new Map();
+  // 11-16 (Ivy: strumming sounded rough and glitchy): the polished engine (protos/SOUND-POLISH-PLAN.md). ?sound=old keeps
+  // the engine as it was, on the same page, for an A/B: gain staging, the chain, timing, choke, voices, the room and the
+  // per-note life all follow this flag (strings.js reads the same flag for its velocity)
+  const OLD = /[?&]sound=old\b/.test(location.search);
+  const MASTER_NEW = 3.7;   // matched to the old engine's loudness (RMS on the same strum, see the report)
+  const TOUCH = !!(window.matchMedia && matchMedia('(hover: none)').matches);
 
   // ---------- the room: one context, one bus, tape warmth, a small warm room, a master limiter ----------
   // iOS 16.4+: a 'playback' audio session plays even when the ringer switch is on silent (Web Audio is muted there otherwise)
@@ -32,8 +38,39 @@
     session();
     try {
       if (!ctx) {
-        ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+        // touch devices ask for a 'balanced' buffer (20 to 40 ms): no underrun crackle under load, and a strum never feels it
+        ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: !OLD && TOUCH ? 'balanced' : 'interactive' });
         const sr = ctx.sampleRate;
+        if (!OLD) {
+          // voices -> panner pool (9) -> bus (.30, headroom) -> wow (about 1 cent) -> warm shelf -> air -> soft clip (rounds
+          // peaks only) -> glue; and bus -> high-pass -> low-pass -> 15 ms pre-delay -> a 1.6 s room -> wet -> glue;
+          // glue (gentle) -> master -> a true safety limiter that should almost never move -> out
+          bus = ctx.createGain(); bus.gain.value = .30; roomSend = ctx.createGain(); roomSend.gain.value = 1;
+          const wow = ctx.createDelay(.05); wow.delayTime.value = .012;
+          const lfo = ctx.createOscillator(), lfoG = ctx.createGain(); lfo.frequency.value = .37; lfoG.gain.value = .00025; lfo.connect(lfoG); lfoG.connect(wow.delayTime); lfo.start();
+          const warm = ctx.createBiquadFilter(); warm.type = 'lowshelf'; warm.frequency.value = 220; warm.gain.value = 1.5;
+          const air = ctx.createBiquadFilter(); air.type = 'lowpass'; air.frequency.value = 9000; air.Q.value = .5;
+          const sat = ctx.createWaveShaper(), curve = new Float32Array(2048);
+          for (let k = 0; k < 2048; k++) { const x = k / 1023.5 - 1; curve[k] = Math.tanh(1.15 * x) / Math.tanh(1.15); }
+          sat.curve = curve; sat.oversample = '4x';
+          const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 250;
+          const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+          const pre = ctx.createDelay(.05); pre.delayTime.value = .015;
+          const room = ctx.createConvolver(), len = Math.floor(sr * 1.6), ir = ctx.createBuffer(2, len, sr);
+          for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); let q = 0; for (let k = 0; k < len; k++) { q += (Math.random() * 2 - 1 - q) * .45; d[k] = q * Math.exp(-6.9 * k / len) * Math.min(1, k / (sr * .004)); } }
+          room.buffer = ir;
+          const wet = ctx.createGain(); wet.gain.value = .16;
+          const glue = ctx.createDynamicsCompressor(); glue.threshold.value = -18; glue.knee.value = 12; glue.ratio.value = 2.5; glue.attack.value = .015; glue.release.value = .2;
+          master = ctx.createGain(); master.gain.value = MASTER_NEW;
+          const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .08;
+          bus.connect(wow); wow.connect(warm); warm.connect(air); air.connect(sat); sat.connect(glue);
+          bus.connect(hp); hp.connect(lp); lp.connect(pre); pre.connect(room); room.connect(wet); wet.connect(glue);
+          glue.connect(master); master.connect(lim); lim.connect(ctx.destination); outTap = lim;
+          // nine fixed panners, made once; every note goes to the nearest
+          pool = ctx.createStereoPanner ? Array.from({ length: 9 }, (_, i) => { const o = ctx.createStereoPanner(); o.pan.value = -.7 + i * .175; o.connect(bus); return o; }) : null;
+          const sil = ctx.createBufferSource(); sil.buffer = ctx.createBuffer(1, 1, sr); sil.connect(ctx.destination); sil.start(0);
+          build.init(); decodeGuitar(); decodeVoices();
+        } else {
         master = ctx.createGain(); master.gain.value = .25;   // about -6 dB from before (Ivy, 11-14)
         const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -16; lim.knee.value = 10; lim.ratio.value = 8; lim.attack.value = .003; lim.release.value = .25;
         const sat = ctx.createWaveShaper(), curve = new Float32Array(2048);
@@ -50,10 +87,11 @@
         bus = ctx.createGain(); roomSend = ctx.createGain(); roomSend.gain.value = 1;
         bus.connect(wow); wow.connect(warm); warm.connect(top); top.connect(sat); sat.connect(master);
         top.connect(room); room.connect(wet); wet.connect(master);
-        master.connect(lim); lim.connect(ctx.destination);
+        master.connect(lim); lim.connect(ctx.destination); outTap = lim;
         // iPhone Safari: a silent buffer started inside the tap unlocks output
         const sil = ctx.createBufferSource(); sil.buffer = ctx.createBuffer(1, 1, sr); sil.connect(ctx.destination); sil.start(0);
         build.init(); decodeGuitar(); decodeVoices();
+        }
       }
       if (ctx.state !== 'running') ctx.resume();
     } catch (e) { return false; }
@@ -116,8 +154,17 @@
   let curTag = 'h';   // whose note is being made (play sets it): the hero 'h' or the closing 'c'
   const env = (g, t, peak, a, d) => { allGains.push([g, t + a + d, curTag]); if (allGains.length > 200) { const now = ctx.currentTime; allGains = allGains.filter(x => x[1] > now); } g.gain.setValueAtTime(.00001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.00001, t + a + d); };
   let lastAt = 0;
-  const when = (jit = .012) => { const t = Math.max(ctx.currentTime + .003 + Math.random() * jit, lastAt + .012); lastAt = t; return t; };
-  const panner = p => { const o = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(); if (o.pan) o.pan.value = Math.max(-.7, Math.min(.7, p * .7)); o.connect(bus); return o; };
+  // new: 4 ms between notes and at most 3 ms of humanizing jitter, so a fast sweep follows the hand; a string note that
+  // would land more than 30 ms late is dropped (its neighbours already sound the chord). Old: 12 ms and the full jitter
+  const when = (jit = .012, drop) => {
+    const now = ctx.currentTime, t = OLD ? Math.max(now + .003 + Math.random() * jit, lastAt + .012) : Math.max(now + .003 + Math.random() * Math.min(jit, .003), lastAt + .004);
+    if (!OLD && drop && t - now > .03) return null;
+    lastAt = t; return t;
+  };
+  const panner = p => {
+    if (!OLD && pool) return pool[Math.max(0, Math.min(8, Math.round((Math.max(-.7, Math.min(.7, p * .7)) + .7) / .175)))];
+    const o = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(); if (o.pan) o.pan.value = Math.max(-.7, Math.min(.7, p * .7)); o.connect(bus); return o;
+  };
 
   function pluckBuffer(f, damp) {
     const key = Math.round(f * 4) + ':' + damp; if (cache.has(key)) return cache.get(key);
@@ -153,7 +200,16 @@
   const VFILES = Object.values(BANK).flat().map(b => b[1]);
   const vRaw = new Map(), vBuf = new Map(), gBuf = vBuf;   // (gBuf: the old name, for loaded())
   let vFetching = false;
-  function decodeVoices() { if (!ctx) return; vRaw.forEach((ab, k) => { vRaw.delete(k); ctx.decodeAudioData(ab).then(b => vBuf.set(k, b)).catch(() => {}); }); }
+  // AAC carries ~2112 samples of priming silence (Safari keeps it): trimmed once on decode, from the first sample above
+  // -50 dBFS less 64 samples, so a note sounds with the finger, together with the string's shiver
+  function trimLead(b) {
+    const d = b.getChannelData(0), th = .00316; let i = 0; while (i < d.length && Math.abs(d[i]) < th) i++;
+    const cut = Math.max(0, i - 64); if (cut < 32 || cut >= d.length - 64) return b;
+    const out = ctx.createBuffer(b.numberOfChannels, b.length - cut, b.sampleRate);
+    for (let ch = 0; ch < b.numberOfChannels; ch++) out.getChannelData(ch).set(b.getChannelData(ch).subarray(cut));
+    return out;
+  }
+  function decodeVoices() { if (!ctx) return; vRaw.forEach((ab, k) => { vRaw.delete(k); ctx.decodeAudioData(ab).then(b => vBuf.set(k, OLD ? b : trimLead(b))).catch(() => {}); }); }
   const decodeGuitar = () => {};
   function loadGuitar() {
     if (vFetching) return; vFetching = true;
@@ -171,6 +227,9 @@
   // one recorded sample: its own decay, shaped by a ramped envelope so it can always be silenced (the lab's playBuf)
   function sample(name, t, { rate = 1, gain = .3, pan = 0, dur, lp, att = .004, key } = {}) {
     const b = vBuf.get(name); if (!b) return false;
+    // per-note life (new): a few cents of detune, a dB and a half of level and a breath of pan, so repeats never machine-gun.
+    // The start offset never moves (a mid-waveform start clicks); the 4 ms attack ramp stays
+    if (!OLD) { rate *= Math.pow(2, (Math.random() * 6 - 3) / 1200); gain *= Math.pow(10, (Math.random() * 3 - 1.5) / 20); pan += Math.random() * .1 - .05; }
     const src = ctx.createBufferSource(), g = ctx.createGain(), out = panner(pan); src.buffer = b; src.playbackRate.value = rate;
     const len = Math.min(dur || 9, b.duration / rate);
     env(g, t, gain, att, len); if (key) track(key, g, t);
@@ -183,17 +242,29 @@
   // ---------- the voices ----------
   // a string re-plucked damps its last voice (30 ms), as a real string does; and at most 32 voices sound at once
   const ringing = new Map(), voices = [];
+  let dens = [];   // when the last string notes started (density compensation)
   let allGains = [];   // every enveloped gain (for silence())
   function track(key, g, t) {
-    const old = key != null && ringing.get(key); if (old) { hold(old.gain, t); old.gain.setTargetAtTime(.00001, t, .01); }
+    // new: a re-plucked string mutes its last voice softly (35 ms); 24 voices at most, the oldest stolen with a 40 ms fade
+    const DAMP = OLD ? .01 : .035, CAP = OLD ? 32 : 24, STEAL = OLD ? .01 : .04 / 3;
+    const old = key != null && ringing.get(key); if (old) { hold(old.gain, t); old.gain.setTargetAtTime(.00001, t, DAMP); }
     if (key != null) ringing.set(key, g);
-    voices.push(g); if (voices.length > 32) { const v = voices.shift(); hold(v.gain, t); v.gain.setTargetAtTime(.00001, t, .01); }
+    voices.push(g); if (voices.length > CAP) { const v = voices.shift(); hold(v.gain, t); v.gain.setTargetAtTime(.00001, t, STEAL); }
   }
   const V = {
     g(step, o) {                                    // STRINGS: natural guitar harmonics (glassy, bell-like)
-      const m = o.midi != null ? o.midi : midi(step, o.down), t = when(.016), vel = (o.amp || 1) * .8, k = pick('hrm', m);
-      if (k) { sample(k.name, t, { rate: k.rate, gain: .3 * vel, pan: o.pan || 0, dur: 3, key: 'g' + Math.round(k.m) }); return; }
-      sine(m + 12, t, .05 * vel, 1.6, o.pan || 0);
+      const m = o.midi != null ? o.midi : midi(step, o.down), t = when(.016, !o.replay), k = pick('hrm', m);
+      if (t == null) return;
+      let gain, key;
+      if (OLD) { gain = .3 * (o.amp || 1) * .8; key = 'g' + Math.round(k ? k.m : m); }
+      else {
+        // a perceptual velocity (strings.js sends .3 to .9) and density compensation: ten strings in a sweep read as one chord
+        const now = ctx.currentTime; dens = dens.filter(x => now - x < .12); dens.push(now);
+        gain = .26 * Math.pow(Math.min(.9, o.amp || .6), 1.4) / Math.sqrt(Math.max(1, dens.length / 3));
+        key = o.key != null ? o.key : 'g' + Math.round(k ? k.m : m);   // the damper follows the string, not the pitch
+      }
+      if (k) { sample(k.name, t, { rate: k.rate, gain, pan: o.pan || 0, dur: 3, key }); return; }
+      sine(m + 12, t, gain / 6, 1.6, o.pan || 0);
     },
     p(step, o) {                                    // PEONY: the gamelan gender, high, one stroke per step
       const k = pick('gender', midi(step + 3), 53, 67), t = when(.004);
@@ -507,7 +578,7 @@
 
   window.HeroSound = {
     ask, set, play, note, pitch, swell, start, TUNING, silence, loadGuitar, CREDITS, unlock: gestureUnlock, loaded: () => ({ guitar: gBuf.size, voices: vBuf.size, of: VFILES.length }), midiOf: (n, down) => midi(n, down),
-    on: () => live(), answer: () => answer,
+    on: () => live(), answer: () => answer, get out() { return outTap; }, engine: OLD ? 'old' : 'new',
     get ctx() { return ctx; },   // 11-14: the card sounds play through the same unlocked context (breeze/cardsound.js)
     onChange: f => listeners.push(f), onPlay: f => playListeners.push(f),
     // a shared song's Play tap: sound for this playback only (the visitor's own setting is untouched)

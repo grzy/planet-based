@@ -42,6 +42,11 @@ html[data-page="dark"] .pb-copied .pc{stroke:#ECEBDF}
 html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}
 .pb-copied{opacity:.72}   /* 11-14 (Ivy): a little lighter */
 .copied .pb-copied{opacity:.6}   /* the ✓ copied, lighter still */
+/* 11-17 (Ivy): the ✓ copied in her code-drawn Rising hand (breeze/hand.js); the stroke opacity is in the drawing */
+.pb-copied .pf{fill:#2c2c2f}
+html[data-page="dark"] .pb-copied .pf{fill:#ECEBDF}
+.copied.in-hand{width:2.2em}
+.copied.in-hand .pb-copied{opacity:.92}
 
 /* the pencil smiley after "Don't be a stranger.": the period is its left eye (breeze/copied.js draws the rest) */
 .smile-at{position:relative;display:inline-block}

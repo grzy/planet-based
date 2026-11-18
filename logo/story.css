@@ -150,7 +150,7 @@ html[data-page="dark"] .loader .hs-ing-2{color:#b9b8ad}
    line itself is gone (the logo, strings and slider all stand vertical; one line across the top confused them). Phones
    keep theirs. ?logo=2 and ?logo=3 lift it to half a bar and a quarter bar of air, to compare */
 @media (min-width:760px){
-  .hs-b .mark,.hs-c .mark{margin-top:0;top:5cqh}   /* 11-15 (Ivy): the logo's top lines up with the studio line's cap top */
+  .hs-b .mark,.hs-c .mark{margin-top:0;top:3.5cqh}   /* 11-15 (Ivy): the logo's top lines up with the studio line's cap top */
   .hs-b.hs-logo2 .mark,.hs-c.hs-logo2 .mark{margin-top:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / -72)}
   .hs-b.hs-logo3 .mark,.hs-c.hs-logo3 .mark{margin-top:calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / -48)}
   .hs .dateline .rule{visibility:hidden}
