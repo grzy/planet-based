@@ -46,7 +46,7 @@ html[data-page="dark"] .pb-copied image{filter:invert(1) brightness(.95)}
 .pb-copied .pf{fill:#2c2c2f}
 html[data-page="dark"] .pb-copied .pf{fill:#ECEBDF}
 .copied.in-hand{width:2.2em}
-.copied.in-hand .pb-copied{opacity:.92}
+.copied.in-hand .pb-copied{opacity:.92}   /* 11-18 (Ivy): "too clean": the ink is lighter in the drawing itself (a body at .62, a pressure core over it), ~.75 of before */
 
 /* the pencil smiley after "Don't be a stranger.": the period is its left eye (breeze/copied.js draws the rest) */
 .smile-at{position:relative;display:inline-block}

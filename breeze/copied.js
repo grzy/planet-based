@@ -18,14 +18,14 @@
     svg.classList.add('pb-copied');
     const path = (s, extra) => `<path pathLength="1" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 2" stroke-dashoffset="1" ${extra} d="${s.d}"/>`;
     const hand = strokes.some(s => s.fill);
-    if (PLAIN) svg.innerHTML = strokes.map(s => path(s, `class="pc" stroke-width="${hand ? (s.w * .78).toFixed(2) : s.w}" stroke-opacity="${s.o}"`)).join('');
+    if (PLAIN) svg.innerHTML = strokes.map(s => path(s, `class="pc" stroke-width="${hand ? (s.w * .78).toFixed(2) : s.w}" stroke-opacity="${hand ? (s.o * .78).toFixed(2) : s.o}"`)).join('');
     else if (hand) {   // 11-17: Ivy's hand drawn in code (breeze/hand.js): the pencil outline, revealed along its centreline, with graphite grain
       const g = 'pbg' + (++uid);
       svg.innerHTML = '<defs><filter id="' + g + '" x="-5%" y="-20%" width="110%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="2.4 1.5" numOctaves="3" seed="71" result="n"/>'
-        + '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.1 2.03" result="a"/><feComposite in="SourceGraphic" in2="a" operator="in" result="i"/><feGaussianBlur in="i" stdDeviation=".18"/></filter>'
+        + '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.5 2.05" result="a"/><feComposite in="SourceGraphic" in2="a" operator="in" result="i"/><feGaussianBlur in="i" stdDeviation=".18"/></filter>'
         + strokes.map(s => { const id = 'pbm' + (++uid); s.__id = id;
           return `<mask id="${id}" maskUnits="userSpaceOnUse" x="-40" y="-40" width="${w + 80}" height="${h + 80}">${path(s, `stroke="#fff" stroke-width="${(s.w * (s.mw || 2.6)).toFixed(1)}"`)}</mask>`; }).join('')
-        + '</defs><g class="pf" filter="url(#' + g + ')">' + strokes.map(s => `<path d="${s.fill}" fill-opacity="${s.o.toFixed(2)}" mask="url(#${s.__id})"/>`).join('') + '</g>';
+        + '</defs><g class="pf" filter="url(#' + g + ')">' + strokes.map(s => `<g mask="url(#${s.__id})"><path d="${s.fill}" fill-opacity="${(s.o * .62).toFixed(2)}"/>${s.core ? `<path d="${s.core}" fill-opacity="${(s.o * .55).toFixed(2)}"/>` : ''}</g>`).join('') + '</g>';   // 11-18: a lighter body, a darker pressure core
     }
     else svg.innerHTML = '<defs>' + strokes.map(s => { const id = 'pbm' + (++uid); s.__id = id;
         return `<mask id="${id}" maskUnits="userSpaceOnUse" x="-40" y="-40" width="${w + 80}" height="${h + 80}">${path(s, `stroke="#fff" stroke-width="${(s.w * (s.mw || 2.6)).toFixed(1)}"`)}</mask>`; }).join('') + '</defs>'

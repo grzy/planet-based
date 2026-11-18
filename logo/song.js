@@ -106,18 +106,36 @@
     // the bulk from the DOM (its own optical size, kerning, spacing); only the two end bearings from the canvas
     return { l: r.left - m.actualBoundingBoxLeft, r: r.right - (m.width - m.actualBoundingBoxRight), base: baseline(line), desc: m.actualBoundingBoxDescent };
   }
+  let anchorShift = 0;
   function layout() {
     if (!scoped()) return false;
     const hero = document.querySelector('.hero'), t2 = hero && hero.querySelector('.thesis .t2'); if (!t2) return false;
-    const k = ink(t2); if (!k) return false;
+    let k = ink(t2); if (!k) return false;
     const hr = hero.getBoundingClientRect();
     const s = hero.querySelector('.pbs:not(.dial)');
-    if (s) {
-      const h = s.offsetHeight || 44, top = k.base + k.desc + 18 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
+    const place = () => {
+      const top = k.base + k.desc + 18 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
       s.style.setProperty('left', (k.l - hr.left).toFixed(1) + 'px', 'important');
       s.style.setProperty('top', top.toFixed(1) + 'px', 'important');
       s.style.setProperty('bottom', 'auto', 'important');
       s.style.setProperty('width', (k.r - k.l).toFixed(1) + 'px', 'important');
+    };
+    if (s) {
+      place();
+      // 11-18 (Ivy): the slider's bar (its gradient track, not the sun on it) is the hero's bottom margin: it ends as far
+      // above the foot as the logo starts below the top (phones: the foot of the first screen). The thesis and the slider
+      // move together to land it there
+      const th = hero.querySelector('.thesis'), lg = hero.querySelector('.mark .pb-logo'), lr = lg && lg.getBoundingClientRect(), strip = s.querySelector('.strip');
+      if (th && lr && lr.width && strip) {
+        const ph = innerWidth < 760, first = ph ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-h')) || hr.height) / (window.__heroPh || 1) : hr.height;
+        const want = first - (lr.top - hr.top);
+        for (let pass = 0; pass < 2; pass++) {
+          const d = want - (strip.getBoundingClientRect().bottom - hr.top);
+          if (Math.abs(d) < .5) break;
+          anchorShift += d; th.style.translate = `0 ${anchorShift.toFixed(1)}px`;
+          k = ink(t2); if (!k) break; place();
+        }
+      }
     }
     hint(hero, s, hr);
     const row = hero.querySelector('.hs-chips');
@@ -152,7 +170,7 @@
     }
     return true;
   }
-  // ---------- the hint under the slider (11-14, Ivy): "It's all an instrument. Try the logo." It arrives with the slider
+  // ---------- the hint (11-14, Ivy; 11-18: above the thesis, "It's all an instrument."). It arrives with the slider
   // and goes for good (remembered) once the visitor has played a few notes or opened the logo ----------
   const HINT_KEY = 'pb-hint-done';
   let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
@@ -163,10 +181,12 @@
     let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
     if (seenVisit) return;
     let h = hero.querySelector('.hs-hint');
-    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument. Try the logo.'; hero.appendChild(h); if (logoRolled || (!hintWaits && heroSettled)) showHint(h); }
-    const sr = s.getBoundingClientRect(), strip = s.querySelector('.strip'), st = strip ? strip.getBoundingClientRect() : sr;
-    const ph = innerWidth < 760, th = s.querySelector('.psun'), low = Math.max(sr.bottom, th ? th.getBoundingClientRect().bottom : 0);   // 11-14 (Ivy): on phones clear the slider's sun and its rays, a hair to the right
-    h.style.left = (st.left - hr.left + (ph ? 3 : 0)).toFixed(1) + 'px'; h.style.top = ((ph ? low : sr.bottom) - hr.top + (ph ? 6 : 14)).toFixed(1) + 'px';   // 11-14 (Ivy): a little lower on desktop
+    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument.'; hero.appendChild(h); if (logoRolled || (!hintWaits && heroSettled)) showHint(h); }   // 11-18 (Ivy): "Try the logo." is gone
+    // 11-18 (Ivy): above "Technology that", on its left ink edge; it only fades, so nothing below it ever moves
+    const t1 = hero.querySelector('.thesis .t1'), k1 = t1 && ink(t1); if (!k1) return;
+    cv.font = `${getComputedStyle(t1).fontWeight} ${getComputedStyle(t1).fontSize} ${getComputedStyle(t1).fontFamily}`;
+    const cap = cv.measureText('T').actualBoundingBoxAscent, ph = innerWidth < 760, gap = ph ? 12 : 16;
+    h.style.left = (k1.l - hr.left).toFixed(1) + 'px'; h.style.top = (k1.base - cap - gap - h.offsetHeight - hr.top).toFixed(1) + 'px';
   }
   // 11-15 (Ivy): the hint comes FIRST: it arrives as the hero settles and invites the tap; the logo's first own roll-out
   // follows about 3.5 s later (shared/hero-logo.js reads window.__hsHint). Reduced motion keeps the old order: the hint

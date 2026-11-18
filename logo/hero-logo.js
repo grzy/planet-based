@@ -111,14 +111,15 @@
   const inside = (e, z) => e.clientX >= z[0] && e.clientX <= z[2] && e.clientY >= z[1] && e.clientY <= z[3];
   let over = null, lastNote = new Map(), drag = null;
   function sound(e) {
-    if (!window.HeroSound || !HeroSound.on() || !hw.rects) return;
+    if (!hw.rects) return;
     const sr = hw.screen(s, hw.logo);
     let found = -1, best = 1e9;
     sr.forEach((r, i) => { if (!r) return; const cx = (r[0] + r[2]) / 2, dx = Math.abs(e.clientX - cx), reach = Math.max(10, (r[2] - r[0]) / 2 + 6); if (dx < reach && dx < best && e.clientY > r[1] - 40 && e.clientY < r[3] + 40) { best = dx; found = i; } });
     if (found >= 0 && found !== over) {
       const now = performance.now(), b = M.bars[found];
       if (!lastNote.get(found) || now - lastNote.get(found) > 90) {
-        HeroSound.play('b', found, { down: b.s[3] > 100, pan: (e.clientX / innerWidth) * 1.6 - .8 });   // the word: each bar a vibraphone note
+        // 11-18 (Ivy): no note for sweeping across the open word: the strings behind it already play there, and the second
+        // layer added nothing. The open and fold notes (beats(), on the motion) stay; the letters still ripple
         lastNote.set(found, now);
         if (window.HeroStory && HeroStory.ripple) HeroStory.ripple(found);
       }
