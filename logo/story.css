@@ -306,3 +306,32 @@ html.hs-lock .hero .guides span{border-left-color:rgba(var(--oat-rgb),.2);border
 html[data-type="light"]:not([data-page="dark"]) .loader{background:#D9CDB7}
 html[data-type="dark"]:not([data-page="dark"]) .loader{background:#C4B8A2}
 html[data-type="dark"]:not([data-page="dark"]){--hs-ink:#2c2c2f}
+/* 11-18 (Ivy: the logo had too little room above it; the frame felt unstructured): ONE margin on all four sides, the
+   site's side margin --m. The closed logo's top and the studio line's cap (its box is trimmed to the cap) sit --m below
+   the top; the thesis's ink and the logo start --m in; the slider's bar ends --m above the foot (shared/song.js). The
+   open word stays centred on the closed logo (it lives in the same box) */
+.hs-b .hero .mark,.hs-c .hero .mark{top:var(--m)!important;margin-top:0!important}
+.hs-b .hero .dateline,.hs-c .hero .dateline{top:var(--m)!important}
+/* 11-18 (Ivy, her 27"): on big screens the slider's sun and moon grow with the track (one logo bar thick), about 1.45x
+   its thickness, never under 50 px; phones unchanged */
+@media (min-width:760px){
+  .hs-b .pbs:not(.dial) .psun{--th:clamp(50px, calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3 * 1.45), 112px);width:var(--th);height:var(--th);margin:calc(var(--th) / -2) 0 0 calc(var(--th) / -2)}
+  .hs-b .pbs:not(.dial){height:max(44px, clamp(50px, calc((100cqw - 2 * var(--m) - 11 * var(--gut)) / 12 / 3 * 1.45), 112px))}
+}
+/* 11-18: the gold ink (the hint, and the type in the gold moment, c/breeze/gold.js): a warm gold on green and dark, a
+   deep ochre on the oatmeal ground so it still reads */
+:root{--gold-ink:#E0BC63;--gold-lit:#FFF1C6}
+html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#7a5310;--gold-lit:#a9791f}
+.hs-hint{color:var(--gold-ink)}
+@keyframes hsHintIn{0%{opacity:0}7%{opacity:.92}93%{opacity:.92}100%{opacity:0}}
+@keyframes hsHintInPh{0%{opacity:0}7%{opacity:.95}93%{opacity:.95}100%{opacity:0}}
+/* the gold moment on the type: each piece mixes toward the gold ink by --gold (0 to 1) and toward its lit tone by --glit
+   as the light passes it (set per element by gold.js; colour only, so it is safe everywhere) */
+.hero :is(.mark,.dateline b,.thesis){color:color-mix(in srgb,color-mix(in srgb,var(--gold-lit) calc(var(--glit,0) * 100%),var(--gold-ink)) calc(var(--gold,0) * 100%),var(--oat))}
+.hero p.hs-hint{color:color-mix(in srgb,var(--gold-lit) calc(var(--glit,0) * 100%),var(--gold-ink))}   /* the hint is gold always */
+/* phones: the open word runs under the studio line, so the closed logo sits 12 px lower than the one margin (the word
+   then clears the studio line by ~16 px), and the hint (in the same top row) steps aside while the word is open */
+@media (max-width:759px){
+  .hs-b .hero .mark,.hs-c .hero .mark{top:calc(var(--m) + 12px)!important}
+  .hero:has(.mark.hl-open) .hs-hint{opacity:0!important;transition:opacity .25s ease}
+}

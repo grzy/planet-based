@@ -21,8 +21,7 @@
   // 1. terminal: type on, hold, backspace
   function typeWord() {
     const w = WORDS[i++ % WORDS.length] + '…';
-    if (reduce) { txt.textContent = w; if (w.startsWith(POLL)) { shownAt = performance.now(); pollinate(); return; } later(typeWord, 1100); return; }
-    if (w.startsWith(POLL)) pollinate();   // the wind comes as Pollinating begins (11-14)
+    if (reduce) { txt.textContent = w; if (w.startsWith(POLL)) { shownAt = performance.now(); return; } later(typeWord, 1100); return; }
     let k = 0;
     // 11-14 (Ivy): quicker on, a shorter hold, so every word gets read and the words keep moving
     shownAt = 0;
@@ -38,7 +37,7 @@
     const dur = 180 + w.length * 15;
     el.style.setProperty('--write', dur + 'ms');
     el.classList.add('write'); shownAt = 0;
-    later(() => { shownAt = performance.now(); if (w.startsWith(POLL)) pollinate(); }, dur);
+    later(() => { shownAt = performance.now(); }, dur);
     if (!w.startsWith(POLL)) later(() => { shownAt = 0; el.classList.add('smudge'); later(penWord, 360); }, dur + 430);
   }
   function urls() {
@@ -49,8 +48,8 @@
   }
   const load = u => new Promise(r => { const im = new Image(); im.onload = im.onerror = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(r); im.src = u; });
   // ---------- the wind waits for "Pollinating" (11-14, Ivy: the wind pollinates) ----------
-  // The words run Seeding, Branching, then Pollinating, which stays; the tree's pencil wind swirls (c/breeze)
-  // are held back until it appears and then blow; the cut follows the wind. The swirls' own calls are caught here and
+  // 11-18 (Ivy): the tree's pencil wind swirls (c/breeze) are held back until planetbased.io washes in (stop()), and
+  // then blow with it, the same way. The swirls' own calls are caught here and
   // replayed at that moment, keeping their timing
   // 11-15 (Ivy): the even-words timing (555 ms holds, the cut 250 ms sooner) broke the opening's beat; back to 430 ms
   const POLL = 'Deploying';   // 11-14, Ivy: Deploying (the wind sends it out) replaces Pollinating
@@ -72,8 +71,7 @@
     windQ = [];
     setTimeout(windDoneFn, Math.max(600, (end - .35) * 1000));   // the cut begins as the last line lifts off
   }
-  // a safety: if Pollinating never comes (a very slow start), the wind and the cut still happen
-  setTimeout(() => { if (!windOn) pollinate(); }, MAX);
+  // (11-18: the wind now waits for the word, stop(); a story that never starts leaves the loader as it was)
   let resolve; const done = new Promise(r => resolve = r);
   function start() {
     const host = document.querySelector('.loader .loader-in');
@@ -88,8 +86,10 @@
     const t0 = performance.now();
     // ready = everything loaded (capped), the tree's pencil swirls finished (capped, c/breeze), and MIN; then the word in
     // view is let finish and be read (shown whole for 300 ms), at most 900 ms more, so a word is never cut mid-way
-    const swirls = windDone;   // the wind with Pollinating, then the cut
-    Promise.all([Promise.race([all, new Promise(r => setTimeout(r, MAX))]), swirls]).then(() => setTimeout(() => {
+    // 11-18 (Ivy): the tree turns once and comes to rest (index.html, window.__pbTree); the word comes as it settles. The
+    // wind no longer holds the loader: it blows as planetbased.io washes in (stop(), below)
+    const tree = window.__pbTree || Promise.resolve();
+    Promise.all([Promise.race([all, new Promise(r => setTimeout(r, MAX))]), Promise.race([tree, new Promise(r => setTimeout(r, MAX))])]).then(() => setTimeout(() => {
       const t1 = performance.now();
       const gate = () => { const now = performance.now(); if (!el || stopped || (shownAt && now - shownAt >= 300) || now - t1 > 900) resolve(); else setTimeout(gate, 30); };
       gate();
@@ -97,6 +97,7 @@
   }
   // the cycling ends; the word in view is left whole (fully typed / fully written)
   function stop() {
+    pollinate();   // 11-18 (Ivy): the wind blows as the word washes in, the same way (the story starts here)
     stopped = true; timers.forEach(clearTimeout); clearInterval(spinT);
     if (!el) return;
     const cur = WORDS[(i - 1 + WORDS.length) % WORDS.length] + '…';

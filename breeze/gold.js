@@ -1,4 +1,4 @@
-// The gold moment (11-18, Ivy picked gold-r2: look c1, moment m4, no shimmer). Ordinary plucks stay plain. A strum right
+// The gold moment (11-18, Ivy picked gold-r2: look c1, moment m4, no shimmer; the type goes gold with it). Ordinary plucks stay plain. A strum right
 // across the hero (at least 80% of the strings, one direction, within 700 ms) turns the strings to light gold leaf, with
 // the light travelling through it: it blooms out from the string under the sun to the rest, holds while the chord
 // rings, fades back over 2 s, then rests 8 s so it stays special. Reduced motion: a gentle fade, all at once.
@@ -9,6 +9,7 @@
   const OCHRE = '#7a4d0e', GOLD = '#c9952e', PALE = '#fff0b6', MID = '#e2b955';
   const LEAF = { a: .55, v: .3, hi: .93, mid: .62, edge: .3 };        // light leaf
   const WIN = 700, NEED = .8, RISE = 120, HOLD = 1200, FADE = 2000, COOL = 8000, BLOOM = 320;
+  const TYPE = '.hero .mark, .hero .dateline b, .hero .thesis, .hero .hs-hint';   // the logo (closed or open), the studio line, the thesis, the hint
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cv = null, g = null, layer = null, dpr = 1, raf = 0, moment = null, lastMoment = -1e9;
   let hits = [], lastX = null, dirSign = 0, sweepId = null;
@@ -49,12 +50,14 @@
     // the bloom: each string's turn grows with its distance from the string under the sun
     const sun = document.querySelector('.objs .sun'), sr = sun && sun.getBoundingClientRect(), lr = layer.getBoundingClientRect();
     const cx = sr && sr.width ? sr.left + sr.width / 2 - lr.left : W / 2, far = Math.max(cx, W - cx, 1);
-    moment = { t0: now, xs, rm, at: xs.map(x => rm ? 0 : BLOOM * Math.abs(x - cx) / far) };
+    // 11-18 (Ivy): the type turns gold with the strings, on the same curve, each piece when the bloom reaches it
+    const type = [...document.querySelectorAll(TYPE)].map(el => { const r = el.getBoundingClientRect(); const ex = r.left + r.width / 2 - lr.left; return r.width ? { el, d: Math.abs(ex - cx), at: rm ? 0 : BLOOM * Math.abs(ex - cx) / far } : null; }).filter(Boolean);
+    moment = { t0: now, xs, rm, far, type, at: xs.map(x => rm ? 0 : BLOOM * Math.abs(x - cx) / far) };
     doc.classList.add('hs-goldm');
     if (!raf) raf = requestAnimationFrame(frame);
   }
-  function level(i, now) {
-    const m = moment, t = now - m.t0 - m.at[i], rise = m.rm ? 500 : RISE;
+  function level(i, now, at) {
+    const m = moment, t = now - m.t0 - (at != null ? at : m.at[i]), rise = m.rm ? 500 : RISE;
     if (t < 0) return 0;
     if (t < rise) return t / rise;
     if (t < HOLD) return 1;
@@ -88,9 +91,16 @@
       const s = level(i, now); if (s > 0 || now - m.t0 < m.at[i]) alive = true;
       if (s > 0) leaf(shiver.get(i) || line(x, H), s, now, i * .9);
     });
+    // the type: gold by the same curve; the light runs out from the sun across it (a band 140 px wide, ~0.9 s)
+    const front = m.far * (now - m.t0) / 900;
+    m.type.forEach(o => {
+      const s = level(0, now, o.at), lit = m.rm ? 0 : Math.exp(-Math.pow((o.d - front) / 140, 2)) * s;
+      o.el.style.setProperty('--gold', s.toFixed(3)); o.el.style.setProperty('--glit', lit.toFixed(3));
+      if (s > 0 || now - m.t0 < o.at) alive = true;
+    });
     g.globalAlpha = 1;
     if (alive) raf = requestAnimationFrame(frame);
-    else { moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
+    else { m.type.forEach(o => { o.el.style.removeProperty('--gold'); o.el.style.removeProperty('--glit'); }); moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
   }
   const css = document.createElement('style');
   css.textContent = 'html.hs-goldm .hero .hs-strum{stroke:transparent}html.hs-goldm .hero .hs-strings > i{visibility:hidden}';

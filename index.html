@@ -33,7 +33,7 @@
   var HERO_PH = 1.22;   // 11-15 (Ivy): taller again, more green below
   window.__heroPh = HERO_PH;   // 11-18: was swallowed by the comment above (a resize then lost the taller phone hero)
   document.documentElement.classList.add('boot-static');
-  if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp">');
+  if (!calm) document.write('<link rel="preload" as="image" href="img/orange-tree-poster.webp"><link rel="preload" as="image" href="img/orange-tree-sheet.webp">');
   // phones: the hero's height (and so the mark's size) is fixed once from the first viewport, so iOS Safari's toolbar
   // settling can never resize the mark. It only changes when the width does (rotation)
   // 11-14 (Ivy): phones get a taller hero (the strings run longer, the objects spread out); desktop stays one screen
@@ -697,8 +697,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=60">
-<link rel="stylesheet" href="logo/b-variant.css?v=60">
+<link rel="stylesheet" href="logo/story.css?v=63">
+<link rel="stylesheet" href="logo/b-variant.css?v=63">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -817,8 +817,31 @@ html.boot .pbs{visibility:hidden}
       <script>
       // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
       (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot')) return;
-        // 11-13: a transparent animated WebP (the Safari video lost its alpha and showed a white box); swap in once it has loaded
-        var a = new Image(); a.onload = function () { t.src = a.src; window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim')); }; a.src = 'img/orange-tree-anim.webp'; })();
+        // 11-18 (Ivy: the tree jumped at its loop point): the tree turns ONCE, easing over its last frames, and comes to
+        // rest; it never restarts. Its 40 frames (the transparent WebP's, 83 ms each) are one sprite sheet stepped by
+        // background-position (alpha kept everywhere, Safari included; no video, no filter). The loader waits for the
+        // turn to end (shared/preload.js reads window.__pbTree), so the word arrives as the tree settles
+        var TURN = 2000, C = 8, N = 40, done, sheet = new Image();
+        window.__pbTree = new Promise(function (r) { done = r; }); setTimeout(done, 5000);
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+        sheet.onerror = function () { done(); };
+        sheet.onload = function () { (sheet.decode ? sheet.decode() : Promise.resolve()).catch(function () {}).then(function () {
+          if (!t.getAttribute('src')) { done(); return; }
+          var sp = document.createElement('div'); sp.className = 'loader-tree-sp'; sp.setAttribute('aria-hidden', 'true');
+          sp.style.cssText = 'position:absolute;pointer-events:none;background:url(' + sheet.src + ') 0 0/' + C * 100 + '% ' + N / C * 100 + '% no-repeat';
+          t.parentNode.style.position = 'relative'; t.parentNode.appendChild(sp);
+          var place = function () { sp.style.left = t.offsetLeft + 'px'; sp.style.top = t.offsetTop + 'px'; sp.style.width = t.offsetWidth + 'px'; sp.style.height = t.offsetHeight + 'px'; };
+          place(); t.style.visibility = 'hidden';
+          window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim'));
+          new MutationObserver(function () { if (!t.getAttribute('src')) sp.remove(); }).observe(t, { attributes: true, attributeFilter: ['src'] });
+          var t0 = performance.now(), shown = -1;
+          (function step(now) {
+            var k = Math.min(1, Math.max(0, (now - t0) / TURN)), e = 1 - Math.pow(1 - k, 2.2), f = Math.min(N - 1, Math.floor(e * N));
+            if (f !== shown) { shown = f; place(); sp.style.backgroundPosition = ((f % C) / (C - 1) * 100).toFixed(3) + '% ' + (Math.floor(f / C) / (N / C - 1) * 100).toFixed(3) + '%'; }
+            if (k < 1) requestAnimationFrame(step); else done();
+          })(t0);
+        }); };
+        sheet.src = 'img/orange-tree-sheet.webp'; })();
       </script>
       <script src="breeze/paths.js?v=10"></script>
       <script src="breeze/scribble.js?v=11"></script>
@@ -950,17 +973,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=60"></script>
-<script src="logo/pose.js?v=60"></script>
-<script src="logo/sound.js?v=60"></script>
-<script src="logo/bees.js?v=60"></script>
-<script src="logo/hero-logo.js?v=60"></script>
-<script src="logo/story.js?v=60"></script>
-<script src="logo/common.js?v=60"></script>
-<script src="logo/song.js?v=60"></script>
-<script src="logo/strings.js?v=60"></script>
-<script src="logo/preload.js?v=60"></script>
-<script src="logo/b-variant.js?v=60"></script>
+<script src="logo/hero-logo-data.js?v=63"></script>
+<script src="logo/pose.js?v=63"></script>
+<script src="logo/sound.js?v=63"></script>
+<script src="logo/bees.js?v=63"></script>
+<script src="logo/hero-logo.js?v=63"></script>
+<script src="logo/story.js?v=63"></script>
+<script src="logo/common.js?v=63"></script>
+<script src="logo/song.js?v=63"></script>
+<script src="logo/strings.js?v=63"></script>
+<script src="logo/preload.js?v=63"></script>
+<script src="logo/b-variant.js?v=63"></script>
 <script>
 (() => {
   'use strict';
@@ -2358,11 +2381,12 @@ html.boot .pbs{visibility:hidden}
   };
 })();
 </script>
-<script src="breeze/hand.js?v=18"></script>
+<script src="breeze/hand.js?v=19"></script>
 <script src="breeze/copied.js?v=13"></script>
+<script src="breeze/tapme.js?v=1"></script>   <!-- 11-18 (Ivy): the hero's "⟵ tap!" -->
 <script src="breeze/cardsound.js?v=19"></script>
 <script src="breeze/flute.js?v=1"></script>
-<script src="breeze/gold.js?v=2"></script>
+<script src="breeze/gold.js?v=3"></script>
 <script src="breeze/breeze.js?v=11"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
