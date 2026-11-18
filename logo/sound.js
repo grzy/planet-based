@@ -139,6 +139,16 @@
     build.e = 0; sunStep = null;
   }
   addEventListener('blur', silence); document.addEventListener('visibilitychange', () => { if (document.hidden) silence(); });
+  addEventListener('pagehide', silence);
+  // 11-18 (Ivy's phone, a stuck drone): a watchdog. The low drone under heavy playing lets go 4 s after the last note,
+  // or at once if its own loop has stopped, whatever happened to the touches; nothing sustained can outlive the playing
+  setInterval(() => {
+    if (!ctx || !build.drone) return;
+    if (performance.now() - build.last > 4000 || !build.raf) {
+      const d = build.drone, t = ctx.currentTime; build.drone = null; build.e = 0;
+      hold(d.g.gain, t); d.g.gain.setTargetAtTime(.00001, t, .3); setTimeout(() => d.oscs.forEach(o => { try { o.stop(); } catch (e) {} }), 2000);
+    }
+  }, 1000);
 
   // ---------- the tuning: open D with add9 and maj7, each step a third or a fourth above the last ----------
   // 11-14 (Ivy): Spanish and romantic. E Phrygian with the raised third (the Andalusian colour: E F G# A B C D), two

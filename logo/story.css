@@ -300,3 +300,9 @@ html.hs-lock,html.hs-lock body{overscroll-behavior:none}
 html.hs-lock .hero,html.hs-lock .objs,html.hs-lock .hero .mark{touch-action:none}
 html.hs-lock .hero .guides span{border-left-color:rgba(var(--oat-rgb),.2);border-right-color:rgba(var(--oat-rgb),.2);box-shadow:0 0 6px rgba(var(--oat-rgb),.12),inset 0 0 6px rgba(var(--oat-rgb),.12);transition:border-color .3s ease,box-shadow .3s ease}
 .hero .guides span{transition:border-color .6s ease,box-shadow .6s ease}
+/* 11-18 (Ivy: on green the loader and the entrance looked "extremely white"): the loader's ground takes the hero's own
+   light ink instead of the paper white: on green the oat the logo and thesis are set in, on oat the oatmeal ground
+   itself; dark keeps its night ground. Its words, the tree's line and the cut's lines stay in each mode's ink */
+html[data-type="light"]:not([data-page="dark"]) .loader{background:#D9CDB7}
+html[data-type="dark"]:not([data-page="dark"]) .loader{background:#C4B8A2}
+html[data-type="dark"]:not([data-page="dark"]){--hs-ink:#2c2c2f}

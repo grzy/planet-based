@@ -21,13 +21,20 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
     a: { adv: .88, s: [[[.63,.25],[.45,.03],[.18,.08],[.02,.41],[.06,.79],[.28,1],[.52,.94],[.66,.6],[.67,.04],[.67,.55],[.7,.94],[.82,1]]] },
     m: { adv: 1.1, s: [[[.04,.03],[.05,.55],[.05,1],[.06,.42],[.18,.07],[.34,.02],[.44,.28],[.45,1],[.46,.4],[.58,.06],[.74,.03],[.84,.3],[.84,.82],[.88,1],[.97,.96]]] },
     ' ': { adv: .55, s: [] },
+    // 11-18: the letters "it's all an instrument" needs, in the same soft round hand
+    l: { adv: .45, s: [[[.3,-.85],[.24,.1],[.21,.84],[.32,1],[.45,.95]]] },
+    n: { adv: .8, s: [[[.06,.02],[.07,.55],[.07,1],[.08,.42],[.22,.07],[.42,.02],[.55,.3],[.56,.84],[.61,1],[.72,.97]]] },
+    u: { adv: .8, s: [[[.06,.02],[.05,.6],[.15,.95],[.35,1],[.55,.8],[.58,.02],[.58,.7],[.62,.98],[.73,.97]]] },
+    r: { adv: .6, s: [[[.07,.02],[.07,.55],[.07,1],[.08,.46],[.22,.11],[.4,.02],[.56,.08]]] },
+    s: { adv: .7, s: [[[.58,.15],[.42,.02],[.18,.05],[.08,.25],[.2,.45],[.45,.55],[.6,.75],[.5,.95],[.25,1],[.05,.88]]] },
+    "'": { adv: .32, s: [[[.18,-.6],[.16,-.42],[.12,-.26]]] },
     // marks for the hero's tap me (11-17): a small flicked arrow up, and a long lead line that runs into the words
     '↑': { adv: .7, s: [[[.32,1.05],[.33,.55],[.36,-.05],[.4,-.42]], [[.1,-.1],[.25,-.3],[.4,-.46],[.52,-.26],[.66,-.08]]] },
     '←': { adv: 1.05, s: [[[.95,.5],[.55,.47],[.06,.5]], [[.3,.24],[.06,.5],[.32,.76]]] },
     '→': { adv: 1.05, s: [[[.05,.5],[.45,.47],[.94,.5]], [[.7,.24],[.94,.5],[.68,.76]]] },
     '↓': { adv: .75, s: [[[.4,-.45],[.38,.3],[.36,1.02]], [[.12,.74],[.36,1.04],[.6,.72]]] },
     '⟵': { adv: 2.75, s: [[[2.65,.7],[2.15,.8],[1.55,.58],[.95,.08],[.4,-.1],[.04,0]], [[.3,-.3],[.04,0],[.3,.28]]] },
-    '!': { adv: .5, s: [[[.24,-.62],[.22,.1],[.2,.64]]], dot: [[.2,.86],[.27,.9],[.27,.98],[.19,1.01],[.13,.95],[.16,.88],[.23,.91]], bang: true },   // 11-18: a dot with body, so it reads
+    '!': { adv: .5, s: [[[.24,-.62],[.22,.1],[.2,.64]]], dot: [[0.184,0.903],[0.221,0.908],[0.243,0.935],[0.24,0.966],[0.216,0.985],[0.187,0.984],[0.169,0.964],[0.17,0.941],[0.186,0.926],[0.207,0.926],[0.22,0.939],[0.22,0.954],[0.21,0.964],[0.197,0.964],[0.19,0.957]], bang: true },   // 11-18 (Ivy): a small round dot, a tight pencil swirl spiraled in (~1.4 pen widths across)
     '⟶': { adv: 2.75, s: [[[.1,.7],[.6,.8],[1.2,.58],[1.8,.08],[2.35,-.1],[2.71,0]], [[2.45,-.3],[2.71,0],[2.45,.28]]] },
     '~': { adv: 2.7, s: [[[0,.1],[.5,-.2],[1.1,.05],[1.7,.6],[2.25,.78],[2.6,.66]]] },
   };
@@ -51,7 +58,7 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
     return out;
   }
   const XH = 30;
-  function layout(h, text, withCheck, shift) {
+  function layout(h, text, withCheck, shift, gscale) {
     const r = rng(h.seed), drift = noise1(r), sl = Math.tan(h.slant * Math.PI / 180), strokes = [], dots = [];
     const chars = [...text], extend = (s, k) => { const a = s[s.length - 2], b = s[s.length - 1]; return [...s, [b[0] + (b[0] - a[0]) * k, b[1] + (b[1] - a[1]) * k]]; };
     let span = (withCheck ? CHECK.one.adv * 1.02 + .55 : 0); chars.forEach(c => { span += (L[c] ? L[c].adv * h.xw : .5) + h.track; });
@@ -78,7 +85,8 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
       const g = L[ch]; if (!g) { x += .5; return; }
       // shift (x-heights): the words nudged apart from their arrow, which stays put (11-18, Ivy)
       const sx = shift && !ARROWS.includes(ch) ? shift[0] : 0, sy = shift && !ARROWS.includes(ch) ? shift[1] : 0;
-      place(g, x + sx, h.seed * 31 + i * 7, sy).forEach((s, j) => {
+      const gs = gscale && gscale[ch], G = gs ? { s: g.s.map(st => st.map(([px, py]) => [gs[1] + (px - gs[1]) * gs[0], gs[2] + (py - gs[2]) * gs[0]])) } : g;
+      place(G, x + sx, h.seed * 31 + i * 7, sy).forEach((s, j) => {
         if (j === 0 && prev && h.join.includes(prev + ch) && strokes.length) strokes[strokes.length - 1].pts.push(...s);
         else strokes.push({ pts: s, kind: ch });
       });
@@ -102,7 +110,7 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
       const sm = curv.map((_, i) => { let s = 0, n = 0; for (let k = -3; k <= 3; k++) { const c = curv[i + k]; if (c != null) { s += c; n++; } } return s / n; });
       const T = len || 1;
       const press = pts.map((_, i) => { const t = L1[i] / T; const inn = Math.min(1, t / .12), outt = Math.min(1, (1 - t) / (st.kind === 'chk' ? .32 : .2)); return Math.max(.12, Math.min(1, (.35 + .65 * Math.sin(Math.PI * Math.min(inn, 1) / 2)) * (.25 + .75 * Math.min(1, outt)) * (.82 + sm[i] * 1.4))); });
-      const pen = h.size * .82 * XH * (st.kind === 'bang' ? 2.1 : st.kind === 'dot' ? 1.15 : 1);
+      const pen = h.size * .82 * XH * (st.kind === 'bang' ? .95 : st.kind === 'dot' ? 1.15 : 1);
       const outline = getStroke(pts.map((p, i) => [p[0], p[1], press[i]]), { size: pen, thinning: Math.min(.82, h.thin + .15), smoothing: .55, streamline: .2, simulatePressure: false, start: { taper: st.kind === 'bang' ? pen * .4 : pen * 1.4, cap: true }, end: { taper: st.kind === 'chk' ? pen * Math.max(5, h.exit * 1.4) : st.kind === 'bang' ? pen * .4 : pen * h.exit, cap: true }, last: true });
       const v = pts.map((_, i) => { const t = L1[i] / T; return h.speed * XH * (.35 + .9 * Math.sin(Math.PI * t)) / (1 + sm[i] * 3.2); });
       const tt = [0]; for (let i = 1; i < pts.length; i++) tt.push(tt[i - 1] + (L1[i] - L1[i - 1]) / ((v[i] + v[i - 1]) / 2));
@@ -120,9 +128,9 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
   // "a LOT faster") and U (the un-write, from the hand's own pace, unchanged: she loves how it disappears)
   const cache = {};
   window.pbHand = function (text, o = {}) {
-    const key = text + '|' + !!o.check + '|' + (o.fast || 2.75) + '|' + (o.shift || '');
+    const key = text + '|' + !!o.check + '|' + (o.fast || 2.75) + '|' + (o.shift || '') + '|' + JSON.stringify(o.gscale || '');
     if (cache[key]) return cache[key];
-    const h = RISING, R = render(h, layout(h, text, !!o.check, o.shift)), fast = o.fast || 2.75, rl = rng(97 + text.length);
+    const h = RISING, R = render(h, layout(h, text, !!o.check, o.shift, o.gscale)), fast = o.fast || 2.75, rl = rng(97 + text.length);
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     R.forEach(s => s.outline.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }));
     const pad = 6, dx = pad - x0, dy = pad - y0, w = x1 - x0 + pad * 2, hh = y1 - y0 + pad * 2;
@@ -136,6 +144,6 @@ const{PI:kn}=Math,F=kn+1e-4,tn=.5,rn=[1,1];function un(n,t,r,u=e=>e){return n*u(
       T[k] = [t, s.dur / fast]; U[k] = Math.max(.08, s.dur * .6);
       t += s.dur / fast + (s.kind === 'dot' || s.kind === 'bang' ? .18 : .05 + rl() * .12) / fast;
     });
-    return (cache[key] = { vb: `0 0 ${f(w)} ${f(hh)}`, w, h: hh, strokes, T, U, end: t, seed: h.seed });
+    return (cache[key] = { vb: `0 0 ${f(w)} ${f(hh)}`, w, h: hh, strokes, T, U, end: t, seed: h.seed, ox: dx, oy: dy });   // ox, oy: drawing units -> box, to line two renders up
   };
 })();

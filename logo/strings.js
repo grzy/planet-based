@@ -183,7 +183,20 @@
     // sweeping across the strings plucks every one you cross
     // sweeping anywhere across the hero strums: every string you cross sounds (listened for on the window, so the sun
     // and the flowers, which sit above the hero, never swallow the sweep)
-    let lastX = null;
+    let lastX = null, strumId = null;
+    // every way a touch can end clears the strum (and, once no finger is left, the lock); a watchdog clears anything left
+    let lastTouch = 0;
+    const endStrum = () => { lastX = null; strumId = null; };
+    // a held flower or sun lets go however its touch ends, even if the capture never took (and the watchdog below)
+    const endDrag = () => { if (drag && drag.o.__end) drag.o.__end(); else drag = null; };
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => addEventListener(t, e => { if (drag && e.pointerId === drag.id) endDrag(); }, { passive: true, capture: true }));
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => addEventListener(t, e => { if (e.pointerId === strumId) endStrum(); }, { passive: true, capture: true }));
+    ['touchend', 'touchcancel'].forEach(t => addEventListener(t, e => { if (!e.touches || !e.touches.length) { endStrum(); endDrag(); unlock(); } }, { passive: true, capture: true }));
+    addEventListener('touchstart', () => { lastTouch = performance.now(); }, { passive: true, capture: true });
+    addEventListener('touchmove', () => { lastTouch = performance.now(); }, { passive: true, capture: true });
+    addEventListener('pagehide', () => { endStrum(); endDrag(); unlock(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { endStrum(); endDrag(); unlock(); } });
+    setInterval(() => { if ((locked || strumId != null || (drag && drag.id != null && drag.id !== 1)) && performance.now() - lastTouch > 3000 && performance.now() - lastAt > 3000) { endStrum(); endDrag(); unlock(); } }, 1000);
     // 11-14 (Ivy, a stuck hum after scrolling): a page scroll moves the hero under a still pointer and the browser sends
     // moves for it; those never strum. Only real pointer movement, over the hero while it is mostly on screen
     let scrolledAt = 0;
@@ -194,11 +207,16 @@
     addEventListener('pointermove', e => {
       if (SOUND_OLD) { onMove(e); return; }
       const list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
-      (list && list.length ? list : [e]).forEach(c => moveQ.push({ clientX: c.clientX, clientY: c.clientY, movementX: c.movementX, movementY: c.movementY, pointerType: e.pointerType, target: e.target }));
+      (list && list.length ? list : [e]).forEach(c => moveQ.push({ pointerId: e.pointerId, isPrimary: e.isPrimary, clientX: c.clientX, clientY: c.clientY, movementX: c.movementX, movementY: c.movementY, pointerType: e.pointerType, target: e.target }));
       if (!moveRaf) moveRaf = requestAnimationFrame(() => { moveRaf = 0; const q = moveQ; moveQ = []; q.forEach(onMove); });
     }, { passive: true });
     function onMove(e) {
       if (drag) return;
+      // 11-18 (Ivy's phone: a two-finger strum stuck): one finger strums. A second touch is ignored for strums, and a
+      // change of pointer starts afresh, so two fingers can never take turns across the strings (each turn crossed every
+      // string between them, many times a second: the stuck, glitching sound)
+      if (e.pointerType === 'touch' && e.isPrimary === false) return;
+      if (e.pointerId !== strumId) { strumId = e.pointerId; lastX = null; }
       const hr = hero.getBoundingClientRect();
       if ((window.HeroAtRest && !HeroAtRest()) || performance.now() - scrolledAt < 250 || (e.movementX === 0 && e.movementY === 0) || hr.bottom < innerHeight * .6 || hr.top > innerHeight * .4) { lastX = null; return; }
       if (e.clientY < hr.top || e.clientY > hr.bottom) { lastX = null; return; }
@@ -233,10 +251,11 @@
       begin(o, k, e);
     }, { capture: true });
     function begin(o, i, e) {
+      if (e.pointerType === 'touch' && e.isPrimary === false) return;   // 11-18: a second finger never takes hold
       try { o.setPointerCapture(e.pointerId); } catch (er) {}
       const m = parseFloat(o.style.marginTop) || 0;
       o.style.transition = ''; const br = document.querySelector('.objs .bee-rest'); if (br) br.style.transition = '';
-      drag = { o, i, y0: e.clientY, m0: m, last: e.clientY, step: stepAt(m), moved: false, sel: xs[i].sel };
+      drag = { o, i, id: e.pointerId, y0: e.clientY, m0: m, last: e.clientY, step: stepAt(m), moved: false, sel: xs[i].sel };
       o.classList.add('hs-held');
 
     }
@@ -275,6 +294,7 @@
         drag = null;
       };
       o.addEventListener('pointerup', end); o.addEventListener('pointercancel', end); o.addEventListener('lostpointercapture', end);
+      o.__end = end;
       // a press taken on the string (begin from the window) moves here too: pointer capture sends its moves to the object
     });
   }

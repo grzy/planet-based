@@ -122,13 +122,14 @@
     };
     if (s) {
       place();
-      // 11-18 (Ivy): the slider's bar (its gradient track, not the sun on it) is the hero's bottom margin: it ends as far
-      // above the foot as the logo starts below the top (phones: the foot of the first screen). The thesis and the slider
-      // move together to land it there
-      const th = hero.querySelector('.thesis'), lg = hero.querySelector('.mark .pb-logo'), lr = lg && lg.getBoundingClientRect(), strip = s.querySelector('.strip');
-      if (th && lr && lr.width && strip) {
-        const ph = innerWidth < 760, first = ph ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-h')) || hr.height) / (window.__heroPh || 1) : hr.height;
-        const want = first - (lr.top - hr.top);
+      // 11-18 (Ivy): the slider's bar (its gradient track, not the sun on it) is the hero's bottom margin: the gap from the
+      // bar's bottom to the foot of the first screen (what the window shows) equals the gap from the top to the cap of the
+      // studio line. The thesis and the slider move together to land it there
+      const th = hero.querySelector('.thesis'), dl = hero.querySelector('.dateline b'), strip = s.querySelector('.strip');
+      const capTop = dl && (() => { const k2 = ink(dl); if (!k2) return null; const cs = getComputedStyle(dl); cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`; return k2.base - cv.measureText('A').actualBoundingBoxAscent - hr.top; })();
+      if (th && capTop != null && strip) {
+        const ph = innerWidth < 760, first = Math.min(hr.height, ph ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-h')) || hr.height) / (window.__heroPh || 1) : innerHeight);
+        const want = first - capTop;
         for (let pass = 0; pass < 2; pass++) {
           const d = want - (strip.getBoundingClientRect().bottom - hr.top);
           if (Math.abs(d) < .5) break;
