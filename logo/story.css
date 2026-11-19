@@ -78,7 +78,8 @@ html[data-page="dark"]{--hs-ink:#D9CDB7}
 @media (max-width:759px){.hs .peony{left:calc(70cqw + 23cqh * .32 - 6cqh);top:calc(45cqh - 23cqh * .76 - 6cqh)}}
 /* while the tree is in pieces, only the tree hides (the loader's word, when it lives beside the tree, stays) */
 .hs.motion .pin.cut .loader > .loader-in{visibility:visible}
-.hs-cutting .loader > .loader-in .loader-tree,.hs .pin.cut .loader > .loader-in .loader-tree{visibility:hidden}
+.hs-cutting .loader > .loader-in .loader-tree,.hs .pin.cut .loader > .loader-in .loader-tree,
+.hs-cutting .loader > .loader-in .loader-tree-sp,.hs .pin.cut .loader > .loader-in .loader-tree-sp{visibility:hidden}   /* 11-18: the turning tree's sprite layer hides with the tree, or it stays behind the slices */
 .hs .lcut .loader-tree{visibility:visible}
 /* phones: the sun sits centred on a guide line, the left edge of the third column (a little left of where it was), so
    in the strings it hangs on its own guide */

@@ -190,7 +190,7 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
   // its letters at that size. With the arrow, the arrow stays where she put it. Without it, the word moves in to sit beside
   // the rays with the same open space the arrowhead had (measured by ink), at her height. A spot that would run off the
   // screen (phones) flips to the sun's left, mirrored ----------
-  const VARS = { 'tap-note-arrow': '⟵ tap ♪', 'tap-bang-arrow': '⟵ tap!', 'tap-me-arrow': '⟵ tap me', 'tap-arrow': '⟵ tap', 'tap-bang': 'tap!', 'tap-me': 'tap me' };
+  const VARS = { 'tap-note-arrow': '⟵ tap\u2009♪', 'tap-bang-arrow': '⟵ tap!', 'tap-me-arrow': '⟵ tap me', 'tap-arrow': '⟵ tap', 'tap-bang': 'tap!', 'tap-me': 'tap me' };
   // 11-18 (Ivy's pick, the default): "⟵ tap!", the word a touch down and toward the arrow, the arrow where she put it
   const NUDGE = { 'tap-bang-arrow': [-.18, .2], 'tap-note-arrow': [-.18, .2] };
   // 11-18 (Ivy): on "⟵ tap!" the arrow and the "!" stem drawn ~18% smaller; each about the end nearest the word (the "!"
@@ -225,7 +225,7 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
     if (document.getElementById('tm-vars')) return;
     const d = document.createElement('div'); d.id = 'tm-vars';
     d.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:9999;background:rgba(14,17,18,.86);color:#ECE6D6;font:12px/1.4 var(--mono,monospace);padding:8px 10px;border-radius:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:calc(100vw - 24px)';
-    const names = { 'tap-note-arrow': '⟵ tap ♪', 'tap-bang-arrow': '⟵ tap!', 'tap-me-arrow': '⟵ tap me', 'tap-arrow': '⟵ tap', 'tap-bang': 'tap!', 'tap-me': 'tap me' };
+    const names = { 'tap-note-arrow': '⟵ tap\u2009♪', 'tap-bang-arrow': '⟵ tap!', 'tap-me-arrow': '⟵ tap me', 'tap-arrow': '⟵ tap', 'tap-bang': 'tap!', 'tap-me': 'tap me' };
     d.innerHTML = Object.entries(names).map(([k, n]) => `<button type="button" data-v="${k}">${n}</button>`).join('') + '<button type="button" data-copy>Copy</button>';
     d.querySelectorAll('button').forEach(b => { const on = b.dataset.v === cur; b.style.cssText = 'font:inherit;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;' + (on ? 'background:#ECE6D6;color:#0E1112' : 'background:transparent;color:#ECE6D6;box-shadow:inset 0 0 0 1px rgba(236,230,214,.4)');
       b.onclick = () => { if (b.dataset.copy != null) { const t = JSON.stringify({ variant: cur }); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400); }).catch(() => {}); return; }
