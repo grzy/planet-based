@@ -539,9 +539,9 @@
       // taps and hovers: each flower its register, the tree its roll (a hover only once in a while)
       // the flowers take no pointer events (the scene's own design), so a press or a hover is found by where it lands: inside
       // the flower's round head (an ellipse of 40% of its box)
-      // 11-18 (Ivy): on phones the crowning dahlia plays the flute instead (c/breeze/flute.js), so its gamelan note is off there
+      // 11-19 (Ivy: the phone flute didn't work): the crowning dahlia keeps its gamelan note on phones too (flute.js is out)
       const FL0 = [['flipBig', 'big'], ['flipSmall', 'small'], ['dahliaTop', 'top']], hov = new Map(), inside = new Set();
-      const FL = { forEach: f => FL0.forEach(x => { if (x[1] === 'top' && innerWidth < 760) return; f(x); }) };
+      const FL = FL0;
       const hit = (e, el) => { const r = el.getBoundingClientRect(); if (!r.width) return false; const dx = (e.clientX - (r.left + r.width / 2)) / (r.width * .4), dy = (e.clientY - (r.top + r.height / 2)) / (r.height * .4); return dx * dx + dy * dy < 1; };
       addEventListener('pointerdown', e => {
         if (!closingIn) return;

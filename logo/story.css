@@ -335,13 +335,11 @@ html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#DDA941;--gold-lit:#E2
 @media (max-width:759px){.hs .reveal .hero .hs-hint.stay{animation-name:hsHintStayPh}}
 html.hs[data-type="dark"]:not([data-page="dark"]) .reveal .hero .hs-hint.stay{animation-name:hsHintStayOat}
 @media (prefers-reduced-motion:reduce){.hs .reveal .hero .hs-hint.stay{animation-duration:1ms}}
-.hs-hint{color:var(--gold-ink)}
 @keyframes hsHintIn{0%{opacity:0}7%{opacity:.92}93%{opacity:.92}100%{opacity:0}}
 @keyframes hsHintInPh{0%{opacity:0}7%{opacity:.95}93%{opacity:.95}100%{opacity:0}}
 /* 11-18 (Ivy: too flashy): the type's gold is now one smooth colour fade in gold.js (no class, no travelling light) */
-.hero p.hs-hint{color:var(--gold-ink)}   /* the hint is gold always, one gold */
-/* 11-18 (Ivy: no gold reads on oat): on the oatmeal ground the hint is the page's own ink, the thesis colour, at its dainty weight */
-html[data-type="dark"]:not([data-page="dark"]) .hero p.hs-hint{color:inherit}
+/* 11-19 (Ivy): the hint is never gold: the ground's own ink, the thesis colour (cream on green and dark, ink on oat) */
+.hero p.hs-hint{color:var(--oat)}   /* the hero type's own colour (.art), which follows the ground */
 /* phones: the open word runs under the studio line, so the closed logo sits 12 px lower than the one margin (the word
    then clears the studio line by ~16 px), and the hint (in the same top row) steps aside while the word is open */
 @media (max-width:759px){

@@ -44,7 +44,8 @@
       if (d !== dirSign) { hits = []; dirSign = d; }
       xs.forEach((sx, i) => { if ((lastX - sx) * (x - sx) < 0) hits.push([i, now]); });
       hits = hits.filter(h => now - h[1] < WIN);
-      if (!moment && xs.length && now - lastMoment > COOL && new Set(hits.map(h => h[0])).size >= Math.ceil(xs.length * NEED)) start(xs);
+      // 11-19 (Ivy): the gold moment is green's and dark's only; on the oatmeal ground a full strum stays a plain strum
+      if (!moment && !oat() && xs.length && now - lastMoment > COOL && new Set(hits.map(h => h[0])).size >= Math.ceil(xs.length * NEED)) start(xs);
     }
     lastX = x;
   }, { passive: true });

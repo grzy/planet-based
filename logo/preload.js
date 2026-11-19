@@ -77,6 +77,14 @@
   // 11-18 (Ivy): when the held wind's last stroke begins its fade, from stop() (ms); the cut starts then, overlapping the
   // lift-off so nothing ever sits still (b/variant.js). Each stroke lives dur + lag per extra line (c/breeze/scribble.js)
   // and starts fading at o.fade (default .8) of that life. 0 when there is no wind
+  // 11-19 (Ivy): when the held wind's last stroke finishes DRAWING, from stop() (ms): its head reaches the stroke's end
+  // after 1 / (1 + win) of its dash travel (c/breeze/scribble.js), the last line of a study lag x (n - 1) later
+  function windDrawMs() {
+    if (!windQ.length) return 0;
+    const P = window.BREEZE_PATHS || {}, t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s);
+    return Math.max(...windQ.map(([, , key, o]) => { o = o || {}; const n = (P[key] && P[key].d && P[key].d.length) || 1;
+      return ((o.t0 || 0) - base) * WIND_PACE + .05 + ((o.lag || 0) * (n - 1) + (o.dur || 1) / (1 + (o.win || .5))) * WIND_PACE; })) * 1000;
+  }
   function windMs() {
     if (!windQ.length) return 0;
     const P = window.BREEZE_PATHS || {}, t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s);
@@ -115,5 +123,5 @@
     txt.textContent = cur; el.classList.remove('smudge', 'write'); el.classList.add('shown');
   }
   start();   // included after the hero and the cards in the markup, so everything it needs is already in the DOM
-  window.HeroPreload = { done, stop, windMs, WORDS, get el() { return el; } };
+  window.HeroPreload = { done, stop, windMs, windDrawMs, WORDS, get el() { return el; } };
 })();

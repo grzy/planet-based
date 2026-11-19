@@ -23,7 +23,8 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
 
   const css = document.createElement('style');
   css.textContent = '.tapme .pb-copied{opacity:1}'
-    + 'html.tm-on .hs-note{display:none}';   // the pencil "sound on" note gives way to the words; the footer's Sound: on/off turns it off
+    + 'html.tm-on .hs-note{display:none}'
+    + '@media (max-width:759px){.tapme .pf>g>path:first-child{fill-opacity:.8}.tapme .pf>g>path:nth-child(2){fill-opacity:.7}.tapme .pc{stroke-opacity:.9}}';   // 11-19 (Ivy): phones: not faint   // the pencil "sound on" note gives way to the words; the footer's Sound: on/off turns it off
   document.head.appendChild(css);
 
   // ---------- where: clear of the strings (inside one column), the flowers, the bee, the type, the hint, the slider ----------
@@ -201,16 +202,29 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
     // 11-18 (phones): there is no room left of the sun for "tap ♪ ⟶" at the size of "copied" (it shrank and its arrow ran
     // into the rays). On a phone it sits above the sun's left shoulder, as big as the footer's "copied", a small arrow
     // flicked down at the sun. Sized from "copied" itself, so the two always match
+    // 11-19 (Ivy, on her iPhone: "tiny and badly placed"): on a phone the mark is about twice the size of "copied" (an
+    // x-height of ~15 px, readable at arm's length) and goes where there is the most open green: under the sun, its arrow
+    // flicked up at the sun's lower edge. Then the open green between the logo and the sun, its arrow down; then right of the
+    // sun between the flowers. Every spot clear of the rays, the flowers, the logo and the type
     if (innerWidth < 760) {
-      const v = pick(), cpd = document.querySelector('.copied'), cH = window.pbHand('copied', { check: true });
-      const cw = cpd ? parseFloat(getComputedStyle(cpd).width) : 0, xh = cw ? 30 * cw / cH.w : 9;
-      const text = v === 'tap-bang-arrow' ? 'tap! \u2193' : 'tap\u2009\u266a \u2193';
-      const H = window.pbHand(text), k = xh / 30, w = H.w * k, h = H.h * k, R = sw / 2;
-      const tipX = cx - R * .42, top = cy - Math.sqrt(Math.max(0, R * R - (tipX - cx) * (tipX - cx)));
-      let x = tipX - w + 17 * k, y = top - h - 8;   // the arrow stem (~.57 x-height in from the right) right over the shoulder
-      x = Math.max(12, Math.min(B.W - 12 - w, x));
-      return { H, x, y, w };
+      const v = pick(), bang = v === 'tap-bang-arrow', R = sw / 2;
+      const xh = Math.max(14, Math.min(17, B.W * .039)), k = xh / 30;
+      const mk = t => { const H = window.pbHand(t); return { H, w: H.w * k, h: H.h * k }; };
+      const up = mk(bang ? '\u2191 tap!' : '\u2191 tap\u2009\u266a'), down = mk(bang ? 'tap! \u2193' : 'tap\u2009\u266a \u2193'), left = mk(bang ? '\u27f5 tap!' : '\u27f5 tap\u2009\u266a');
+      const clear = (x, y, w, h) => { const b = { l: x, t: y, r: x + w, b: y + h };
+        if (b.l < 10 || b.r > B.W - 10 || b.t < 10 || b.b > B.H - 10) return false;
+        if (B.avoid.some(o => b.l < o.r + 8 && b.r > o.l - 8 && b.t < o.b + 8 && b.b > o.t - 8)) return false;
+        const nx = Math.max(b.l, Math.min(cx, b.r)), ny = Math.max(b.t, Math.min(cy, b.b)); return Math.hypot(nx - cx, ny - cy) > R + 14; };
+      const arc = (x, sign) => cy + sign * Math.sqrt(Math.max(0, R * R - (x - cx) * (x - cx)));
+      // 11-19 (Ivy): above the sun's left shoulder, between it and the logo, well clear of the top rays, the arrow down at it
+      for (const f of [.45, .3, .6, .15]) { const tipX = cx - R * f, x = tipX - down.w + 17 * k, y = arc(tipX, -1) - down.h - 22; if (clear(x, y, down.w, down.h)) return { H: down.H, x, y, w: down.w }; }
+      // else under the sun, left of the dahlia, the arrow up at it
+      for (const f of [.4, .55, .25, .7]) { const tipX = cx - R * f, x = tipX - 14 * k, y = cy + R + 10; if (clear(x, y, up.w, up.h)) return { H: up.H, x, y, w: up.w }; }
+      // right of the sun, between the peony and the dahlia, the curved arrow back into it
+      for (const dy of [0, -.15, .15]) { const y = cy + R * dy - left.h / 2, x = cx + R + 6; if (clear(x, y, left.w, left.h)) return { H: left.H, x, y, w: left.w }; }
+      return { H: up.H, x: Math.max(10, cx - R * .4 - 14 * k), y: cy + R + 10, w: up.w };   // last resort: under the sun
     }
+
     const v = pick(), H0 = window.pbHand('⟵ tap me'), k = m.w / H0.w, pad = 6 * k, R = sw / 2;
     const h0 = H0.h * k, midY = m.y + h0 / 2;
     const edge = (y, side) => cx + side * Math.sqrt(Math.max(0, R * R - (y - cy) * (y - cy)));

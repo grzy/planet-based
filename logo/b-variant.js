@@ -11,7 +11,7 @@
   // 11-14 (Ivy): no dead moments. The slices keep parting until the green grows out of them; that same moment they go and
   // the lines set off to gather into the mark
   const T = { swap: [0, 480], recede: [480, 950], rise: [900, 1350], part: [1300, 1950], grow0: 1950, step: 60, dur: 650 };
-  const WORD_HOLD = 500;   // 11-18 (Ivy): ms planetbased.io holds, fully written, before it goes and the cut begins
+  const WORD_HOLD = 250;   // 11-19 (Ivy): at most this long (ms) planetbased.io holds, fully written, before it goes and the cut begins
   let HOLD = 0;   // ms the word holds before the cut (plan())
   const vt = t => t <= T.recede[0] ? t : Math.max(T.recede[0], t - HOLD);
   let from = null, strips = [], bounds = [], assign = new Map(), cx = 0, lineTop = 0, lineBot = 0;
@@ -30,10 +30,11 @@
       const g0 = phone ? reveal + 40 : T.part[1], g1 = phone ? g0 + 550 : Math.max(reveal + 60, g0 + 600);
       const open = [g1, g1 + (phone ? 620 : 760)], hold = open[1] + (phone ? 300 : 480), close = [hold, hold + (phone ? 1500 : 2000)];
       Object.assign(T, { reveal, g0, g1, open, hold, close, f1: close[1] });
-      // 11-18 (Ivy: too long after the word): planetbased.io holds, written whole, WORD_HOLD ms, then the word starts going
-      // and the cut follows; the (faster) wind starts with the word and may still be blowing over the cut. Everything
-      // after it keeps its own timing: the variant's clock pauses at the end of the swap for HOLD ms
-      HOLD = WORD_HOLD;
+      // 11-19 (Ivy: still a pause after the word): the cut starts as soon as the wind's last stroke has finished drawing,
+      // or WORD_HOLD ms after planetbased.io is fully written if that comes first; the wind may keep lifting off over the
+      // cut. Everything after it keeps its own timing: the variant's clock pauses at the end of the swap for HOLD ms
+      const drawn = window.HeroPreload && HeroPreload.windDrawMs ? HeroPreload.windDrawMs() - T.recede[0] : WORD_HOLD;
+      HOLD = Math.round(Math.max(0, Math.min(WORD_HOLD, drawn)));
       // 11-18 (Ivy): the tree keeps turning until the slices take it: its one turn is retimed to end at the cut
       if (window.__pbTreeTo) window.__pbTreeTo(performance.now() + T.rise[0] + HOLD + 80);   // +80: the clock starts a beat after plan(); the last frame lands on the cut
       return { reveal: reveal + HOLD, end: close[1] + HOLD, lines: 10 };
