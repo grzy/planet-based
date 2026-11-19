@@ -72,12 +72,14 @@
     setTimeout(windDoneFn, Math.max(600, (end - .35) * 1000));   // the cut begins as the last line lifts off
   }
   // (11-18: the wind now waits for the word, stop(); a story that never starts leaves the loader as it was)
-  // 11-18 (Ivy): how long the held wind takes to blow, from stop() to its last line lifted off (ms); the cut waits for it
-  // (b/variant.js). 0 when there is no wind
+  // 11-18 (Ivy): when the held wind's last stroke begins its fade, from stop() (ms); the cut starts then, overlapping the
+  // lift-off so nothing ever sits still (b/variant.js). Each stroke lives dur + lag per extra line (c/breeze/scribble.js)
+  // and starts fading at o.fade (default .8) of that life. 0 when there is no wind
   function windMs() {
     if (!windQ.length) return 0;
-    const t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s);
-    return Math.max(...windQ.map(([, , , o]) => ((o && o.t0) || 0) - base + .05 + ((o && o.dur) || 1))) * 1000;
+    const P = window.BREEZE_PATHS || {}, t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s);
+    return Math.max(...windQ.map(([, , key, o]) => { o = o || {}; const n = (P[key] && P[key].d && P[key].d.length) || 1, life = (o.dur || 1) + (o.lag || 0) * (n - 1);
+      return (o.t0 || 0) - base + .05 + life * (o.fade || .8); })) * 1000;
   }
   let resolve; const done = new Promise(r => resolve = r);
   function start() {

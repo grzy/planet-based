@@ -29,10 +29,10 @@
       const g0 = phone ? reveal + 40 : T.part[1], g1 = phone ? g0 + 550 : Math.max(reveal + 60, g0 + 600);
       const open = [g1, g1 + (phone ? 620 : 760)], hold = open[1] + (phone ? 300 : 480), close = [hold, hold + (phone ? 1500 : 2000)];
       Object.assign(T, { reveal, g0, g1, open, hold, close, f1: close[1] });
-      // 11-18 (Ivy): planetbased.io stays, written whole, until the pencil wind has finished blowing (its last line lifted
-      // off, +150 ms); only then the word recedes and the cut begins. Everything after it keeps its own timing: the
-      // variant's clock simply pauses at the end of the swap for HOLD ms (frame() and garden() below)
-      HOLD = Math.max(0, Math.round((window.HeroPreload && HeroPreload.windMs ? HeroPreload.windMs() : 0) + 150 - T.recede[0]));
+      // 11-18 (Ivy): planetbased.io stays, written whole, while the pencil wind blows; the word starts going and the cut
+      // begins AS the wind's last stroke begins its fade (overlapping its lift-off, never after it: no still frame).
+      // Everything after it keeps its own timing: the variant's clock pauses at the end of the swap for HOLD ms
+      HOLD = Math.max(0, Math.round((window.HeroPreload && HeroPreload.windMs ? HeroPreload.windMs() : 0) - T.recede[0]));
       return { reveal: reveal + HOLD, end: close[1] + HOLD, lines: 10 };
     },
     setup(K, phone, h) {

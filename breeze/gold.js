@@ -6,7 +6,8 @@
 // in the strings' own layer; the plain strings step aside only while the gold is up. No glow, blur or filters.
 (() => {
   const doc = document.documentElement;
-  const OCHRE = '#7a4d0e', GOLD = '#c9952e', PALE = '#fff0b6', MID = '#e2b955';
+  // 11-18 (Ivy: the light flashed a bright lemon): the band only ever lightens the SAME gold a touch (hue ~40), no pale yellow
+  const OCHRE = '#7a4d0e', GOLD = '#c9952e', PALE = '#dfb255', MID = '#d6a645';
   const LEAF = { a: .55, v: .3, hi: .93, mid: .62, edge: .3 };        // light leaf
   const WIN = 700, NEED = .8, RISE = 120, HOLD = 1200, FADE = 600, COOL = 8000, BLOOM = 320;   // 11-18 (Ivy): back quickly, 0.6 s
   const TYPE = '.hero .mark, .hero .dateline b, .hero .thesis';   // the logo (closed or open), the studio line, the thesis (the hint is gold already)
@@ -56,12 +57,20 @@
     doc.classList.add('hs-goldm');
     if (!raf) raf = requestAnimationFrame(frame);
   }
-  // a dip: down to nothing and back, the colour swapped at the bottom (40% in), so no in-between colour is ever seen
-  function dip(el, ms, gold) {
-    if (reduce()) { el.classList.toggle('is-gold', gold); return; }
-    el.animate([{ opacity: 1 }, { opacity: 0, offset: .4 }, { opacity: 1 }], { duration: ms, easing: 'ease-in-out' });
-    setTimeout(() => el.classList.toggle('is-gold', gold), ms * .4);
+  // 11-18 (Ivy: the type went white, gold, bright yellow, gold, white): ONE smooth fade from the type's own colour to the
+  // one gold (--gold-ink: Deep gold, or the strings' gold on oat), a hold, and ONE smooth fade back. A colour animation
+  // between two solid inks is exactly a gold layer crossfaded over the text: straight, no overshoot, no flash
+  const IN = 350;
+  function tint(el, gold) {
+    const ms = reduce() ? 1 : gold ? IN : FADE;
+    if (gold) {
+      const c0 = getComputedStyle(el).color, gi = getComputedStyle(doc).getPropertyValue('--gold-ink').trim() || '#F0A81C';
+      el.__g = { c0, gi, a: [el.animate([{ color: c0 }, { color: gi }], { duration: ms, easing: 'cubic-bezier(.33,0,.2,1)', fill: 'forwards' })] };
+    } else if (el.__g) {
+      const G = el.__g; G.a.push(el.animate([{ color: G.gi }, { color: G.c0 }], { duration: ms, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' }));
+    }
   }
+  const untint = el => { if (el.__g) { el.__g.a.forEach(a => a.cancel()); el.__g = null; } };
   function level(i, now, at) {
     const m = moment, t = now - m.t0 - (at != null ? at : m.at[i]), rise = m.rm ? 500 : RISE;
     if (t < 0) return 0;
@@ -97,19 +106,16 @@
       const s = level(i, now); if (s > 0 || now - m.t0 < m.at[i]) alive = true;
       if (s > 0) leaf(shiver.get(i) || line(x, H), s, now, i * .9);
     });
-    // the type: gold by the same curve; the light runs out from the sun across it (a band 140 px wide, ~0.9 s)
-    const front = m.far * (now - m.t0) / 900;
+    // the type: gold as the bloom reaches each piece (one fade in), back after the hold (one fade out); no travelling light
     m.type.forEach(o => {
-      // no colour tween (it passes through a muddy yellow): a quick dip in opacity, swapped to gold (or back) at the bottom
       const t = now - m.t0 - o.at;
-      if (!o.on && t >= 0) { o.on = true; dip(o.el, 300, true); }
-      if (o.on && !o.off && t >= HOLD) { o.off = true; dip(o.el, FADE, false); }
-      if (o.on && !o.off) o.el.style.setProperty('--glit', (m.rm ? 0 : Math.exp(-Math.pow((o.d - front) / 140, 2))).toFixed(3));
-      if (!o.off || t < HOLD + FADE) alive = true;
+      if (!o.on && t >= 0) { o.on = true; tint(o.el, true); }
+      if (o.on && !o.off && t >= HOLD) { o.off = true; tint(o.el, false); }
+      if (!o.off || t < HOLD + FADE + 60) alive = true;
     });
     g.globalAlpha = 1;
     if (alive) raf = requestAnimationFrame(frame);
-    else { m.type.forEach(o => { o.el.classList.remove('is-gold'); o.el.style.removeProperty('--glit'); }); moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
+    else { m.type.forEach(o => untint(o.el)); moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
   }
   const css = document.createElement('style');
   css.textContent = 'html.hs-goldm .hero .hs-strum{stroke:transparent}html.hs-goldm .hero .hs-strings > i{visibility:hidden}';
