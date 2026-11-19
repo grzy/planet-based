@@ -8,8 +8,8 @@
   const doc = document.documentElement;
   const OCHRE = '#7a4d0e', GOLD = '#c9952e', PALE = '#fff0b6', MID = '#e2b955';
   const LEAF = { a: .55, v: .3, hi: .93, mid: .62, edge: .3 };        // light leaf
-  const WIN = 700, NEED = .8, RISE = 120, HOLD = 1200, FADE = 2000, COOL = 8000, BLOOM = 320;
-  const TYPE = '.hero .mark, .hero .dateline b, .hero .thesis, .hero .hs-hint';   // the logo (closed or open), the studio line, the thesis, the hint
+  const WIN = 700, NEED = .8, RISE = 120, HOLD = 1200, FADE = 600, COOL = 8000, BLOOM = 320;   // 11-18 (Ivy): back quickly, 0.6 s
+  const TYPE = '.hero .mark, .hero .dateline b, .hero .thesis';   // the logo (closed or open), the studio line, the thesis (the hint is gold already)
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cv = null, g = null, layer = null, dpr = 1, raf = 0, moment = null, lastMoment = -1e9;
   let hits = [], lastX = null, dirSign = 0, sweepId = null;
@@ -56,6 +56,12 @@
     doc.classList.add('hs-goldm');
     if (!raf) raf = requestAnimationFrame(frame);
   }
+  // a dip: down to nothing and back, the colour swapped at the bottom (40% in), so no in-between colour is ever seen
+  function dip(el, ms, gold) {
+    if (reduce()) { el.classList.toggle('is-gold', gold); return; }
+    el.animate([{ opacity: 1 }, { opacity: 0, offset: .4 }, { opacity: 1 }], { duration: ms, easing: 'ease-in-out' });
+    setTimeout(() => el.classList.toggle('is-gold', gold), ms * .4);
+  }
   function level(i, now, at) {
     const m = moment, t = now - m.t0 - (at != null ? at : m.at[i]), rise = m.rm ? 500 : RISE;
     if (t < 0) return 0;
@@ -94,13 +100,16 @@
     // the type: gold by the same curve; the light runs out from the sun across it (a band 140 px wide, ~0.9 s)
     const front = m.far * (now - m.t0) / 900;
     m.type.forEach(o => {
-      const s = level(0, now, o.at), lit = m.rm ? 0 : Math.exp(-Math.pow((o.d - front) / 140, 2)) * s;
-      o.el.style.setProperty('--gold', s.toFixed(3)); o.el.style.setProperty('--glit', lit.toFixed(3));
-      if (s > 0 || now - m.t0 < o.at) alive = true;
+      // no colour tween (it passes through a muddy yellow): a quick dip in opacity, swapped to gold (or back) at the bottom
+      const t = now - m.t0 - o.at;
+      if (!o.on && t >= 0) { o.on = true; dip(o.el, 300, true); }
+      if (o.on && !o.off && t >= HOLD) { o.off = true; dip(o.el, FADE, false); }
+      if (o.on && !o.off) o.el.style.setProperty('--glit', (m.rm ? 0 : Math.exp(-Math.pow((o.d - front) / 140, 2))).toFixed(3));
+      if (!o.off || t < HOLD + FADE) alive = true;
     });
     g.globalAlpha = 1;
     if (alive) raf = requestAnimationFrame(frame);
-    else { m.type.forEach(o => { o.el.style.removeProperty('--gold'); o.el.style.removeProperty('--glit'); }); moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
+    else { m.type.forEach(o => { o.el.classList.remove('is-gold'); o.el.style.removeProperty('--glit'); }); moment = null; doc.classList.remove('hs-goldm'); g.clearRect(0, 0, cv.width, cv.height); }
   }
   const css = document.createElement('style');
   css.textContent = 'html.hs-goldm .hero .hs-strum{stroke:transparent}html.hs-goldm .hero .hs-strings > i{visibility:hidden}';

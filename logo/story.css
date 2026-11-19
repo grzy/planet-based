@@ -61,7 +61,7 @@ html[data-page="dark"]{--hs-ink:#D9CDB7}
 .pbs.vert .strip .k{-webkit-mask:linear-gradient(to top,transparent 58%,#000 78%);mask:linear-gradient(to top,transparent 58%,#000 78%)}
 .pbs.vert .psun{left:50%;top:var(--y,50%)}
 .pbs .psun img{transition:opacity .2s linear}
-.pbs .psun img:not(.moon){opacity:calc(1 - var(--night,0))}
+.pbs .psun img:not(.moon){opacity:max(0,calc(1 - var(--night,0) * 2.2))}   /* 11-18 (Ivy): the sun is gone by the time the moon is half in, no ghosted rays */
 .pbs .psun .moon{position:absolute;inset:0;opacity:var(--night,0)}
 .pbs .psun .moon.ph{filter:grayscale(1) brightness(1.35) contrast(.85);-webkit-mask:radial-gradient(circle at 68% 34%,transparent 41%,#000 43%);mask:radial-gradient(circle at 68% 34%,transparent 41%,#000 43%)}
 @media (max-width:759px){
@@ -321,14 +321,24 @@ html[data-type="dark"]:not([data-page="dark"]){--hs-ink:#2c2c2f}
 }
 /* 11-18: the gold ink (the hint, and the type in the gold moment, c/breeze/gold.js): a warm gold on green and dark, a
    deep ochre on the oatmeal ground so it still reads */
-:root{--gold-ink:#E0BC63;--gold-lit:#FFF1C6}
-html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#7a5310;--gold-lit:#a9791f}
+/* 11-18 (Ivy picked in protos/hint-r3): Deep gold on green and dark; on the oatmeal ground a brass that reads as gold,
+   yellower and less red than the old ochre, dark enough for the hint's fine type (3:1 on #C4B8A2) */
+:root{--gold-ink:#F0A81C;--gold-lit:#FFDB85}
+html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#735A00;--gold-lit:#9C7E0A}
+/* 11-18 (oat: the thin hint read as khaki): Mustard ink, and the hint at weight 400 and full opacity; phones keep 500 */
+html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:400}
+@media (max-width:759px){html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:500}}
+@keyframes hsHintInOat{0%{opacity:0}7%{opacity:1}93%{opacity:1}100%{opacity:0}}
+html[data-type="dark"]:not([data-page="dark"]) .hs .reveal .hero .hs-hint.go{animation-name:hsHintInOat}
 .hs-hint{color:var(--gold-ink)}
 @keyframes hsHintIn{0%{opacity:0}7%{opacity:.92}93%{opacity:.92}100%{opacity:0}}
 @keyframes hsHintInPh{0%{opacity:0}7%{opacity:.95}93%{opacity:.95}100%{opacity:0}}
 /* the gold moment on the type: each piece mixes toward the gold ink by --gold (0 to 1) and toward its lit tone by --glit
    as the light passes it (set per element by gold.js; colour only, so it is safe everywhere) */
-.hero :is(.mark,.dateline b,.thesis){color:color-mix(in srgb,color-mix(in srgb,var(--gold-lit) calc(var(--glit,0) * 100%),var(--gold-ink)) calc(var(--gold,0) * 100%),var(--oat))}
+/* 11-18 (Ivy: the fade back through a muddy yellow): no colour tween between oat and gold. gold.js dips each piece's
+   opacity and swaps it to gold (.is-gold) at the bottom of the dip, and back the same way, about 0.6 s; within the gold
+   only the travelling light mixes gold toward its lit tone */
+.hero :is(.mark,.dateline b,.thesis).is-gold{color:color-mix(in srgb,var(--gold-lit) calc(var(--glit,0) * 100%),var(--gold-ink))}
 .hero p.hs-hint{color:color-mix(in srgb,var(--gold-lit) calc(var(--glit,0) * 100%),var(--gold-ink))}   /* the hint is gold always */
 /* phones: the open word runs under the studio line, so the closed logo sits 12 px lower than the one margin (the word
    then clears the studio line by ~16 px), and the hint (in the same top row) steps aside while the word is open */

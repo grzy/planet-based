@@ -109,7 +109,7 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
       // the rays allow, the arrowhead on the green. A placement Ivy dragged (?place) wins, kept relative to the sun
       const H = window.pbHand('⟵ tap me'), ww0 = Math.min(ph ? 90 : 140, BIG ? 1e9 : widest), w0 = ww0 * H.w / WORDS, h0 = w0 * H.h / H.w;
       // 11-18: Ivy's own placement for D, locked: x, y from the sun's centre and the width, in sun widths and heights
-      const LOCK = { x: .4982, y: -.2452, w: .5779 };
+      const LOCK = { x: .4982, y: -.2499, w: .6188 };   // 11-18: w 7% up so "tap" matches "copied" in x-height (18.5 → 19.8 px at 1512); y keeps the middle where it was
       const sv = saved() || (V === 'final' ? LOCK : null);
       if (sv && isFinite(sv.x) && isFinite(sv.y)) {
         const w = sv.w ? sv.w * sw : w0; m = { H, x: cx + sv.x * sw, y: cy + sv.y * sh, w };

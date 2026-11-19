@@ -107,6 +107,10 @@
     return { l: r.left - m.actualBoundingBoxLeft, r: r.right - (m.width - m.actualBoundingBoxRight), base: baseline(line), desc: m.actualBoundingBoxDescent };
   }
   let anchorShift = 0, anchorDX = 0;
+  const capH = el => { const cs = getComputedStyle(el); cv = cv || document.createElement('canvas').getContext('2d'); cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`; return cv.measureText('T').actualBoundingBoxAscent; };
+  const groupGap = el => Math.round(capH(el) * .4);
+  // how far below the slider's top its first ink sits (the sun or the bar, whichever is higher)
+  const inkTopOffset = s => { const sr = s.getBoundingClientRect(); const tops = [s.querySelector('.psun'), s.querySelector('.strip')].filter(Boolean).map(e => e.getBoundingClientRect().top - sr.top); return tops.length ? Math.min(...tops) : 0; };
   function layout() {
     if (!scoped()) return false;
     const hero = document.querySelector('.hero'), t2 = hero && hero.querySelector('.thesis .t2'); if (!t2) return false;
@@ -114,7 +118,10 @@
     const hr = hero.getBoundingClientRect();
     const s = hero.querySelector('.pbs:not(.dial)');
     const place = () => {
-      const top = k.base + k.desc + 18 - hr.top;   // 11-14 (Ivy): more air under the g of "energy"
+      // 11-18 (Ivy): the hint, the thesis and the slider read as one group: the same gap G above the thesis (to the
+      // hint's baseline) and below it (from the g of "energy" to the slider's ink, its sun included); G is 0.4 of the
+      // thesis's cap height
+      const top = k.base + k.desc + groupGap(hero.querySelector('.thesis .t1') || t2) - hr.top - inkTopOffset(s);
       s.style.setProperty('left', (k.l - hr.left).toFixed(1) + 'px', 'important');
       s.style.setProperty('top', top.toFixed(1) + 'px', 'important');
       s.style.setProperty('bottom', 'auto', 'important');
@@ -174,6 +181,7 @@
   // ---------- the hint (11-14, Ivy; 11-18: above the thesis, "It's all an instrument."). It arrives with the slider
   // and goes for good (remembered) once the visitor has played a few notes or opened the logo ----------
   const HINT_KEY = 'pb-hint-done';
+  const HINT_SHOW = 8000;   // 11-18 (Ivy): after the tap the hint stays this long (ms), then fades out (plus ~0.7 s in and out)
   let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
   // ?hint shows it again for review (clears both memories)
   if (/[?&]hint\b/.test(location.search)) { hintDone = false; try { localStorage.removeItem(HINT_KEY); sessionStorage.removeItem('pb-hint-shown'); } catch (e) {} }
@@ -183,12 +191,12 @@
     if (seenVisit) return;
     let h = hero.querySelector('.hs-hint');
     if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument.'; hero.appendChild(h); if (logoRolled || (!hintWaits && heroSettled && !tapMe())) showHint(h); }   // 11-18 (Ivy): "Try the logo." is gone
-    // 11-18 (Ivy): gold set type in the top row, under "A design + creative technology studio", on its right ink edge;
-    // it only fades, so nothing ever moves (other placements: protos/hint-r2)
-    if (window.__hintPos && window.__hintPos !== 'top') return;
-    const dl = hero.querySelector('.dateline b'), k2 = dl && ink(dl); if (!k2) return;
-    const ph = innerWidth < 760, gap = ph ? 7 : 10, w = h.getBoundingClientRect().width;
-    h.style.left = (k2.r - w - hr.left).toFixed(1) + 'px'; h.style.top = (k2.base + k2.desc + gap - hr.top).toFixed(1) + 'px';
+    // 11-18 (Ivy picked it in protos/hint-r3): gold set type ABOVE the thesis, on its left ink edge, its baseline one
+    // group gap above the thesis's capitals (the same gap as from the thesis down to the slider); it only fades
+    if (window.__hintPos) return;   // (the hint pages place it themselves)
+    const t1 = hero.querySelector('.thesis .t1'), k1 = t1 && ink(t1); if (!k1) return;
+    const hb = baseline(h) - h.getBoundingClientRect().top;
+    h.style.left = (k1.l - hr.left).toFixed(1) + 'px'; h.style.top = (k1.base - capH(t1) - groupGap(t1) - hb - hr.top).toFixed(1) + 'px';
   }
   // 11-15 (Ivy): the hint comes FIRST: it arrives as the hero settles and invites the tap; the logo's first own roll-out
   // follows about 3.5 s later (shared/hero-logo.js reads window.__hsHint). Reduced motion keeps the old order: the hint
@@ -203,6 +211,7 @@
   addEventListener('hs:tap-logo-done', () => { heroSettled = true; const h = !hintDone && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
   window.__hsHint = { state: hintDone ? 'none' : (() => { try { return sessionStorage.getItem('pb-hint-shown') === '1' ? 'none' : 'pending'; } catch (e) { return 'pending'; } })(), at: 0 };
   function showHint(h) {
+    h.style.animationDuration = (HINT_SHOW / .86).toFixed(0) + 'ms';   // the keyframes hold from 7% to 93%
     h.classList.add('go'); try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {}
     if (window.__hsHint.state !== 'shown') { window.__hsHint = { state: 'shown', at: performance.now() }; dispatchEvent(new CustomEvent('hs:hint-shown')); }
   }
