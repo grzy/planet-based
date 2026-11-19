@@ -7,7 +7,11 @@
 (() => {
   const doc = document.documentElement;
   // 11-18 (Ivy: the light flashed a bright lemon): the band only ever lightens the SAME gold a touch (hue ~40), no pale yellow
-  const OCHRE = '#7a4d0e', GOLD = '#c9952e', PALE = '#dfb255', MID = '#d6a645';
+  const OCHRE = '#7a4d0e';
+  // 11-18 (Ivy: oat read mustardy): on the oatmeal ground the strings take the oat gold's own hue (#DDA941), sunnier
+  const TONES = { base: ['#c9952e', '#d6a645', '#dfb255'], oat: ['#dda941', '#e2b256', '#e6b963'] };
+  const oat = () => doc.dataset.type === 'dark' && doc.dataset.page !== 'dark';
+  let GOLD = TONES.base[0], MID = TONES.base[1], PALE = TONES.base[2];
   const LEAF = { a: .55, v: .3, hi: .93, mid: .62, edge: .3 };        // light leaf
   const WIN = 700, NEED = .8, RISE = 120, HOLD = 1200, FADE = 600, COOL = 8000, BLOOM = 320;   // 11-18 (Ivy): back quickly, 0.6 s
   const TYPE = '.hero .mark, .hero .dateline b, .hero .thesis';   // the logo (closed or open), the studio line, the thesis (the hint is gold already)
@@ -53,6 +57,7 @@
     const cx = sr && sr.width ? sr.left + sr.width / 2 - lr.left : W / 2, far = Math.max(cx, W - cx, 1);
     // 11-18 (Ivy): the type turns gold with the strings, on the same curve, each piece when the bloom reaches it
     const type = [...document.querySelectorAll(TYPE)].map(el => { const r = el.getBoundingClientRect(); const ex = r.left + r.width / 2 - lr.left; return r.width ? { el, d: Math.abs(ex - cx), at: rm ? 0 : BLOOM * Math.abs(ex - cx) / far } : null; }).filter(Boolean);
+    [GOLD, MID, PALE] = oat() ? TONES.oat : TONES.base;
     moment = { t0: now, xs, rm, far, type, at: xs.map(x => rm ? 0 : BLOOM * Math.abs(x - cx) / far) };
     doc.classList.add('hs-goldm');
     if (!raf) raf = requestAnimationFrame(frame);

@@ -705,8 +705,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=71">
-<link rel="stylesheet" href="logo/b-variant.css?v=71">
+<link rel="stylesheet" href="logo/story.css?v=74">
+<link rel="stylesheet" href="logo/b-variant.css?v=74">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -825,11 +825,15 @@ html.boot .pbs{visibility:hidden}
       <script>
       // phones: the tree starts moving as soon as its animation has loaded; until then the still frame shows
       (function () { var t = document.getElementById('loaderTree'); if (!t || !document.documentElement.classList.contains('boot')) return;
-        // 11-18 (Ivy: the tree jumped at its loop point): the tree turns ONCE, easing over its last frames, and comes to
-        // rest; it never restarts. Its 40 frames (the transparent WebP's, 83 ms each) are one sprite sheet stepped by
-        // background-position (alpha kept everywhere, Safari included; no video, no filter). The loader waits for the
-        // turn to end (shared/preload.js reads window.__pbTree), so the word arrives as the tree settles
-        var TURN = 2000, C = 8, N = 40, done, sheet = new Image();
+        // 11-18 (Ivy: the tree jumped at its loop point): the tree turns ONCE and never restarts. Its 40 frames (the
+        // transparent WebP's) are one sprite sheet stepped by background-position (alpha kept everywhere, Safari included;
+        // no video, no filter).
+        // 11-18 (Ivy: it rested while the word was up): the one turn now spans the whole loader, from its start to the
+        // moment the slices take the tree. The loader still lets the word in TURN ms after the turn starts
+        // (shared/preload.js reads window.__pbTree), but the turn carries on; when the entrance knows when the cut comes
+        // (logo/b-variant.js plan()) it calls window.__pbTreeTo(at) and the frames left are spread to end then, on a soft
+        // even ease. The cut's slices are clones of this box, so every .loader-tree-sp (theirs too) gets each frame
+        var TURN = 2000, GUESS = 4000, C = 8, N = 40, done, sheet = new Image();
         window.__pbTree = new Promise(function (r) { done = r; }); setTimeout(done, 5000);
         if (matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
         sheet.onerror = function () { done(); };
@@ -842,11 +846,17 @@ html.boot .pbs{visibility:hidden}
           place(); t.style.visibility = 'hidden';
           window.__pbTreeAnimAt = performance.now(); dispatchEvent(new Event('pb:treeanim'));
           new MutationObserver(function () { if (!t.getAttribute('src')) sp.remove(); }).observe(t, { attributes: true, attributeFilter: ['src'] });
-          var t0 = performance.now(), shown = -1;
+          var t0 = performance.now(), shown = -1, s0 = t0, e0 = 0, D = GUESS, e = 0;
+          setTimeout(done, TURN);
+          var ease = function (x) { return 1 - Math.pow(1 - x, 1.25); };   // soft, no long tail
+          window.__pbTreeTo = function (at) { var now = performance.now(); e0 = e; s0 = now; D = Math.max(200, at - now); };
+          window.__pbTreeFrame = function () { return shown; };
           (function step(now) {
-            var k = Math.min(1, Math.max(0, (now - t0) / TURN)), e = 1 - Math.pow(1 - k, 2.2), f = Math.min(N - 1, Math.floor(e * N));
-            if (f !== shown) { shown = f; place(); sp.style.backgroundPosition = ((f % C) / (C - 1) * 100).toFixed(3) + '% ' + (Math.floor(f / C) / (N / C - 1) * 100).toFixed(3) + '%'; }
-            if (k < 1) requestAnimationFrame(step); else done();
+            var k = Math.min(1, Math.max(0, (now - s0) / D)); e = e0 + (1 - e0) * ease(k);
+            var f = Math.min(N - 1, Math.round(e * (N - 1)));   // the last frame lands just as the slices take the tree
+            if (f !== shown) { shown = f; place(); var bp = ((f % C) / (C - 1) * 100).toFixed(3) + '% ' + (Math.floor(f / C) / (N / C - 1) * 100).toFixed(3) + '%';
+              document.querySelectorAll('.loader-tree-sp').forEach(function (n) { n.style.backgroundPosition = bp; }); }
+            if (document.querySelector('.loader-tree-sp') && now - t0 < 15000) requestAnimationFrame(step); else done();   // runs until the slices go (a retime can come late)
           })(t0);
         }); };
         sheet.src = 'img/orange-tree-sheet.webp'; })();
@@ -981,17 +991,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=71"></script>
-<script src="logo/pose.js?v=71"></script>
-<script src="logo/sound.js?v=71"></script>
-<script src="logo/bees.js?v=71"></script>
-<script src="logo/hero-logo.js?v=71"></script>
-<script src="logo/story.js?v=71"></script>
-<script src="logo/common.js?v=71"></script>
-<script src="logo/song.js?v=71"></script>
-<script src="logo/strings.js?v=71"></script>
-<script src="logo/preload.js?v=71"></script>
-<script src="logo/b-variant.js?v=71"></script>
+<script src="logo/hero-logo-data.js?v=74"></script>
+<script src="logo/pose.js?v=74"></script>
+<script src="logo/sound.js?v=74"></script>
+<script src="logo/bees.js?v=74"></script>
+<script src="logo/hero-logo.js?v=74"></script>
+<script src="logo/story.js?v=74"></script>
+<script src="logo/common.js?v=74"></script>
+<script src="logo/song.js?v=74"></script>
+<script src="logo/strings.js?v=74"></script>
+<script src="logo/preload.js?v=74"></script>
+<script src="logo/b-variant.js?v=74"></script>
 <script>
 (() => {
   'use strict';
@@ -2394,7 +2404,7 @@ html.boot .pbs{visibility:hidden}
 <script src="breeze/tapme.js?v=3"></script>   <!-- 11-18 (Ivy): the hero's "⟵ tap!" -->
 <script src="breeze/cardsound.js?v=19"></script>
 <script src="breeze/flute.js?v=1"></script>
-<script src="breeze/gold.js?v=6"></script>
+<script src="breeze/gold.js?v=7"></script>
 <script src="breeze/breeze.js?v=11"></script>
 <script data-goatcounter="https://planetbased.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>

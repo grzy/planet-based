@@ -324,12 +324,9 @@ html[data-type="dark"]:not([data-page="dark"]){--hs-ink:#2c2c2f}
 /* 11-18 (Ivy picked in protos/hint-r3): Deep gold on green and dark; on the oatmeal ground a brass that reads as gold,
    yellower and less red than the old ochre, dark enough for the hint's fine type (3:1 on #C4B8A2) */
 :root{--gold-ink:#F0A81C;--gold-lit:#F5B94A}   /* 11-18: --gold-lit is spare (the type has no light now) */
-/* 11-18 (Ivy: the mustard read dark and didn't match the strings): on oat the type takes the strings' own gold from the
-   gold moment (c/breeze/gold.js GOLD #C9952E, lit MID #E2B955), like the sun. Legibility comes from the hint's weight
-   (500) and a hair of size, never a darker colour; full opacity */
-html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#C9952E;--gold-lit:#D6A645}
-html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:500;font-size:calc(min(2.6cqh,1.55cqw) * .8)}
-@media (max-width:759px){html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-size:12px}}
+/* 11-18 (Ivy): on oat the gold is only the gold moment's (strings, type, logo): a sunnier gold, the strings in its hue
+   (c/breeze/gold.js); the hint there is ink (below), since no gold is both light and readable on oat */
+html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#DDA941;--gold-lit:#E2B256}   /* 11-18 (Ivy): the oat gold moment, sunnier, less brown */
 /* 11-18 (Ivy): the hint on every load: it fades in and stays (.stay, shared/song.js); after the tap it fades out (.gone) */
 @keyframes hsHintStay{from{opacity:0}to{opacity:.92}}
 @keyframes hsHintStayPh{from{opacity:0}to{opacity:.95}}
@@ -343,6 +340,8 @@ html.hs[data-type="dark"]:not([data-page="dark"]) .reveal .hero .hs-hint.stay{an
 @keyframes hsHintInPh{0%{opacity:0}7%{opacity:.95}93%{opacity:.95}100%{opacity:0}}
 /* 11-18 (Ivy: too flashy): the type's gold is now one smooth colour fade in gold.js (no class, no travelling light) */
 .hero p.hs-hint{color:var(--gold-ink)}   /* the hint is gold always, one gold */
+/* 11-18 (Ivy: no gold reads on oat): on the oatmeal ground the hint is the page's own ink, the thesis colour, at its dainty weight */
+html[data-type="dark"]:not([data-page="dark"]) .hero p.hs-hint{color:inherit}
 /* phones: the open word runs under the studio line, so the closed logo sits 12 px lower than the one margin (the word
    then clears the studio line by ~16 px), and the hint (in the same top row) steps aside while the word is open */
 @media (max-width:759px){

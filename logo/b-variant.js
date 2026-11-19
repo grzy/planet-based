@@ -33,6 +33,8 @@
       // begins AS the wind's last stroke begins its fade (overlapping its lift-off, never after it: no still frame).
       // Everything after it keeps its own timing: the variant's clock pauses at the end of the swap for HOLD ms
       HOLD = Math.max(0, Math.round((window.HeroPreload && HeroPreload.windMs ? HeroPreload.windMs() : 0) - T.recede[0]));
+      // 11-18 (Ivy): the tree keeps turning until the slices take it: its one turn is retimed to end at the cut
+      if (window.__pbTreeTo) window.__pbTreeTo(performance.now() + T.rise[0] + HOLD);
       return { reveal: reveal + HOLD, end: close[1] + HOLD, lines: 10 };
     },
     setup(K, phone, h) {
