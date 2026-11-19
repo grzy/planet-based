@@ -11,6 +11,8 @@
   // 11-14 (Ivy): no dead moments. The slices keep parting until the green grows out of them; that same moment they go and
   // the lines set off to gather into the mark
   const T = { swap: [0, 480], recede: [480, 950], rise: [900, 1350], part: [1300, 1950], grow0: 1950, step: 60, dur: 650 };
+  let HOLD = 0;   // ms the word holds before the cut (plan())
+  const vt = t => t <= T.recede[0] ? t : Math.max(T.recede[0], t - HOLD);
   let from = null, strips = [], bounds = [], assign = new Map(), cx = 0, lineTop = 0, lineBot = 0;
   window.HeroVariant = {
     askOn: 'none',
@@ -27,7 +29,11 @@
       const g0 = phone ? reveal + 40 : T.part[1], g1 = phone ? g0 + 550 : Math.max(reveal + 60, g0 + 600);
       const open = [g1, g1 + (phone ? 620 : 760)], hold = open[1] + (phone ? 300 : 480), close = [hold, hold + (phone ? 1500 : 2000)];
       Object.assign(T, { reveal, g0, g1, open, hold, close, f1: close[1] });
-      return { reveal, end: close[1], lines: 10 };
+      // 11-18 (Ivy): planetbased.io stays, written whole, until the pencil wind has finished blowing (its last line lifted
+      // off, +150 ms); only then the word recedes and the cut begins. Everything after it keeps its own timing: the
+      // variant's clock simply pauses at the end of the swap for HOLD ms (frame() and garden() below)
+      HOLD = Math.max(0, Math.round((window.HeroPreload && HeroPreload.windMs ? HeroPreload.windMs() : 0) + 150 - T.recede[0]));
+      return { reveal: reveal + HOLD, end: close[1] + HOLD, lines: 10 };
     },
     setup(K, phone, h) {
       if (window.HeroPreload) HeroPreload.stop();
@@ -47,13 +53,14 @@
       document.documentElement.classList.add('hs-cutting');
     },
     garden(K, phone) {
-      if (phone) return Kit.phoneBeats(T.g1);
+      if (phone) return Kit.phoneBeats(T.g1 + HOLD);
       // 11-14 (Ivy): the garden comes out during the word's hold (the word stays out as long as before): the sun as the word
       // is fully open, then the peony and the dahlia, the bee as the logo settles
       const o = T.open[1], sun = Math.max(o - 80, T.reveal + 920);
-      return { sun, peony: sun + 260, dahlia: sun + 520, bee: T.close[1], text: sun + 180 };   // 11-14 (Ivy, again): the type overlaps the sun and the peony   // 11-14 (Ivy): the type, the top line and the slider right after the dahlia
+      return { sun: sun + HOLD, peony: sun + 260 + HOLD, dahlia: sun + 520 + HOLD, bee: T.close[1] + HOLD, text: sun + 180 + HOLD };   // 11-14 (Ivy, again): the type overlaps the sun and the peony   // 11-14 (Ivy): the type, the top line and the slider right after the dahlia
     },
     frame(t, K, phone) {
+      t = vt(t);
       // 0. the last "-ing" word gives way and planetbased.io is written on in its place
       const ing = window.HeroPreload && HeroPreload.el, ks = seg(t, ...T.swap);
       if (ing) {

@@ -324,12 +324,20 @@ html[data-type="dark"]:not([data-page="dark"]){--hs-ink:#2c2c2f}
 /* 11-18 (Ivy picked in protos/hint-r3): Deep gold on green and dark; on the oatmeal ground a brass that reads as gold,
    yellower and less red than the old ochre, dark enough for the hint's fine type (3:1 on #C4B8A2) */
 :root{--gold-ink:#F0A81C;--gold-lit:#FFDB85}
-html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#735A00;--gold-lit:#9C7E0A}
-/* 11-18 (oat: the thin hint read as khaki): Mustard ink, and the hint at weight 400 and full opacity; phones keep 500 */
-html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:400}
-@media (max-width:759px){html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:500}}
-@keyframes hsHintInOat{0%{opacity:0}7%{opacity:1}93%{opacity:1}100%{opacity:0}}
-html[data-type="dark"]:not([data-page="dark"]) .hs .reveal .hero .hs-hint.go{animation-name:hsHintInOat}
+/* 11-18 (Ivy: the mustard read dark and didn't match the strings): on oat the type takes the strings' own gold from the
+   gold moment (c/breeze/gold.js GOLD #C9952E, lit MID #E2B955), like the sun. Legibility comes from the hint's weight
+   (500) and a hair of size, never a darker colour; full opacity */
+html[data-type="dark"]:not([data-page="dark"]){--gold-ink:#C9952E;--gold-lit:#E2B955}
+html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-weight:500;font-size:calc(min(2.6cqh,1.55cqw) * .8)}
+@media (max-width:759px){html[data-type="dark"]:not([data-page="dark"]) .hs-hint{font-size:12px}}
+/* 11-18 (Ivy): the hint on every load: it fades in and stays (.stay, shared/song.js); after the tap it fades out (.gone) */
+@keyframes hsHintStay{from{opacity:0}to{opacity:.92}}
+@keyframes hsHintStayPh{from{opacity:0}to{opacity:.95}}
+@keyframes hsHintStayOat{from{opacity:0}to{opacity:1}}
+.hs .reveal .hero .hs-hint.stay{animation:hsHintStay .8s ease-out both}
+@media (max-width:759px){.hs .reveal .hero .hs-hint.stay{animation-name:hsHintStayPh}}
+html.hs[data-type="dark"]:not([data-page="dark"]) .reveal .hero .hs-hint.stay{animation-name:hsHintStayOat}
+@media (prefers-reduced-motion:reduce){.hs .reveal .hero .hs-hint.stay{animation-duration:1ms}}
 .hs-hint{color:var(--gold-ink)}
 @keyframes hsHintIn{0%{opacity:0}7%{opacity:.92}93%{opacity:.92}100%{opacity:0}}
 @keyframes hsHintInPh{0%{opacity:0}7%{opacity:.95}93%{opacity:.95}100%{opacity:0}}

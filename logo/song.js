@@ -178,19 +178,20 @@
     }
     return true;
   }
-  // ---------- the hint (11-14, Ivy; 11-18: above the thesis, "It's all an instrument."). It arrives with the slider
-  // and goes for good (remembered) once the visitor has played a few notes or opened the logo ----------
-  const HINT_KEY = 'pb-hint-done';
-  const HINT_SHOW = 8000;   // 11-18 (Ivy): after the tap the hint stays this long (ms), then fades out (plus ~0.7 s in and out)
-  let hintDone = false; try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
-  // ?hint shows it again for review (clears both memories)
-  if (/[?&]hint\b/.test(location.search)) { hintDone = false; try { localStorage.removeItem(HINT_KEY); sessionStorage.removeItem('pb-hint-shown'); } catch (e) {} }
+  // ---------- the hint (11-14, Ivy; 11-18: above the thesis, "It's all an instrument.") ----------
+  // 11-18 (Ivy: she never saw it): no memory any more; it comes on EVERY load. It fades in ~1.2 s after "⟵ tap ♪" has
+  // written (c/breeze/tapme.js) and stays; after a tap it stays through the logo's moment, then fades HINT_SHOW later.
+  // Without the tap-me it comes as the hero settles. Reduced motion: it simply shows
+  const HINT_SHOW = 8000;   // after the tap's logo moment the hint stays this long (ms), then fades out (~0.8 s)
+  const HINT_AFTER = 1200;  // after the tap-me has written
+  const TM_WRITE = 1900;    // the tap-me starts writing ~0.3 s after the settle and takes ~1.6 s (tapme.js WORDS_AT + pen)
+  const hintWaits = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const tapMe = () => !!document.querySelector('script[src*="tapme.js"]');
+  let heroSettled = false, hintWant = false, hintFadeT = 0;
   function hint(hero, s, hr) {
-    if (hintDone || !s) return;
-    let seenVisit = false; try { seenVisit = sessionStorage.getItem('pb-hint-shown') === '1' && !hero.querySelector('.hs-hint'); } catch (e) {}
-    if (seenVisit) return;
+    if (!s) return;
     let h = hero.querySelector('.hs-hint');
-    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument.'; hero.appendChild(h); if (logoRolled || (!hintWaits && heroSettled && !tapMe())) showHint(h); }   // 11-18 (Ivy): "Try the logo." is gone
+    if (!h) { h = document.createElement('p'); h.className = 'hs-hint'; h.textContent = 'It\u2019s all an instrument.'; hero.appendChild(h); if (hintWant) showHint(h); }
     // 11-18 (Ivy picked it in protos/hint-r3): gold set type ABOVE the thesis, on its left ink edge, its baseline one
     // group gap above the thesis's capitals (the same gap as from the thesis down to the slider); it only fades
     if (window.__hintPos) return;   // (the hint pages place it themselves)
@@ -198,33 +199,28 @@
     const hb = baseline(h) - h.getBoundingClientRect().top;
     h.style.left = (k1.l - hr.left).toFixed(1) + 'px'; h.style.top = (k1.base - capH(t1) - groupGap(t1) - hb - hr.top).toFixed(1) + 'px';
   }
-  // 11-15 (Ivy): the hint comes FIRST: it arrives as the hero settles and invites the tap; the logo's first own roll-out
-  // follows about 3.5 s later (shared/hero-logo.js reads window.__hsHint). Reduced motion keeps the old order: the hint
-  // waits for the (skipped) roll-out's signal
-  let logoRolled = false;
-  const hintWaits = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  let heroSettled = false;   // the entrance has landed (hs:hero-settled, shared/hero-logo.js)
-  // 11-18: with the tap-me in the page (c/breeze/tapme.js), the hint waits for the logo's tap-opening to fold back
-  // (hs:tap-logo-done); without it, it arrives as the hero settles
-  const tapMe = () => !!document.querySelector('script[src*="tapme.js"]');
-  addEventListener('hs:hero-settled', () => { heroSettled = true; if (tapMe()) return; const h = !hintDone && !hintWaits && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
-  addEventListener('hs:tap-logo-done', () => { heroSettled = true; const h = !hintDone && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
-  window.__hsHint = { state: hintDone ? 'none' : (() => { try { return sessionStorage.getItem('pb-hint-shown') === '1' ? 'none' : 'pending'; } catch (e) { return 'pending'; } })(), at: 0 };
+  window.__hsHint = { state: 'pending', at: 0 };
   function showHint(h) {
-    h.style.animationDuration = (HINT_SHOW / .86).toFixed(0) + 'ms';   // the keyframes hold from 7% to 93%
-    h.classList.add('go'); try { sessionStorage.setItem('pb-hint-shown', '1'); } catch (e) {}
+    hintWant = true; h = h || document.querySelector('.hero .hs-hint'); if (!h || h.classList.contains('stay') || h.classList.contains('gone')) return;
+    h.classList.add('stay');
     if (window.__hsHint.state !== 'shown') { window.__hsHint = { state: 'shown', at: performance.now() }; dispatchEvent(new CustomEvent('hs:hint-shown')); }
   }
-  addEventListener('hs:logo-rolled', () => { logoRolled = true; const h = !hintDone && document.querySelector('.hero .hs-hint'); if (h) showHint(h); });
-  function dismissHint() {
-    if (hintDone) return; hintDone = true; try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
-    const h = document.querySelector('.hero .hs-hint'); if (!h) return;
-    h.classList.add('gone'); setTimeout(() => h.remove(), 900);
+  function fadeHint() {
+    const h = document.querySelector('.hero .hs-hint'); if (!h || h.classList.contains('gone')) return;
+    h.style.opacity = getComputedStyle(h).opacity; h.classList.remove('stay'); h.classList.add('gone');
+    void h.offsetWidth; h.style.opacity = '0';
   }
-  let played = 0;   // 11-18: only notes played once the hint is showing count (the tap's own opening never does)
-  const watchHint = () => { if (!window.HeroSound) return setTimeout(watchHint, 300); HeroSound.onPlay((v, st, o) => { if (o && o.closing) return; const h = document.querySelector('.hero .hs-hint'); if (!h || !h.classList.contains('go')) return; if (++played >= 4) dismissHint(); }); };
-  watchHint();
-  addEventListener('hs:logo-touched', () => { if (!tapMe()) setTimeout(dismissHint, 1200); });   // with the tap-me, the tap is what brings the hint
+  addEventListener('hs:hero-settled', () => {
+    heroSettled = true;
+    if (hintWaits || !tapMe()) { showHint(); return; }
+    // wait for the tap-me to be up, then for it to finish writing, then HINT_AFTER
+    const t0 = performance.now();
+    const up = () => { const st = window.__tapme && window.__tapme.state; if (st === 'shown' || performance.now() - t0 > 4000) setTimeout(showHint, (st === 'shown' ? TM_WRITE - 300 : 0) + HINT_AFTER); else setTimeout(up, 50); };
+    up();
+  });
+  // after the tap: shown (if it wasn't yet), held through the logo's moment, then gone HINT_SHOW later (reduced motion: it stays)
+  addEventListener('hs:tap-logo-done', () => { showHint(); if (hintWaits) return; clearTimeout(hintFadeT); hintFadeT = setTimeout(fadeHint, HINT_SHOW); });
+  addEventListener('hs:logo-touched', () => { if (tapMe() || hintWaits) return; showHint(); clearTimeout(hintFadeT); hintFadeT = setTimeout(fadeHint, HINT_SHOW); });
   window.HeroUnder = { layout, place: s => layout() };
   if (document.fonts) document.fonts.ready.then(layout);
   addEventListener('resize', () => setTimeout(layout, 160));
