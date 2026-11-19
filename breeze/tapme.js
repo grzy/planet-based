@@ -198,6 +198,19 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
   const GSCALE = { 'tap-bang-arrow': { '⟵': [.82, 2.65, .7], '⟶': [.82, .1, .7], '!': [.82, .2, .64] }, 'tap-note-arrow': { '⟵': [.82, 2.65, .7], '⟶': [.82, .1, .7] } };
   const pick = () => { if (window.TM_LOCK) return window.TM_LOCK; const q = location.search.match(/[?&]tm=([a-z-]+)/); let v = q && q[1]; if (!VARS[v]) { try { v = localStorage.getItem('tm-variant-3'); } catch (e) {} } return VARS[v] ? v : 'tap-note-arrow'; };
   function variant(m, B, s, cx, cy, sw) {
+    // 11-18 (phones): there is no room left of the sun for "tap ♪ ⟶" at the size of "copied" (it shrank and its arrow ran
+    // into the rays). On a phone it sits above the sun's left shoulder, as big as the footer's "copied", a small arrow
+    // flicked down at the sun. Sized from "copied" itself, so the two always match
+    if (innerWidth < 760) {
+      const v = pick(), cpd = document.querySelector('.copied'), cH = window.pbHand('copied', { check: true });
+      const cw = cpd ? parseFloat(getComputedStyle(cpd).width) : 0, xh = cw ? 30 * cw / cH.w : 9;
+      const text = v === 'tap-bang-arrow' ? 'tap! \u2193' : 'tap\u2009\u266a \u2193';
+      const H = window.pbHand(text), k = xh / 30, w = H.w * k, h = H.h * k, R = sw / 2;
+      const tipX = cx - R * .42, top = cy - Math.sqrt(Math.max(0, R * R - (tipX - cx) * (tipX - cx)));
+      let x = tipX - w + 17 * k, y = top - h - 8;   // the arrow stem (~.57 x-height in from the right) right over the shoulder
+      x = Math.max(12, Math.min(B.W - 12 - w, x));
+      return { H, x, y, w };
+    }
     const v = pick(), H0 = window.pbHand('⟵ tap me'), k = m.w / H0.w, pad = 6 * k, R = sw / 2;
     const h0 = H0.h * k, midY = m.y + h0 / 2;
     const edge = (y, side) => cx + side * Math.sqrt(Math.max(0, R * R - (y - cy) * (y - cy)));

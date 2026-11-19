@@ -53,6 +53,7 @@
   // replayed at that moment, keeping their timing
   // 11-15 (Ivy): the even-words timing (555 ms holds, the cut 250 ms sooner) broke the opening's beat; back to 430 ms
   const POLL = 'Deploying';   // 11-14, Ivy: Deploying (the wind sends it out) replaces Pollinating
+  const WIND_PACE = .75;   // 11-18: the loader wind's speed (1 = as drawn; .75 = a third faster)
   let windOn = false, windQ = [], windDoneFn; const windDone = new Promise(r => { windDoneFn = r; });
   const hookWind = () => {
     const orig = window.pbScribble; if (!orig || orig.__hsWind) return;
@@ -67,7 +68,8 @@
     if (windOn) return; windOn = true;
     if (!windQ.length) { setTimeout(windDoneFn, reduce ? 300 : 900); return; }
     const t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s); let end = 0;
-    windQ.forEach(([self, layer, key, o]) => { const oo = Object.assign({}, o, { t0: ((o && o.t0) || 0) - base + .05 }); end = Math.max(end, oo.t0 + (oo.dur || 1)); window.pbScribble.call(self, layer, key, oo); });
+    // 11-18 (Ivy: too long after the word): the same strokes, played a third faster (WIND_PACE of their time)
+    windQ.forEach(([self, layer, key, o]) => { o = o || {}; const oo = Object.assign({}, o, { t0: ((o.t0 || 0) - base) * WIND_PACE + .05, dur: (o.dur || 1) * WIND_PACE, lag: (o.lag || 0) * WIND_PACE }); end = Math.max(end, oo.t0 + oo.dur); window.pbScribble.call(self, layer, key, oo); });
     windQ = [];
     setTimeout(windDoneFn, Math.max(600, (end - .35) * 1000));   // the cut begins as the last line lifts off
   }
@@ -78,8 +80,8 @@
   function windMs() {
     if (!windQ.length) return 0;
     const P = window.BREEZE_PATHS || {}, t0s = windQ.map(q => (q[3] && q[3].t0) || 0), base = Math.min(...t0s);
-    return Math.max(...windQ.map(([, , key, o]) => { o = o || {}; const n = (P[key] && P[key].d && P[key].d.length) || 1, life = (o.dur || 1) + (o.lag || 0) * (n - 1);
-      return (o.t0 || 0) - base + .05 + life * (o.fade || .8); })) * 1000;
+    return Math.max(...windQ.map(([, , key, o]) => { o = o || {}; const n = (P[key] && P[key].d && P[key].d.length) || 1, life = ((o.dur || 1) + (o.lag || 0) * (n - 1)) * WIND_PACE;
+      return ((o.t0 || 0) - base) * WIND_PACE + .05 + life * (o.fade || .8); })) * 1000;
   }
   let resolve; const done = new Promise(r => resolve = r);
   function start() {

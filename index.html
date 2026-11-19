@@ -403,7 +403,7 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
   -webkit-mask:url(img/pencil-underline.webp) center/100% 100% no-repeat;mask:url(img/pencil-underline.webp) center/100% 100% no-repeat}
 
 .cap{position:relative;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,6fr);column-gap:var(--gut);align-items:baseline;padding-top:clamp(18px,2.4vh,30px);opacity:var(--c)}
-.cap h2{font-size:clamp(28px,2.6vw,52px);font-weight:450;letter-spacing:-.02em;line-height:1;font-variation-settings:"opsz" 48}
+.cap h2{font-size:clamp(28px,2.6vw,52px);font-weight:450;letter-spacing:-.02em;line-height:1;text-wrap:balance;font-variation-settings:"opsz" 48}
 .cap .tt{position:relative;display:inline-block}
 /* a different pencil line under each title, drawn left to right the first time it is seen */
 .t-under{position:absolute;left:-4%;width:110%;max-width:none;top:96%;height:.34em;object-fit:fill;mix-blend-mode:multiply;opacity:.88;pointer-events:none;
@@ -416,6 +416,9 @@ html[data-font="cormorant"]{--serif:"Cormorant Garamond",Georgia,serif;--capw:54
 .cap-bee img.on{opacity:1}
 /* one measure for every plate, set so each description runs exactly three lines */
 .cap p{font-size:clamp(16px,1.18vw,22px);line-height:1.38;font-weight:380;max-width:var(--capw,59ch);text-wrap:pretty;color:#26292a}
+/* 11-18 (Ivy's typography pass): the short card blurbs (up to six lines) balance, so no short last line or steps at any
+   width; Unicorn's longer one stays pretty (balance only works up to six lines) */
+.plate:not([data-k="uni"]) .cap p{text-wrap:balance}
 
 .blk.exit{display:none}
 .loader{display:none}
@@ -491,7 +494,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .motion .moving .shade{opacity:1}
 .motion .loader{display:grid;position:absolute;inset:0;z-index:1;place-items:center;pointer-events:none}
 .motion .pin.sliding .loader,.motion .pin:not(.intro) .loader{opacity:0;transition:opacity .7s ease}
-.loader p{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:none;color:var(--green)}
+.loader p{font-family:var(--mono);font-size:12px;letter-spacing:.12em;padding-left:.12em;text-transform:none;color:var(--green)}   /* padding-left: the trailing tracking, balanced so it centres by its ink */
 /* 11-12 (Ivy): the name is always the domain as typed, lowercase */
 .foot span:first-child{text-transform:none}
 
@@ -548,7 +551,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .closing{position:relative;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);padding:clamp(120px,18vh,240px) var(--m) 0;align-items:end;align-content:end;
   min-height:100vh;min-height:100svh}
 .contact{grid-column:1 / span 8;padding-bottom:calc(var(--nw) * .07)}   /* 11-14 (Ivy): closer to the footer line */
-.studio{font-size:clamp(20px,1.6vw,34px);line-height:1.32;font-weight:380;letter-spacing:-.008em;max-width:var(--studiow,37.5ch);text-wrap:pretty;color:#26292a;
+.studio{font-size:clamp(20px,1.6vw,34px);line-height:1.38;font-weight:380;letter-spacing:-.008em;max-width:var(--studiow,37.5ch);text-wrap:pretty;color:#26292a;
   font-variation-settings:"opsz" 32;margin-bottom:clamp(34px,5vh,64px)}   /* 11-14 (Ivy): lower, inside the scene with the flowers */
 .studio .pen{position:relative;white-space:nowrap}
 .ph-only{display:none}
@@ -563,7 +566,7 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .studio .pen img.u-a{left:-3%;width:106%;top:86%;height:.44em;transform:scaleX(-1) rotate(-.9deg)}
 .studio .pen img.u-b{left:5%;width:88%;top:103%;height:.36em;transform:scaleX(-1) rotate(.7deg)}
 /* one quieter line under the address */
-.quiet{margin-top:clamp(12px,1.6vh,22px);font-size:clamp(17px,1.25vw,26px);font-weight:360;color:var(--ink-2);letter-spacing:-.005em}
+.quiet{text-wrap:pretty;margin-top:clamp(12px,1.6vh,22px);font-size:clamp(17px,1.25vw,26px);font-weight:360;color:var(--ink-2);letter-spacing:-.005em}
 .stranger{position:relative;display:inline-block}
 /* the garden: a big flower and a small one, each a stop-motion flipbook of the paper dahlias and peonies, and their bees */
 .garden{position:absolute;inset:0;pointer-events:none}   /* no stacking context: the bees inside can sit above the house */
@@ -705,8 +708,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=74">
-<link rel="stylesheet" href="logo/b-variant.css?v=74">
+<link rel="stylesheet" href="logo/story.css?v=79">
+<link rel="stylesheet" href="logo/b-variant.css?v=79">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -991,17 +994,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=74"></script>
-<script src="logo/pose.js?v=74"></script>
-<script src="logo/sound.js?v=74"></script>
-<script src="logo/bees.js?v=74"></script>
-<script src="logo/hero-logo.js?v=74"></script>
-<script src="logo/story.js?v=74"></script>
-<script src="logo/common.js?v=74"></script>
-<script src="logo/song.js?v=74"></script>
-<script src="logo/strings.js?v=74"></script>
-<script src="logo/preload.js?v=74"></script>
-<script src="logo/b-variant.js?v=74"></script>
+<script src="logo/hero-logo-data.js?v=79"></script>
+<script src="logo/pose.js?v=79"></script>
+<script src="logo/sound.js?v=79"></script>
+<script src="logo/bees.js?v=79"></script>
+<script src="logo/hero-logo.js?v=79"></script>
+<script src="logo/story.js?v=79"></script>
+<script src="logo/common.js?v=79"></script>
+<script src="logo/song.js?v=79"></script>
+<script src="logo/strings.js?v=79"></script>
+<script src="logo/preload.js?v=79"></script>
+<script src="logo/b-variant.js?v=79"></script>
 <script>
 (() => {
   'use strict';
@@ -2401,7 +2404,7 @@ html.boot .pbs{visibility:hidden}
 </script>
 <script src="breeze/hand.js?v=21"></script>
 <script src="breeze/copied.js?v=13"></script>
-<script src="breeze/tapme.js?v=3"></script>   <!-- 11-18 (Ivy): the hero's "⟵ tap!" -->
+<script src="breeze/tapme.js?v=10"></script>   <!-- 11-18 (Ivy): the hero's "⟵ tap!" -->
 <script src="breeze/cardsound.js?v=19"></script>
 <script src="breeze/flute.js?v=1"></script>
 <script src="breeze/gold.js?v=7"></script>

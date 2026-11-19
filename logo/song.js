@@ -183,6 +183,7 @@
   // written (c/breeze/tapme.js) and stays; after a tap it stays through the logo's moment, then fades HINT_SHOW later.
   // Without the tap-me it comes as the hero settles. Reduced motion: it simply shows
   const HINT_SHOW = 8000;   // after the tap's logo moment the hint stays this long (ms), then fades out (~0.8 s)
+  const HINT_AIR = 2;      // 11-18 (Ivy): the hint sits higher: its gap to the thesis's capitals is this many group gaps
   const HINT_AFTER = 1200;  // after the tap-me has written
   const TM_WRITE = 1900;    // the tap-me starts writing ~0.3 s after the settle and takes ~1.6 s (tapme.js WORDS_AT + pen)
   const hintWaits = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -197,7 +198,7 @@
     if (window.__hintPos) return;   // (the hint pages place it themselves)
     const t1 = hero.querySelector('.thesis .t1'), k1 = t1 && ink(t1); if (!k1) return;
     const hb = baseline(h) - h.getBoundingClientRect().top;
-    h.style.left = (k1.l - hr.left).toFixed(1) + 'px'; h.style.top = (k1.base - capH(t1) - groupGap(t1) - hb - hr.top).toFixed(1) + 'px';
+    h.style.left = (k1.l - hr.left).toFixed(1) + 'px'; h.style.top = (k1.base - capH(t1) - groupGap(t1) * HINT_AIR - hb - hr.top).toFixed(1) + 'px';
   }
   window.__hsHint = { state: 'pending', at: 0 };
   function showHint(h) {

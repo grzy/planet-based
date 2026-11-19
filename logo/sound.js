@@ -433,7 +433,7 @@
     { what: 'hand claps (the tongue)', who: 'olehenriksen', title: 'Hand Clap / High Five', url: 'https://freesound.org/people/olehenriksen/sounds/771247/', lic: 'CC0' },
     { what: 'tūī (the Living Walls card)', who: 'Ken George, Whakatāne, NZ', title: 'Tūī, XC1090728', url: 'https://xeno-canto.org/1090728', lic: 'CC BY-NC-SA 4.0', licUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
     { what: 'bees in lavender (the Beekeeper card)', who: 'MarekWojtaszek, Węgrzce, Poland', title: 'Bees in lavender', url: 'https://freesound.org/people/MarekWojtaszek/sounds/315966/', lic: 'CC0 1.0', licUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' },
-    { what: 'Swainson\'s thrush (the Bioindicators card)', who: 'CVLTIV8R, Petrolia, California', title: 'Swainson\'s Thrush Birdsong Lost Coast Ambience of Petrolia, CA', url: 'https://freesound.org/people/CVLTIV8R/sounds/866963/', lic: 'CC0 1.0', licUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' }
+    { what: 'Swainson’s thrush (the Bioindicators card)', who: 'CVLTIV8R, Petrolia, California', title: 'Swainson’s Thrush Birdsong Lost Coast Ambience of Petrolia, CA', url: 'https://freesound.org/people/CVLTIV8R/sounds/866963/', lic: 'CC0 1.0', licUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' }
   ];
 
   // ---------- the colour slider plays the gender (11-14, Ivy) ----------
