@@ -574,6 +574,10 @@ html:not(.motion) .plate .frame{box-shadow:0 14px 30px -14px rgba(22,40,28,.4),0
 .flip.big{left:47%;bottom:calc(43vh - 40px);width:min(36vh,25vw)}   /* 11-14 (Ivy): a little lower */
 /* 11-12 (Ivy): a third, smaller flower above the studio line, flipping through flowers the garden doesn't use */
 .flip.small{left:38%;bottom:calc(24vh - 40px);width:min(15vh,10.5vw);rotate:-10deg}   /* 11-14 (Ivy): down with the studio line */
+/* 11-18 (Ivy): tablets and small laptops (760-1199): the studio line wraps under the small flower, so it rises to clear
+   the text's ink with air. The text's top sits ~(123px + 6.5vh + 5.8vw) above the closing's foot (measured); the flower's
+   ink starts ~12% in from its box; ~28 px of air. Taller screens keep the old spot (the max). 1200+ and phones unchanged */
+@media (min-width:760px) and (max-width:1199px){.flip.small{bottom:max(calc(24vh - 40px),calc(158px + 6.5vh + 5.8vw - min(1.8vh,1.26vw)))}}
 /* 11-13 (Ivy): phones only, the café au lait dahlia crowns the closing above the studio line */
 .dahlia-top{display:none;position:absolute;z-index:1;height:auto;pointer-events:none;
   filter:drop-shadow(0 14px 16px rgba(40,34,20,.2)) drop-shadow(0 2px 3px rgba(40,34,20,.16))}
@@ -688,6 +692,10 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .floor{order:5}
   .flip.big{left:calc(var(--m) + 12px);bottom:calc(var(--below,129px) + min(62vw,270px) * (1.032 - .19) - 15vw);width:30vw}
   .flip.small{left:50vw;bottom:calc(var(--below,129px) - 93px);width:16vw}
+  /* 11-18 (Ivy picked protos/foot-r1 a): the house bigger and lower, cropped past its corner on the shadowed right side
+     (the front face ends at ~0.80 of its width; 0.88 stays on screen); the small flower left and up */
+  .home{--cw:min(80vw,350px);margin-bottom:78px;margin-right:calc(-1 * (var(--m) + (1 - .88) * var(--cw)))}
+  .flip.small{left:36vw;bottom:calc(var(--below,129px) - 93px + 26px)}
   .contact a.mail{font-size:clamp(28px,9vw,44px)}
   .foot{flex-direction:column;gap:6px}
   .foot .promise{font-size:16px}
@@ -697,8 +705,8 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<link rel="stylesheet" href="logo/story.css?v=68">
-<link rel="stylesheet" href="logo/b-variant.css?v=68">
+<link rel="stylesheet" href="logo/story.css?v=69">
+<link rel="stylesheet" href="logo/b-variant.css?v=69">
 <style>
 /* ================= the page colour (11-13, Ivy): green, oatmeal, black on one slider =================
    The engine in the head sets: --h-o / --h-k (the oatmeal and black paintings over the hero green and its block slices),
@@ -973,17 +981,17 @@ html.boot .pbs{visibility:hidden}
 <footer class="foot-wrap"><div class="foot"><span>planetbased.io <span class="yr"><span class="copy">©</span> 2026</span></span><span class="promise">Technology that gives energy back.</span></div></footer>
 
 
-<script src="logo/hero-logo-data.js?v=68"></script>
-<script src="logo/pose.js?v=68"></script>
-<script src="logo/sound.js?v=68"></script>
-<script src="logo/bees.js?v=68"></script>
-<script src="logo/hero-logo.js?v=68"></script>
-<script src="logo/story.js?v=68"></script>
-<script src="logo/common.js?v=68"></script>
-<script src="logo/song.js?v=68"></script>
-<script src="logo/strings.js?v=68"></script>
-<script src="logo/preload.js?v=68"></script>
-<script src="logo/b-variant.js?v=68"></script>
+<script src="logo/hero-logo-data.js?v=69"></script>
+<script src="logo/pose.js?v=69"></script>
+<script src="logo/sound.js?v=69"></script>
+<script src="logo/bees.js?v=69"></script>
+<script src="logo/hero-logo.js?v=69"></script>
+<script src="logo/story.js?v=69"></script>
+<script src="logo/common.js?v=69"></script>
+<script src="logo/song.js?v=69"></script>
+<script src="logo/strings.js?v=69"></script>
+<script src="logo/preload.js?v=69"></script>
+<script src="logo/b-variant.js?v=69"></script>
 <script>
 (() => {
   'use strict';
