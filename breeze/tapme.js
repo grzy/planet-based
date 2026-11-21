@@ -216,8 +216,13 @@ window.TM_LOCK = window.TM_LOCK || 'tap-note-arrow';
         if (B.avoid.some(o => b.l < o.r + 8 && b.r > o.l - 8 && b.t < o.b + 8 && b.b > o.t - 8)) return false;
         const nx = Math.max(b.l, Math.min(cx, b.r)), ny = Math.max(b.t, Math.min(cy, b.b)); return Math.hypot(nx - cx, ny - cy) > R + 14; };
       const arc = (x, sign) => cy + sign * Math.sqrt(Math.max(0, R * R - (x - cx) * (x - cx)));
-      // 11-19 (Ivy): above the sun's left shoulder, between it and the logo, well clear of the top rays, the arrow down at it
-      for (const f of [.45, .3, .6, .15]) { const tipX = cx - R * f, x = tipX - down.w + 17 * k, y = arc(tipX, -1) - down.h - 22; if (clear(x, y, down.w, down.h)) return { H: down.H, x, y, w: down.w }; }
+      // 11-21 (Ivy): no arrow on phones, just the words, centred by ink in the open green above the sun's upper-left:
+      // across, between the margin and the sun's centre; down, between the logo and the lowest spot clear of the rays
+      { const plain = mk(bang ? 'tap!' : 'tap\u2009\u266a'), lg = document.querySelector('.hero .mark .pb-logo');
+        const L0 = B.cols && B.cols.length ? Math.min(...B.cols.map(c => c.l)) : 20, x = Math.max(10, (L0 + cx) / 2 - plain.w / 2);
+        const lr = lg ? lg.getBoundingClientRect() : null, Lb = layer.getBoundingClientRect(), top = lr ? lr.bottom - Lb.top + 12 : 20;
+        let yMax = null; for (let y = cy - plain.h; y > top; y -= 2) if (clear(x, y, plain.w, plain.h)) { yMax = y; break; }
+        if (yMax != null) { const y = Math.max(top, (top + yMax) / 2); if (clear(x, y, plain.w, plain.h)) return { H: plain.H, x, y, w: plain.w }; return { H: plain.H, x, y: yMax, w: plain.w }; } }
       // else under the sun, left of the dahlia, the arrow up at it
       for (const f of [.4, .55, .25, .7]) { const tipX = cx - R * f, x = tipX - 14 * k, y = cy + R + 10; if (clear(x, y, up.w, up.h)) return { H: up.H, x, y, w: up.w }; }
       // right of the sun, between the peony and the dahlia, the curved arrow back into it
